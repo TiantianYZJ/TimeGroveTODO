@@ -1,0 +1,19 @@
+/* 基准字体尺寸 */
+page {
+  font-size: 28rpx;
+}
+
+/* 响应式容器 */
+.container {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 30rpx;
+}
+
+/* 卡片通用样式 */
+.card-style {
+  margin: 20rpx;
+  padding: 30rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 8rpx 40rpx rgba(0,0,0,0.1);
+}

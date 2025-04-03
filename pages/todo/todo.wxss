@@ -1,0 +1,85 @@
+/* 新增头部样式 */
+.header {
+  padding: 40rpx 30rpx;
+  background: #ffffff;
+  /* box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1); */
+}
+
+.title {
+  font-size: 44rpx;
+  font-weight: 600;
+  color: #2d3436;
+}
+
+/* 卡片式列表项 */
+.todo-item {
+  margin: 20rpx 30rpx;
+  padding: 30rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  position: relative; /* 新增定位上下文 */
+  padding-right: 160rpx; /* 为按钮预留空间 */
+}
+
+/* 修改删除按钮样式 */
+.todo-item button[type="warn"] {
+  position: absolute;
+  right: 20rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  width: 120rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 26rpx;
+}
+
+/* 浮动按钮 */
+.fab-container {
+  position: fixed;
+  right: 40rpx;
+  bottom: 40rpx;
+  z-index: 999;
+}
+
+.fab {
+  width: 100rpx;
+  height: 100rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #00b26a;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.2);
+}
+
+.fab-icon {
+  /* 精准居中 */
+  color: white;
+  display: flex;
+  font-size: 48rpx;
+  transform: translateY(-2rpx); /* 视觉居中微调 */
+  margin: 0;
+}
+
+.container {
+  padding: 20rpx;
+}
+
+.todo-list {
+  border-top: 1rpx solid #eee;
+}
+
+.todo-text {
+  flex: 1;
+  margin: 0 20rpx;
+  font-size: 32rpx;
+}
+
+.completed .todo-text {
+  color: #999;
+  text-decoration: line-through;
+}
+

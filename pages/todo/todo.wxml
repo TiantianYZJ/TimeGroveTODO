@@ -1,0 +1,39 @@
+<!-- 顶部新增导航栏 -->
+<view class="header">
+  <text class="title">我的待办</text>
+</view>
+
+<view class="container">
+  <!-- <view class="input-section">
+    <input 
+      value="{{inputValue}}" 
+      bindinput="onInput" 
+      placeholder="请输入待办事项"
+      class="input"
+    />
+    <button type="primary" bindtap="addTodo" class="add-btn">添加</button>
+  </view> -->
+
+  <view class="todo-list">
+    <view 
+      wx:for="{{todos}}" 
+      wx:key="index" 
+      class="todo-item {{item.completed ? 'completed' : ''}}"
+    >
+      <checkbox checked="{{item.completed}}" bindtap="toggleTodo" data-index="{{index}}"/>
+      <text class="todo-text">{{item.text}}</text>
+      <button 
+        type="warn" 
+        size="mini" 
+        bindtap="deleteTodo" 
+        data-index="{{index}}">删除</button>
+    </view>
+  </view>
+</view>
+
+<!-- 修改浮动按钮部分 -->
+<view class="fab-container">
+  <button class="fab" bindtap="navigateToAdd" style="width: 100rpx; display: flex; box-sizing: border-box">
+    <text class="fab-icon">+</text>
+  </button>
+</view>
