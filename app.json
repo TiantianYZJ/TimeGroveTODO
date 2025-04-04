@@ -1,12 +1,35 @@
 {
+  "usingComponents": {
+    "van-calendar": "@vant/weapp/calendar/index"
+  },
   "pages": [
     "pages/todo/todo",
-    "pages/add-todo/add-todo"
+    "pages/add-todo/add-todo",
+    "pages/stats/stats",
+    "pages/todo-detail/todo-detail"
   ],
   "window": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "Weixin",
+    "navigationBarTitleText": "时光绿径待办",
     "navigationBarBackgroundColor": "#ffffff"
+  },
+  "tabBar": {
+    "color": "#666",
+    "selectedColor": "#00b26a",
+    "list": [
+      {
+        "pagePath": "pages/todo/todo",
+        "text": "待办",
+        "iconPath": "images/todo.png",
+        "selectedIconPath": "images/todo-active.png"
+      },
+      {
+        "pagePath": "pages/stats/stats",
+        "text": "统计",
+        "iconPath": "images/stats.png",
+        "selectedIconPath": "images/stats-active.png"
+      }
+    ]
   },
   "style": "v2",
   "componentFramework": "glass-easel",

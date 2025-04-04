@@ -13,27 +13,35 @@
 
 /* 卡片式列表项 */
 .todo-item {
-  margin: 20rpx 30rpx;
-  padding: 30rpx;
+  margin: 20rpx 20rpx;
+  padding: 30rpx 90rpx 30rpx 30rpx;
   background: #fff;
   border-radius: 16rpx;
   box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
-  position: relative; /* 新增定位上下文 */
-  padding-right: 160rpx; /* 为按钮预留空间 */
+  transition: all 0.3s ease, background-color 0.5s ease; /* 新增背景色过渡 */
+  position: relative;
+  display: flex; /* 新增flex布局 */
 }
 
-/* 修改删除按钮样式 */
-.todo-item button[type="warn"] {
+/* 新增checkbox样式 */
+checkbox {
+  flex-shrink: 0; /* 禁止缩放 */
+  margin-right: 20rpx; /* 与内容间距 */
+}
+
+.todo-item .delete-icon {
   position: absolute;
-  right: 20rpx;
+  right: 25rpx;
   top: 50%;
   transform: translateY(-50%);
-  margin: 0;
-  width: 120rpx;
-  height: 60rpx;
-  line-height: 60rpx;
-  font-size: 26rpx;
+  width: 40rpx;
+  height: 40rpx;
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+.todo-item .delete-icon:active {
+  opacity: 0.6;
 }
 
 /* 浮动按钮 */
@@ -59,8 +67,8 @@
   /* 精准居中 */
   color: white;
   display: flex;
-  font-size: 48rpx;
-  transform: translateY(-2rpx); /* 视觉居中微调 */
+  font-size: 60rpx;
+  transform: translateY(-4rpx); /* 视觉居中微调 */
   margin: 0;
 }
 
@@ -72,10 +80,41 @@
   border-top: 1rpx solid #eee;
 }
 
+.todo-content {
+  flex: 1;
+  margin: 0 0;
+}
+
+.todo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+}
+
 .todo-text {
   flex: 1;
-  margin: 0 20rpx;
-  font-size: 32rpx;
+  margin-right: 20rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.todo-date {
+  font-size: 26rpx;
+  color: #636e72;
+}
+
+.todo-remarks {
+  font-size: 28rpx;
+  color: #999;
+  line-height: 1.0;
+}
+
+/* 修改完成状态样式 */
+.completed {
+  background: #c7edcc !important; /* 浅绿色背景 */
+  box-shadow: 0 4rpx 12rpx rgba(116, 184, 123, 0.2); /* 调整阴影颜色 */
 }
 
 .completed .todo-text {
@@ -83,3 +122,34 @@
   text-decoration: line-through;
 }
 
+
+/* 新增动画效果 */
+@keyframes slideIn {
+  from { transform: translateY(20rpx); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.8); opacity: 0; }
+}
+
+.add-animation {
+  animation: slideIn 0.3s ease forwards;
+}
+
+.remove-animation {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+.todo-item {
+  overflow: hidden; /* 新增 */
+  position: relative;
+}
+
+.swipe-content {
+  width: 100%;
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+}

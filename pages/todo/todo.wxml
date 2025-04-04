@@ -1,32 +1,35 @@
 <!-- 顶部新增导航栏 -->
 <view class="header">
-  <text class="title">我的待办</text>
+  <text class="title">我的待办（{{todos.length}}）</text>
 </view>
 
 <view class="container">
-  <!-- <view class="input-section">
-    <input 
-      value="{{inputValue}}" 
-      bindinput="onInput" 
-      placeholder="请输入待办事项"
-      class="input"
-    />
-    <button type="primary" bindtap="addTodo" class="add-btn">添加</button>
-  </view> -->
-
   <view class="todo-list">
     <view 
-      wx:for="{{todos}}" 
-      wx:key="index" 
-      class="todo-item {{item.completed ? 'completed' : ''}}"
+      wx:for="{{todos}}"
+      wx:key="index"
+      class="todo-item {{item.completed ? 'completed' : ''}} {{item._animate || ''}}"
+      data-index="{{index}}"
     >
-      <checkbox checked="{{item.completed}}" bindtap="toggleTodo" data-index="{{index}}"/>
-      <text class="todo-text">{{item.text}}</text>
-      <button 
-        type="warn" 
-        size="mini" 
-        bindtap="deleteTodo" 
-        data-index="{{index}}">删除</button>
+      <view class="swipe-content">
+        <checkbox checked="{{item.completed}}" bindtap="toggleTodo" data-index="{{index}}"/>
+        <view class="todo-content" 
+          data-index="{{index}}"
+          bindtap="navigateToDetail"
+        >
+          <view class="todo-header">
+            <text class="todo-text" style="max-width: 70%">{{item.text}}</text>
+            <text class="todo-date" wx:if="{{item.dueDate}}">{{item.dueDate}}截止</text>
+          </view>
+          <text class="todo-remarks" wx:if="{{item.remarks}}">{{item.remarks}}</text>
+        </view>
+        <image 
+          src="/images/delete.png" 
+          class="delete-icon" 
+          bindtap="deleteTodo" 
+          data-index="{{index}}"
+        />
+      </view>
     </view>
   </view>
 </view>

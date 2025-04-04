@@ -1,16 +1,43 @@
 <view class="container">
-  <view class="card">
-    <textarea 
-      auto-height 
-      placeholder="请输入待办内容" 
-      bindinput="onInput" 
-      value="{{inputValue}}"
-      class="input"
-     style="width: 552rpx; display: block; box-sizing: border-box"></textarea>
-    
-    <view class="button-group">
-      <button class="cancel-btn" bindtap="goBack">取消</button>
-      <button class="confirm-btn" bindtap="addTodo">确认添加</button>
+  <view class="form-container">
+    <!-- 问题式表单项 -->
+    <view class="form-item">
+      <text class="question-title">待办事项内容</text>
+      <input style="height: 100rpx; display: block; box-sizing: border-box"
+        type="text"
+        placeholder="请输入待办内容（必填）"
+        bindinput="onInput"
+        value="{{inputValue}}"
+        class="input-field"
+      />
+    </view>
+
+    <view class="form-item">
+      <text class="question-title">截止日期</text>
+      <picker 
+        mode="date" 
+        start="{{startDate}}" 
+        end="{{endDate}}"
+        bindchange="bindDateChange"
+      >
+        <view class="picker-field">{{dueDate || '请选择截止日期'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="question-title">补充说明（选填）</text>
+      <textarea style="width: 667rpx; display: block; box-sizing: border-box; left: 0rpx; top: -17rpx; position: relative" 
+        auto-height 
+        placeholder="可在此添加备注信息" 
+        bindinput="onRemarksInput" 
+        value="{{remarks}}"
+        class="input-field"
+      />
+    </view>
+
+    <view class="form-actions vertical">
+      <button class="confirm-btn" bindtap="addTodo">完成</button>
+      <button class="cancel-btn" bindtap="goBack">返回</button>
     </view>
   </view>
 </view>
