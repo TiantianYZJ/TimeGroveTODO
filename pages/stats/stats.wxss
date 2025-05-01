@@ -29,11 +29,19 @@
   height: 600rpx;
 }
 
+/* 新增图表样式 */
+.custom-chart {
+  background: #fff;
+  padding: 40rpx;
+  border-radius: 20rpx;
+}
+
 /* 新增仪表盘样式 */
 .dashboard {
   display: flex;
   flex-direction: column;
   gap: 40rpx;
+  
 }
 
 .stats-grid {
@@ -100,6 +108,7 @@
   margin-bottom: 20rpx;
   display: block;
 }
+
 /* 修正横向填充样式 */
 .bar.completed {
   width: 0; /* 初始宽度 */
@@ -116,7 +125,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 24rpx;
-  color: #fff;
+  color: #515151;
 }
 
 .bar {
@@ -170,5 +179,34 @@
 .empty-tip {
   color: #999;
   text-align: center;
-  padding: 20rpx;
+}
+
+/* 在文件末尾添加 */
+.location-label {
+  position: absolute;
+  left: 20rpx;
+  color: #515151;
+  font-size: 24rpx;
+  line-height: 60rpx;
+  z-index: 2;
+}
+
+.bar-container {
+  position: relative;
+  height: 60rpx;
+  margin: 20rpx 0;
+}
+
+/* 在地图容器下方添加 */
+#locationMap {
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.1);
+  margin-top: 20rpx;
+}
+
+#shareCanvas {
+  position: absolute;
+  top: -9999rpx;
+  left: -9999rpx;
+  width: 600rpx;
+  height: 1000rpx;
 }

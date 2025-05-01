@@ -4,5 +4,39 @@
   "setting": {
     "compileHotReLoad": true
   },
-  "libVersion": "trial"
+  "libVersion": "trial",
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "pages/acknowledge/acknowledge",
+          "pathName": "pages/acknowledge/acknowledge",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/changelog/changelog",
+          "pathName": "pages/changelog/changelog",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/notice/notice",
+          "pathName": "pages/notice/notice",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/calendar/calendar",
+          "pathName": "pages/calendar/calendar",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        }
+      ]
+    }
+  }
 }

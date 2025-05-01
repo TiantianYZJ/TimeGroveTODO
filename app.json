@@ -1,17 +1,23 @@
 {
-  "usingComponents": {
-    "van-calendar": "@vant/weapp/calendar/index"
-  },
+  "usingComponents": {},
   "pages": [
     "pages/todo/todo",
-    "pages/add-todo/add-todo",
+    "pages/calendar/calendar",
     "pages/stats/stats",
-    "pages/todo-detail/todo-detail"
+    "pages/more/more",
+    "pages/add-todo/add-todo",
+    "pages/todo-detail/todo-detail",
+    "pages/datamanage/datamanage",
+    "pages/changelog/changelog",
+    "pages/day-todos/day-todos",
+    "pages/user-center/user-center",
+    "pages/notice/notice",
+    "pages/acknowledge/acknowledge"
   ],
   "window": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "时光绿径待办",
-    "navigationBarBackgroundColor": "#ffffff"
+    "navigationBarBackgroundColor": "#e3f5eb"
   },
   "tabBar": {
     "color": "#666",
@@ -24,15 +30,36 @@
         "selectedIconPath": "images/todo-active.png"
       },
       {
+        "pagePath": "pages/calendar/calendar",
+        "text": "日历",
+        "iconPath": "images/calendar.png",
+        "selectedIconPath": "images/calendar-active.png"
+      },
+      {
         "pagePath": "pages/stats/stats",
         "text": "统计",
         "iconPath": "images/stats.png",
         "selectedIconPath": "images/stats-active.png"
+      },
+      {
+        "pagePath": "pages/more/more",
+        "text": "更多",
+        "iconPath": "images/more.png",
+        "selectedIconPath": "images/more-active.png"
       }
     ]
   },
-  "style": "v2",
-  "componentFramework": "glass-easel",
   "sitemapLocation": "sitemap.json",
-  "lazyCodeLoading": "requiredComponents"
+  "lazyCodeLoading": "requiredComponents",
+
+  "permission": {
+    "scope.userLocation": {
+      "desc": "需要获取您的位置以选择待办地点"
+    }
+  },
+  
+  "requiredPrivateInfos": ["chooseLocation"],
+  "useExtendedLib": {
+    "weui": true
+  }
 }

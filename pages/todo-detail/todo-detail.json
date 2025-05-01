@@ -1,4 +1,6 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "t-fab": "tdesign-miniprogram/fab/fab"
+  },
   "navigationBarTitleText": "待办详情"
 }

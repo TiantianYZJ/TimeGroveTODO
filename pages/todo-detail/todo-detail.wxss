@@ -1,5 +1,7 @@
 .container {
   padding: 40rpx;
+  padding-top: 25rpx;
+  padding-bottom: 100rpx;
   background: #ffffff;
   min-height: 100vh;
 }
@@ -8,7 +10,23 @@
   font-size: 48rpx;
   font-weight: 600;
   margin-bottom: 60rpx;
+  padding-right: 170rpx;
   color: #333;
+  word-break: break-all; /* 允许长单词换行 */
+  display: -webkit-box; /* 多行截断方案 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.todo-title-share {
+  font-size: 48rpx;
+  font-weight: 600;
+  margin-bottom: 60rpx;
+  color: #333;
+  word-break: break-all; /* 允许长单词换行 */
+  display: -webkit-box; /* 多行截断方案 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .date-info {
@@ -19,15 +37,23 @@
   border-radius: 8rpx;
 }
 
-.label {
-  color: #666;
-  font-size: 30rpx;
-  margin-right: 20rpx;
+/* 在现有样式后添加 */
+.map-container {
+  margin-top: 20rpx;
+  border-radius: 8rpx;
+  overflow: hidden;
 }
 
-.value {
-  color: #333;
-  font-size: 34rpx;
+/* 调整位置卡片间距 */
+.location-info {
+  margin-top: 20rpx;
+  padding: 30rpx;
+  background: #f9f9f9;
+  border-radius: 8rpx;
+  /* 新增 */
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
 }
 
 .remarks {
@@ -35,9 +61,28 @@
   padding: 30rpx;
   background: #f9f9f9;
   border-radius: 8rpx;
-  /* 新增多行对齐样式 */
   display: flex;
   align-items: flex-start;
+  /* 新增垂直对齐方式 */
+  align-items: baseline; /* 修改这里 */
+}
+
+.label {
+  color: #666;
+  font-size: 30rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+  /* 新增垂直对齐 */
+  line-height: 34rpx; /* 与value字体大小一致 */
+}
+
+.value {
+  color: #333;
+  font-size: 34rpx;
+  word-break: break-all;
+  line-height: 1.6;
+  /* 新增首行缩进修正 */
+  text-indent: 0; /* 确保没有缩进 */
 }
 
 .label {
@@ -46,40 +91,6 @@
   margin-right: 20rpx;
   /* 保持标签宽度固定 */
   flex-shrink: 0;
-}
-
-.value {
-  color: #333;
-  font-size: 34rpx;
-  /* 允许自动换行 */
-  word-break: break-all;
-  line-height: 1.6;
-}
-
-.calendar-section {
-  margin-top: 50rpx;
-}
-
-.calendar-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 30rpx;
-  background: #f0faf5;
-  border-radius: 8rpx;
-  color: #00b26a;
-}
-
-.calendar-btn text {
-  margin-left: 15rpx;
-  font-size: 34rpx;
-}
-
-/* 保留原有 van-calendar 组件样式 */
-.van-calendar__selected-day,
-.van-calendar__day--end.van-calendar__day--selected,
-.van-calendar__day--start.van-calendar__day--selected {
-  background: #00b26a !important;
 }
 
 /* 新增操作栏样式 */
@@ -98,4 +109,47 @@
   padding: 15rpx;
   background: rgba(0,0,0,0.05);
   border-radius: 50%;
+}
+
+.address {
+  display: block;
+  font-size: 28rpx;
+  color: #666; /* 调整为与备注更接近的颜色 */
+  margin-top: 10rpx;
+  line-height: 1.4;
+}
+
+/* 在.map-container样式后添加 */
+.nav-btn {
+  width: 100%;
+  margin: 25rpx 0;
+  padding: 0 0;
+  background: #00b26a;
+  color: white;
+  font-size: 32rpx;
+}
+
+/* 新增分享相关样式 */
+.share-footer {
+  background-color: white;
+  position: fixed;
+  bottom: 10rpx;
+  width: 100%;
+  padding: 40rpx;
+  text-align: center;
+  margin-left: -40rpx;
+}
+
+.share-tip {
+  display: block;
+  color: #666;
+  font-size: 28rpx;
+  margin-bottom: 30rpx;
+}
+
+.add-btn {
+  background: #00b26a;
+  color: white;
+  border-radius: 50rpx;
+  width: 90%;
 }

@@ -1,0 +1,10 @@
+<view class="container">
+  <t-cell-group theme="card">
+    <t-cell title="数据管理" url="/pages/datamanage/datamanage" leftIcon="/images/data.png" hover arrow />
+    <!-- <t-cell title="订阅管理" url="/pages/datamanage/datamanage" leftIcon="/images/subscribe.png" hover arrow /> -->
+    <t-cell title="更新日志" url="/pages/changelog/changelog" leftIcon="/images/changelog.png" hover arrow />
+    <t-cell title="鸣谢" url="/pages/acknowledge/acknowledge" leftIcon="/images/service.png" hover arrow />
+  </t-cell-group>
+</view>
+
+<t-fab icon="service" button-props="{{serviceFab}}" />

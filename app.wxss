@@ -1,13 +1,6 @@
-/* 基准字体尺寸 */
 page {
   font-size: 28rpx;
-}
-
-/* 响应式容器 */
-.container {
-  box-sizing: border-box;
-  min-height: 100rpx;
-  padding: 30rpx;
+  background: #e3f5eb;
 }
 
 /* 卡片通用样式 */
@@ -16,4 +9,11 @@ page {
   padding: 30rpx;
   border-radius: 20rpx;
   box-shadow: 0 8rpx 40rpx rgba(0,0,0,0.1);
+  background: #fff;
+}
+
+page {
+  --primary-color: #00b26a;
+  --secondary-color: #f0faf5;
+  --card-shadow: 0 8rpx 40rpx rgba(0,0,0,0.1);
 }

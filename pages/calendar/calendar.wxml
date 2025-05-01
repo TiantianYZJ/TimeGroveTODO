@@ -1,0 +1,43 @@
+<view class="card-style">
+  <t-calendar
+    title="日历视图"
+    use-popup="{{false}}"
+    switch-mode="year-month"
+    minDate="{{minDate}}"
+    maxDate="{{maxDate}}"
+    format="{{format}}"
+    value="{{today}}"
+    bind:select="handleConfirm"
+  />
+</view>
+<view class="todo-list">
+  <t-swipe-cell 
+    class="todo-item {{item._animate || ''}}"
+    wx:for="{{selectedTodos}}"
+    wx:key="index"
+    data-index="{{index}}"
+  >
+    <t-cell
+      class="{{item.completed ? 'completed' : ''}}"
+      title="{{item.text}}"
+      description="{{item.remarks}}"
+      bordered="{{false}}"
+      custom-style="width:100%"
+      data-index="{{index}}"
+    >
+      <!-- bindtap="navigateToDetail" -->
+      <!-- <view slot="right-icon">
+        <checkbox 
+          checked="{{item.completed}}" 
+          catchtap="toggleTodo" 
+          data-index="{{index}}"
+        />
+      </view> -->
+    </t-cell>
+
+    <!-- <view slot="right" class="btn-wrapper">
+      <view class="btn edit-btn" data-index="{{index}}" bindtap="handleSwipeAction" data-type="edit">编辑</view>
+      <view class="btn delete-btn" data-index="{{index}}" bindtap="handleSwipeAction" data-type="delete">删除</view>
+    </view> -->
+  </t-swipe-cell>
+</view>

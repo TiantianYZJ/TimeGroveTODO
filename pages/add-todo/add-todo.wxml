@@ -3,41 +3,74 @@
     <!-- 问题式表单项 -->
     <view class="form-item">
       <text class="question-title">待办事项内容</text>
-      <input style="height: 100rpx; display: block; box-sizing: border-box"
+      <!-- <input style="height: 100rpx; display: block; box-sizing: border-box"
         type="text"
         placeholder="请输入待办内容（必填）"
         bindinput="onInput"
         value="{{inputValue}}"
         class="input-field"
+      /> -->
+      <t-input 
+        style="--td-input-bg-color: #f8f8f8" 
+        placeholder="请输入待办内容" 
+        value="{{inputValue}}" 
+        borderless 
+        bind:change="handleInputChange"
+        data-field="inputValue"
       />
     </view>
 
+    <!-- 替换原有日期选择器 -->
     <view class="form-item">
-      <text class="question-title">截止日期</text>
-      <picker 
-        mode="date" 
-        start="{{startDate}}" 
-        end="{{endDate}}"
-        bindchange="bindDateChange"
-      >
-        <view class="picker-field">{{dueDate || '请选择截止日期'}}</view>
-      </picker>
+      <text class="question-title">日期</text>
+      <view class="picker-field" bindtap="showCalendar">
+        <text>{{setDate || '请选择日期'}}</text>
+        <t-icon name="calendar"></t-icon>
+      </view>
+    </view>
+
+    <t-calendar
+      id="calendar"
+      value="{{value}}"
+      visible="{{showCalendar}}"
+      min-date="{{minDate}}"
+      max-date="{{maxDate}}"
+      format="{{format}}"
+      confirm-btn="确定"
+      bind:confirm="handleCalendarConfirm"
+      bind:close="handleCalendarClose"
+    />
+
+    <view class="form-item">
+      <text class="question-title">位置（选填）</text>
+      <view class="picker-field" bindtap="chooseLocation">
+        {{location ? location.name + ' - ' + location.address : '点击选择位置'}}
+      </view>
     </view>
 
     <view class="form-item">
-      <text class="question-title">补充说明（选填）</text>
-      <textarea style="width: 667rpx; display: block; box-sizing: border-box; left: 0rpx; top: -17rpx; position: relative" 
+      <text class="question-title">备注（选填）</text>
+      <!-- <textarea style="width: 667rpx; display: block; box-sizing: border-box; top: -17rpx; position: relative" 
         auto-height 
         placeholder="可在此添加备注信息" 
         bindinput="onRemarksInput" 
         value="{{remarks}}"
         class="input-field"
+      /> -->
+      <t-textarea
+        placeholder="可在此添加备注信息"
+        value="{{remarks}}"
+        bind:change="handleRemarksChange"
+        bordered="{{false}}"
+        maxlength="999"
+        disableDefaultPadding="{{true}}"
+        indicator
+        style="--td-textarea-background-color: #f8f8f8"
       />
     </view>
 
     <view class="form-actions vertical">
       <button class="confirm-btn" bindtap="addTodo">完成</button>
-      <button class="cancel-btn" bindtap="goBack">返回</button>
     </view>
   </view>
 </view>

@@ -1,0 +1,21 @@
+<view class="container">
+  <view 
+    wx:for="{{contributors}}" 
+    wx:key="index" 
+    class="contributor-card"
+  >
+    <image src="{{item.avatar}}" class="contributor-avatar" />
+    
+    <view class="contributor-info">
+      <text class="contributor-name">{{item.name}}</text>
+      
+      <view class="contribution-tags">
+        <text 
+          wx:for="{{item.contributions}}" 
+          wx:key="*this" 
+          class="contribution-tag"
+        >{{item}}</text>
+      </view>
+    </view>
+  </view>
+</view>

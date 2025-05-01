@@ -10,6 +10,10 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@vant/weapp": "^1.11.7"
+    "@vant/weapp": "^1.11.7",
+    "dayjs": "^1.11.13",
+    "echarts-for-weixin": "^1.0.2",
+    "tdesign-miniprogram": "^1.8.8",
+    "weapp-qrcode": "^1.0.0"
   }
 }

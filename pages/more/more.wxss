@@ -1,0 +1,8 @@
+.container {
+  padding-top: 20rpx;
+  min-height: 100vh;
+}
+
+.t-cell-group {
+  box-shadow: 0 8rpx 40rpx rgba(0,0,0,0.1);
+}

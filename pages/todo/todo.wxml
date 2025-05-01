@@ -1,42 +1,84 @@
-<!-- 顶部新增导航栏 -->
+<!-- 顶部导航栏 -->
 <view class="header">
   <text class="title">我的待办（{{todos.length}}）</text>
+  <image 
+    src="../../images/clear.png" 
+    class="clear-btn" 
+    bindtap="showClearConfirm"
+    wx:if="{{todos.length > 0}}"
+  />
 </view>
 
-<view class="container">
-  <view class="todo-list">
-    <view 
-      wx:for="{{todos}}"
-      wx:key="index"
-      class="todo-item {{item.completed ? 'completed' : ''}} {{item._animate || ''}}"
-      data-index="{{index}}"
-    >
-      <view class="swipe-content">
-        <checkbox checked="{{item.completed}}" bindtap="toggleTodo" data-index="{{index}}"/>
-        <view class="todo-content" 
-          data-index="{{index}}"
-          bindtap="navigateToDetail"
-        >
-          <view class="todo-header">
-            <text class="todo-text" style="max-width: 70%">{{item.text}}</text>
-            <text class="todo-date" wx:if="{{item.dueDate}}">{{item.dueDate}}截止</text>
-          </view>
-          <text class="todo-remarks" wx:if="{{item.remarks}}">{{item.remarks}}</text>
-        </view>
-        <image 
-          src="/images/delete.png" 
-          class="delete-icon" 
-          bindtap="deleteTodo" 
-          data-index="{{index}}"
-        />
-      </view>
+<view class="custom-notice" bindtap="navigateToNotice">
+  <view class="notice-content">
+    <text class="notice-icon" >📢</text>
+    <text class="notice-text">{{latestNoticeTitle}}</text>
+    <view class="notice-action" catchtap="showLatestNotice">
+      <text class="action-text">详情</text>
+      <image src="/images/arrow-right.png" class="action-icon" />
     </view>
   </view>
 </view>
 
-<!-- 修改浮动按钮部分 -->
-<view class="fab-container">
-  <button class="fab" bindtap="navigateToAdd" style="width: 100rpx; display: flex; box-sizing: border-box">
-    <text class="fab-icon">+</text>
-  </button>
+<view class="container">
+  <view class="todo-list">
+    <t-swipe-cell 
+      class="todo-item {{item._animate || ''}}"
+      wx:for="{{todos}}"
+      wx:key="index"
+      data-index="{{index}}"
+    >
+      <!-- 修改后的cell结构 -->
+      <t-cell
+        class="{{item.completed ? 'completed' : ''}}"
+        title="{{item.text}}"
+        description="{{item.remarks}}"
+        note="{{item.setDate}}"
+        bordered="{{false}}"
+        custom-style="width:100%"
+        bindtap="navigateToDetail"
+        data-index="{{index}}"
+      >
+        <view 
+          wx:if="{{item.completed}}"
+          class="completed-decorate"
+        ></view>
+        <view 
+          slot="right-icon"
+          style="position:relative;z-index:1000;background:inherit;padding-left:20rpx"
+        >
+          <checkbox 
+            slot="right-icon"
+            checked="{{item.completed}}" 
+            catchtap="toggleTodo" 
+            data-index="{{index}}"
+          />
+        </view>
+      </t-cell>
+      <!-- 修改滑动操作按钮绑定 -->
+      <view slot="right" class="btn-wrapper">
+        <view 
+          class="btn edit-btn column" 
+          data-index="{{index}}" 
+          bind:tap="handleSwipeAction" 
+          data-type="edit"
+        >
+          <t-icon class="padding-bottom" name="edit" size="32rpx"></t-icon>
+          编辑
+        </view>
+        <view 
+          class="btn delete-btn column" 
+          data-index="{{index}}" 
+          bind:tap="handleSwipeAction" 
+          data-type="delete"
+        >
+          <t-icon class="padding-bottom" name="delete" size="32rpx"></t-icon>
+          删除
+        </view>
+      </view>
+    </t-swipe-cell>
+
+  </view>
 </view>
+
+<t-fab icon="add" bind:click="navigateToAdd" draggable />

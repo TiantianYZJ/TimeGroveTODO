@@ -1,0 +1,11 @@
+<!-- 参考changelog的卡片化设计 -->
+<view class="container" bind:tap="showLatestNotice">
+  <!-- 公告卡片 -->
+  <view class="notice-card" wx:for="{{notices}}" wx:key="index">
+    <view class="notice-header">
+      <text class="notice-title">{{item.title}}</text>
+      <text class="notice-date">{{item.date}}</text>
+    </view>
+    <view class="notice-content">{{item.content}}</view>
+  </view>
+</view>

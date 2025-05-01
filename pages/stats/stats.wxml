@@ -1,37 +1,84 @@
-<view class="container card-style">
-  <!-- 数据面板结构 -->
-  <view class="dashboard">
-    <!-- 核心指标 -->
-    <view class="stats-grid">
-      <view class="metric-card">
-        <text class="metric-value">{{total}}</text>
-        <text class="metric-label">总待办</text>
-      </view>
-      <view class="metric-card accent">
-        <text class="metric-value">{{completed}}</text>
-        <text class="metric-label">已完成</text>
-      </view>
-    </view>
-  </view>
-</view>
-<view class="container card-style">
-  <!-- 可视化图表区 -->
-  <view class="visualization-section">
-    <text class="chart-title">待办完成比例</text>
-    <view class="bar-chart">
-      <view 
-        wx:for="{{categoryStats}}"
-        wx:key="category"
-        class="bar-item"
-      >
-        <!-- 修改 data-percent 的绑定方式 -->
-        <view class="bar-container" data-percent="{{item.percent}}">
-          <view 
-            class="bar completed" 
-            style="width: {{item.percent}};"
-          ></view>
+<canvas 
+  canvas-id="shareCanvas"
+  style="width: 750rpx; height: 3000rpx; position: absolute; left: -9999rpx">
+</canvas>
+
+<view class="capture-area">
+  <view class="container card-style">
+    <!-- 数据面板结构 -->
+    <view class="dashboard">
+      <!-- 核心指标 -->
+      <view class="stats-grid">
+        <view class="metric-card">
+          <text class="metric-value">{{total}}</text>
+          <text class="metric-label">总待办</text>
+        </view>
+        <view class="metric-card accent">
+          <text class="metric-value">{{completed}}</text>
+          <text class="metric-label">已完成</text>
         </view>
       </view>
     </view>
   </view>
+  <view class="container card-style">
+    <!-- 可视化图表区 -->
+    <view class="visualization-section">
+      <text class="chart-title">待办完成比例</text>
+      <view class="bar-chart">
+        <view 
+          wx:for="{{categoryStats}}"
+          wx:key="category"
+          class="bar-item"
+        >
+          <!-- 修改 data-percent 的绑定方式 -->
+          <view class="bar-container" data-percent="{{item.percent}}">
+            <view 
+              class="bar completed" 
+              style="width: {{item.percent}};"
+            ></view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  <!-- 在现有图表下方添加 -->
+  <!-- 优化后的位置分布卡片 -->
+  <view class="container card-style">
+    <view class="visualization-section">
+      <text class="chart-title">位置分布</text>
+      <view class="bar-chart">
+        <view 
+          wx:for="{{locationStats}}"
+          wx:key="name"
+          class="bar-item"
+        >
+          <view class="bar-container">
+            <view 
+              class="bar completed" 
+              style="width: {{locationTotal > 0 ? (item.count / locationTotal * 100) : 0}}%"
+            >
+              <text class="location-label">{{item.name}}（{{item.count}}）</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <text wx:if="{{!locationStats.length}}" class="empty-tip">暂无位置数据</text>
+    </view>
+  </view>
+  <view class="container card-style">
+    <view class="visualization-section">
+      <text class="chart-title">地点分布图</text>
+      <map 
+        id="locationMap"
+        style="width: 100%; height: 500rpx; overflow: hidden; border-radius: 16rpx"
+        latitude="{{mapCenter.latitude}}"
+        longitude="{{mapCenter.longitude}}"
+        markers="{{locationMarkers}}"
+        include-points="{{locationPoints}}"
+      ></map>
+      <text wx:if="{{!locationMarkers.length}}" class="empty-tip">暂无位置标记</text>
+    </view>
+  </view>
 </view>
+
+<t-fab icon="share" bind:click="generateShareImage" draggable />

@@ -1,0 +1,21 @@
+Page({
+  data: {
+    contributors: [
+      {
+        name: "wendy",
+        contributions: ["建议反馈", "功能测试", "需求分析"],
+        avatar: "https://pic1.imgdb.cn/item/6813885858cb8da5c8d638ae.jpg"
+      },
+      {
+        name: "Scarlett",
+        contributions: ["功能建议", "宣传推广"],
+        avatar: "https://pic1.imgdb.cn/item/68138acc58cb8da5c8d6397d.jpg"
+      },
+      {
+        name: "苹果大王", 
+        contributions: ["功能建议"],
+        avatar: "https://pic1.imgdb.cn/item/6813884c58cb8da5c8d638ad.jpg"
+      },
+    ]
+  }
+})
