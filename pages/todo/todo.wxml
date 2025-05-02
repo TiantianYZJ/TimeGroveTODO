@@ -20,6 +20,14 @@
   </view>
 </view>
 
+<!-- 天气卡片 -->
+<view class="weather-card card-style" wx:if="{{!isLoading && weather}}" bindtap="showWeather">
+  <view class="weather-header">
+    <text class="temperature">{{weather.temperature || '--'}}℃</text>
+    <text class="weather-title">{{weather.city || '位置获取中'}} · {{weather.text || ''}}</text>
+  </view>
+</view>
+
 <view class="container">
   <view class="todo-list">
     <t-swipe-cell 
@@ -81,4 +89,10 @@
   </view>
 </view>
 
-<t-fab icon="add" bind:click="navigateToAdd" draggable />
+<t-fab icon="add" bind:click="navigateToAdd" style="right: 32rpx; bottom: 32rpx;"/>
+<t-fab 
+  icon="microphone-1" 
+  bind:touchstart="touchStart" 
+  bind:touchend="touchEnd"
+  style="right: 32rpx; bottom: 150rpx;"
+/>

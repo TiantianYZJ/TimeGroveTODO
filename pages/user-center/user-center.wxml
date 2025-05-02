@@ -1,2 +1,9 @@
-<!--pages/user-center/user-center.wxml-->
-<text>pages/user-center/user-center.wxml</text>
+<view class="container-voice">
+  <!-- maxlength最大输入长度，设置为-1时不限制最大长度 -->
+  <textarea class="content" maxlength="-1" placeholder='等待说话' value="{{content}}" bindinput="conInput"/>
+  <!-- <view class="content">识别的内容：{{content}}</view> -->
+  <button class="btn" type="primary" bind:touchstart="touchStart" bind:touchend="touchEnd">
+    <text wx:if="{{recordState == false}}">按住说话</text>
+    <text wx:else>松开结束</text>
+  </button>
+</view>

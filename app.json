@@ -22,6 +22,7 @@
   "tabBar": {
     "color": "#666",
     "selectedColor": "#00b26a",
+    "backgroundColor": "#fff",
     "list": [
       {
         "pagePath": "pages/todo/todo",
@@ -55,6 +56,9 @@
   "permission": {
     "scope.userLocation": {
       "desc": "需要获取您的位置以选择待办地点"
+    },
+    "scope.record": {
+      "desc": "需要您的麦克风权限进行语音输入"
     }
   },
   
@@ -68,6 +72,13 @@
       "@lspriv/wx-calendar/*": [
           "./node_modules/@lspriv/wx-calendar/dist/*"
         ]
+    }
+  },
+
+  "plugins": {
+    "WechatSI": {
+      "version": "0.3.6",
+      "provider": "wx069ba97219f66d99"
     }
   }
 }

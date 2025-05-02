@@ -48,6 +48,13 @@ Page({
     // 新增：设置默认日期为今天
     const today = new Date().toISOString().split('T')[0].replace(/-/g, '-')
     this.setData({ setDate: today })
+
+    if (options.voiceText) {
+      this.setData({
+        inputValue: decodeURIComponent(options.voiceText),
+        isVoiceMode: true // 新增语音模式标识
+      });
+    }
     
     if (options.edit) { // 编辑模式
       // 新增location解析

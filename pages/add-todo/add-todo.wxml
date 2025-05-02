@@ -1,3 +1,8 @@
+<view wx:if="{{isVoiceMode}}" class="voice-tip">
+  <image src="/images/todo-active.png" class="voice-icon"/>
+  <text class="tip-text">已通过语音输入待办内容</text>
+</view>
+
 <view class="container">
   <view class="form-container">
     <!-- 问题式表单项 -->
