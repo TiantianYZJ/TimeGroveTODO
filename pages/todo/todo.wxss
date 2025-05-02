@@ -97,7 +97,7 @@
   transform: translateY(-2rpx);
 }
 .completed .t-cell__title {
-  color: #388e3c !important;
+  color: #008550 !important;
   text-decoration: line-through;
 }
 .completed-decorate {

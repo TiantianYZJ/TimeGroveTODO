@@ -19,7 +19,7 @@ Page({
     return {
       title: '我分享了一项待办：' + this.data.todo.text,
       path: sharePath,
-      imageUrl: '/images/sharelogo.jpg'
+      imageUrl: 'https://pic1.imgdb.cn/item/6814180958cb8da5c8d64852.png'
     }
   },
 

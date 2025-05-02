@@ -10,6 +10,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@lspriv/wc-plugin-lunar": "^1.0.3-alpha.0",
+    "@lspriv/wx-calendar": "^1.8.4",
     "@vant/weapp": "^1.11.7",
     "dayjs": "^1.11.13",
     "echarts-for-weixin": "^1.0.2",

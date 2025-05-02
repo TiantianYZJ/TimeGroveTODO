@@ -61,5 +61,13 @@
   "requiredPrivateInfos": ["chooseLocation"],
   "useExtendedLib": {
     "weui": true
+  },
+
+  "compilerOptions": {
+    "paths": {
+      "@lspriv/wx-calendar/*": [
+          "./node_modules/@lspriv/wx-calendar/dist/*"
+        ]
+    }
   }
 }

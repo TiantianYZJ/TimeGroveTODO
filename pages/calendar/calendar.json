@@ -3,6 +3,7 @@
     "t-calendar": "tdesign-miniprogram/calendar/calendar",
     "t-swipe-cell": "/miniprogram_npm/tdesign-miniprogram/swipe-cell/swipe-cell",
     "t-cell": "/miniprogram_npm/tdesign-miniprogram/cell/cell",
-    "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon"
+    "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon",
+    "calendar": "@lspriv/wx-calendar"
   }
 }

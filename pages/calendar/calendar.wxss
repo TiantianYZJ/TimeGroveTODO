@@ -1,13 +1,9 @@
-.card-style {
-  margin: 20rpx;
-  padding: 30rpx;
-  border-radius: 20rpx;
-  box-shadow: var(--card-shadow);
-  background: var(--td-bg-color-container, #fff);
-}
-
 .todo-list {
   padding-bottom: 10rpx;
+}
+
+.todo-text {
+  padding-left: 30rpx;
 }
 
 .delete-btn {
@@ -98,7 +94,7 @@
   transform: translateY(-2rpx);
 }
 .completed .t-cell__title {
-  color: #388e3c !important;
+  color: #008550 !important;
   text-decoration: line-through;
 }
 .completed-decorate {

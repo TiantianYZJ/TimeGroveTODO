@@ -2,7 +2,6 @@
   padding: 40rpx;
   padding-top: 25rpx;
   padding-bottom: 100rpx;
-  background: #ffffff;
   min-height: 100vh;
 }
 

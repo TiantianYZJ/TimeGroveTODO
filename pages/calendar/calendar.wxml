@@ -1,17 +1,21 @@
-<view class="card-style">
-  <t-calendar
-    title="日历视图"
-    use-popup="{{false}}"
-    switch-mode="year-month"
-    minDate="{{minDate}}"
-    maxDate="{{maxDate}}"
-    format="{{format}}"
-    value="{{today}}"
-    bind:select="handleConfirm"
+<view>
+  <calendar
+    id="calendar"
+    min-date="{{minDate}}"
+    max-date="{{maxDate}}"
+    date="{{today}}"
+    marks="{{marks}}"
+    bindload="handleLoad"
+    bindchange="handleConfirm"
+    vibrate="{{false}}"
+    style="--wc-primary: #00B26A;--wc-bg-light: #E3F5EB;--wc-checked-bg-light: #CCEDDC;--wc-dot-color-light: #00B26A"
   />
 </view>
-<view class="todo-list">
-  <t-swipe-cell 
+
+<view class="todo-list" wx:if="{{selectedDate}}">
+  <text class="todo-text">{{selectedDate}}的待办</text>
+  <block wx:for="{{selectedTodos}}" wx:key="index">
+    <t-swipe-cell 
     class="todo-item {{item._animate || ''}}"
     wx:for="{{selectedTodos}}"
     wx:key="index"
@@ -40,4 +44,5 @@
       <view class="btn delete-btn" data-index="{{index}}" bindtap="handleSwipeAction" data-type="delete">删除</view>
     </view> -->
   </t-swipe-cell>
+  </block>
 </view>
