@@ -26,6 +26,8 @@ Page({
       }
       return day;
     },
+
+    isModified: false,  // 新增修改状态标识
   },
 
   onShareAppMessage() {
@@ -75,15 +77,19 @@ Page({
   handleInputChange(e) {
     const field = e.currentTarget.dataset.field;
     this.setData({
-      [field]: e.detail.value
+      [field]: e.detail.value,
+      isModified: true
     });
+    wx.enableAlertBeforeUnload({ enable: true });
   },
 
   // 修改备注处理逻辑
   handleRemarksChange(e) {
     this.setData({
-      remarks: e.detail.value
+      remarks: e.detail.value,
+      isModified: true
     });
+    wx.enableAlertBeforeUnload({ enable: true });
   },
 
   // 新增日期选择处理
@@ -108,8 +114,9 @@ Page({
     const selectedDate = this.formatDate(new Date(e.detail.value));
     this.setData({
       setDate: selectedDate,
-      showCalendar: false
+      isModified: true
     });
+    wx.enableAlertBeforeUnload({ enable: true });
   },
   
   // 保持原有日期格式方法
@@ -145,8 +152,10 @@ Page({
             address: res.address,
             latitude: res.latitude,
             longitude: res.longitude
-          }
-        })
+          },
+          isModified: true
+        });
+        wx.enableAlertBeforeUnload({ enable: true });
       }
     })
   },
@@ -181,6 +190,10 @@ Page({
         })
         return
       }
+
+      // 保存成功后重置状态
+      this.setData({ isModified: false });
+      wx.enableAlertBeforeUnload({ enable: false });
       
       const pages = getCurrentPages()
       const prevPage = pages[pages.length - 2]

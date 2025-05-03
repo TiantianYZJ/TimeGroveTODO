@@ -1,10 +1,23 @@
-<view class="container">
-  <t-cell-group theme="card">
-    <t-cell title="数据管理" url="/pages/datamanage/datamanage" leftIcon="/images/data.png" hover arrow />
-    <!-- <t-cell title="订阅管理" url="/pages/datamanage/datamanage" leftIcon="/images/subscribe.png" hover arrow /> -->
-    <t-cell title="更新日志" url="/pages/changelog/changelog" leftIcon="/images/changelog.png" hover arrow />
-    <t-cell title="鸣谢" url="/pages/acknowledge/acknowledge" leftIcon="/images/service.png" hover arrow />
-  </t-cell-group>
+<!-- 新增用户信息栏 -->
+<view class="user-info">
+  <image 
+    class="user-avatar" 
+    src="../../images/avatar.png"
+  />
+  <view class="user-name">时光绿径用户</view>
+</view>
+
+<t-cell-group theme="card">
+  <t-cell title="数据管理" url="/pages/datamanage/datamanage" leftIcon="/images/data.png" hover arrow />
+  <!-- <t-cell title="订阅管理" url="/pages/datamanage/datamanage" leftIcon="/images/subscribe.png" hover arrow /> -->
+  <t-cell title="更新日志" url="/pages/changelog/changelog" leftIcon="/images/changelog.png" hover arrow />
+  <t-cell title="鸣谢" url="/pages/acknowledge/acknowledge" leftIcon="/images/service.png" hover arrow />
+</t-cell-group>
+
+<view class="block">
+  <t-grid column="{{4}}" hover="{{true}}" theme="card">
+    <t-grid-item t-class-image="image" text="记账本" image="/images/accounting.png" />
+  </t-grid>
 </view>
 
 <t-fab icon="service" button-props="{{serviceFab}}" />

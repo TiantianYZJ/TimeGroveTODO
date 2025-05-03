@@ -8,7 +8,7 @@
     bindload="handleLoad"
     bindchange="handleConfirm"
     vibrate="{{false}}"
-    style="--wc-primary: #00B26A;--wc-bg-light: #E3F5EB;--wc-checked-bg-light: #CCEDDC;--wc-dot-color-light: #ff8800;"
+    style="--wc-primary: #00B26A;--wc-bg-light: #E3F5EB;--wc-checked-bg-light: #CCEDDC;--wc-dot-color-light: #ff8800;--wc-annual-bg-light: #CCEDDC;"
   />
 </view>
 

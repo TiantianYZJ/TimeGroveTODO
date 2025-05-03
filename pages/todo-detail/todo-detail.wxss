@@ -130,7 +130,7 @@
 
 /* 新增分享相关样式 */
 .share-footer {
-  background-color: white;
+  background-color: #e3f5eb;
   position: fixed;
   bottom: 10rpx;
   width: 100%;

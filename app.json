@@ -55,14 +55,14 @@
 
   "permission": {
     "scope.userLocation": {
-      "desc": "需要获取您的位置以选择待办地点"
+      "desc": "需要获取您的位置以选择待办地点、获取当地天气信息"
     },
     "scope.record": {
       "desc": "需要您的麦克风权限进行语音输入"
     }
   },
   
-  "requiredPrivateInfos": ["chooseLocation"],
+  "requiredPrivateInfos": ["chooseLocation", "getLocation"],
   "useExtendedLib": {
     "weui": true
   },

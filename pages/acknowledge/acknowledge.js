@@ -26,6 +26,26 @@ Page({
         contributions: ["功能建议"],
         avatar: "https://pic1.imgdb.cn/item/6814dd7d58cb8da5c8d70635.png"
       },
-    ]
-  }
+    ],
+
+    serviceFab: {
+      openType: 'contact'
+    },
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '时光绿径待办-致谢',
+      path: '/pages/acknowledge/acknowledge',
+      imageUrl: 'https://pic1.imgdb.cn/item/6814180958cb8da5c8d64852.png'
+    }
+  },
+
+  onShareTimeline() {
+    return {
+      title: '时光绿径待办-致谢',
+      path: '/pages/acknowledge/acknowledge',
+      imageUrl: 'https://pic1.imgdb.cn/item/6814180958cb8da5c8d64852.png'
+    }
+  },
 })

@@ -13,9 +13,6 @@ Page({
 
     latestNoticeTitle: "",  // 最新公告标题
     latestNoticeContent: "", // 最新公告内容
-    navigatorProps: {
-      url: '/pages/more/more',
-    },
 
     //语音
     recordState: false, //录音状态
@@ -40,6 +37,15 @@ Page({
 
   // 页面加载时获取最新公告
   onLoad() {
+    const todos = wx.getStorageSync('todos');
+    
+    // 新增首次使用判断
+    if (!todos || todos.length === 0) {
+      this.initDefaultTodos();
+    } else {
+      this.setData({ todos });
+    }
+
     //识别语音
     this.initRecord();
     const notices = app.globalData.notices || [];
@@ -50,6 +56,72 @@ Page({
         weather: getApp().globalData.weather 
       });
     }
+
+    // 强制刷新天气数据
+    this.loadWeather();
+  },
+
+  // 新增初始化默认数据方法
+  initDefaultTodos() {
+    const defaultTodos = [
+      {
+        text: '欢迎使用时光绿径待办！',
+        setDate: new Date().toISOString().split('T')[0],
+        remarks: '您的每日任务足迹管家',
+        completed: false,
+        time: new Date().toLocaleString()
+      },
+      {
+        text: '点击右下角“+”按钮',
+        setDate: new Date().toISOString().split('T')[0],
+        remarks: '创建你的第一个待办',
+        completed: false,
+        time: new Date().toLocaleString()
+      },
+      {
+        text: '试试语音快速创建待办',
+        setDate: new Date().toISOString().split('T')[0],
+        remarks: '按下底部麦克风按钮后说话，松手结束',
+        completed: false,
+        time: new Date().toLocaleString()
+      },
+      {
+        text: '点击︎待办卡片可查看待办详情',
+        setDate: new Date().toISOString().split('T')[0],
+        remarks: `◆ 高效管理，一步到位
+✅ 待办事项支持多种附加信息，支持一键地点导航（医院/写字楼/社区一键直达）
+✅ 可视化数据看板，待办完成情况进度条+地理位置图，数据看得见
+ 
+◆ 匠心设计，持续进化
+✅ 清爽绿意界面，缓解事务焦虑
+✅ 每周迭代升级，已更新数十项实用功能（位置显示/长按复制/数据分析等）
+
+◆数据安全，保驾护航
+✅ 数据本地储存不上云，有效防止数据泄露
+✅ 数据随时导出分享，可转发分享好友
+✅ 数据支持一键恢复，重要事务永不遗漏`,
+        completed: false,
+        time: new Date().toLocaleString()
+      },
+      {
+        text: '点击右侧方框即可完成待办',
+        setDate: new Date().toISOString().split('T')[0],
+        remarks: '再次点击取消完成',
+        completed: false,
+        time: new Date().toLocaleString()
+      },
+      {
+        text: '←——————按住后滑动︎●',
+        setDate: new Date().toISOString().split('T')[0],
+        remarks: '可快速编辑、删除待办',
+        completed: false,
+        time: new Date().toLocaleString()
+      },
+    ];
+
+    this.setData({ todos: defaultTodos });
+    wx.setStorageSync('todos', defaultTodos);
+    getApp().updateCalendarCache(defaultTodos);
   },
 
   onShow() {
@@ -58,9 +130,6 @@ Page({
       todos,
       isLoading: true  // 确保初始状态为加载中
     });
-  
-    // 强制刷新天气数据
-    this.loadWeather();
     
     // 获取录音授权
     this.getRecordAuth()
@@ -85,34 +154,99 @@ Page({
   // 新增本地天气请求方法
   loadWeather() {
     const that = this;
-    wx.request({
-      url: 'https://api.seniverse.com/v3/weather/now.json',
-      data: {
-        key: weatherKey,
-        location: 'ip',
-        language: 'zh-Hans',
-        unit: 'c'
+    
+    // 新增获取位置权限判断
+    wx.getLocation({
+      type: 'wgs84',
+      success: (locationRes) => {
+        // 成功获取经纬度后发起请求
+        wx.request({
+          url: 'https://api.seniverse.com/v3/weather/now.json',
+          data: {
+            key: weatherKey,
+            // 使用获取到的经纬度
+            location: `${locationRes.latitude}:${locationRes.longitude}`,
+            language: 'zh-Hans',
+            unit: 'c'
+          },
+          success(res) {
+            if (res.data.results?.[0]?.now) {
+              const weatherData = res.data.results[0];
+              
+              // 新增日期格式化
+              const rawDate = weatherData.last_update;
+              const dateObj = new Date(rawDate);
+              const formattedDate = `${dateObj.getFullYear()}年${ 
+                (dateObj.getMonth() + 1).toString().padStart(2, '0')}月${
+                dateObj.getDate().toString().padStart(2, '0')}日 ${
+                dateObj.getHours().toString().padStart(2, '0')}:${
+                dateObj.getMinutes().toString().padStart(2, '0')}`;
+    
+              // 同时更新全局和本地数据
+              getApp().globalData.weather = {
+                city: weatherData.location.name,
+                code: weatherData.now.code,
+                text: weatherData.now.text,
+                temperature: weatherData.now.temperature,
+                last_update: formattedDate  // 使用格式化后的日期
+              };
+              
+              that.setData({ 
+                weather: getApp().globalData.weather,
+                isLoading: false
+              });
+            }
+          },
+          fail() {
+            that.setData({ isLoading: false });
+            wx.showToast({ title: '天气获取失败', icon: 'none' });
+          }
+        });
       },
-      success(res) {
-        if (res.data.results?.[0]?.now) {
-          const weatherData = res.data.results[0];
-          // 同时更新全局和本地数据
-          getApp().globalData.weather = {
-            city: weatherData.location.name,
-            code: weatherData.now.code,
-            text: weatherData.now.text,
-            temperature: weatherData.now.temperature,
-            last_update: weatherData.last_update
-          };
-          that.setData({ 
-            weather: getApp().globalData.weather,
-            isLoading: false
-          });
-        }
-      },
-      fail() {
-        that.setData({ isLoading: false });
-        wx.showToast({ title: '天气获取失败', icon: 'none' });
+      fail: (err) => {
+        console.error('位置获取失败，使用IP定位', err);
+        // 失败时回退到IP定位
+        wx.request({
+          url: 'https://api.seniverse.com/v3/weather/now.json',
+          data: {
+            key: weatherKey,
+            location: 'ip', // 保留原有IP定位作为备用方案
+            language: 'zh-Hans',
+            unit: 'c'
+          },
+          success(res) {
+            if (res.data.results?.[0]?.now) {
+              const weatherData = res.data.results[0];
+              
+              // 新增日期格式化
+              const rawDate = weatherData.last_update;
+              const dateObj = new Date(rawDate);
+              const formattedDate = `${dateObj.getFullYear()}年${ 
+                (dateObj.getMonth() + 1).toString().padStart(2, '0')}月${
+                dateObj.getDate().toString().padStart(2, '0')}日 ${
+                dateObj.getHours().toString().padStart(2, '0')}:${
+                dateObj.getMinutes().toString().padStart(2, '0')}`;
+    
+              // 同时更新全局和本地数据
+              getApp().globalData.weather = {
+                city: weatherData.location.name,
+                code: weatherData.now.code,
+                text: weatherData.now.text,
+                temperature: weatherData.now.temperature,
+                last_update: formattedDate  // 使用格式化后的日期
+              };
+              
+              that.setData({ 
+                weather: getApp().globalData.weather,
+                isLoading: false
+              });
+            }
+          },
+          fail() {
+            that.setData({ isLoading: false });
+            wx.showToast({ title: '天气获取失败', icon: 'none' });
+          }
+        });
       }
     });
   },
@@ -120,12 +254,12 @@ Page({
   showWeather() {
     wx.showModal({
       title: '实时天气信息',
-      content: `城市：${this.data.weather?.city || '未知'}
+      content: `所在城市：${this.data.weather?.city || '未知'}
 天气：${this.data.weather?.text || '未知'}
 温度：${this.data.weather?.temperature || '未知'}℃
 最后更新时间：${this.data.weather?.last_update || '未知'}
 
-注：天气信息来自心知天气`,
+心知天气提供实时天气信息支持`,
       showCancel: false,
       confirmText: "知道了"
     }) 
@@ -355,14 +489,13 @@ Page({
       if (text === '') {
         wx.showModal({
           title: '语音识别未成功',
-          content: `未能识别到有效内容，请尝试：
-      
+          content: `未能识别到有效内容。可能是您在上一轮识别为完成时开启了第二轮识别。
+若不是以上情况，请尝试：
 1. 长按麦克风按钮保持1秒以上；
 2. 在安静环境下清晰说出待办内容；
-3. 避免使用专业术语或生僻词汇；
 4. 确认手机麦克风权限已开启。
 
-也可以直接使用文字输入创建待办`,
+您也可以直接使用文字输入创建待办`,
           confirmText: '知道了',
           showCancel: false
         })
@@ -378,14 +511,13 @@ Page({
       console.error("error msg", res)
       wx.showModal({
         title: '识别服务异常',
-        content: `语音识别暂时不可用，可能因为：
-        
-1. 没有识别到文字；
-2. 网络连接不稳定；
-3. 识别服务超载；
-4. 在上一轮识别未完成的情况下开启了第二轮识别。
+        content: `未能识别到有效内容。可能是您在上一轮识别为完成时开启了第二轮识别。
+若不是以上情况，请尝试：
+1. 长按麦克风按钮保持1秒以上；
+2. 在安静环境下清晰说出待办内容；
+4. 确认手机麦克风权限已开启。
 
-建议检查网络后重试，或使用文字输入`,
+您也可以直接使用文字输入创建待办`,
         success(res) {
           if (res.confirm) {
             that.getRecordAuth() // 重新获取授权
@@ -441,7 +573,7 @@ Page({
     manager.stop();
 
     wx.showLoading({
-      title: '正在解析...'
+      title: '正在识别...'
     });
   },
 })
