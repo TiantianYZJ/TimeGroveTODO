@@ -2,6 +2,15 @@
   padding: 30rpx;
 }
 
+/* 新增顶部说明样式 */
+.intro-text {
+  font-size: 25rpx;
+  color: #666;
+  line-height: 1.0;
+  padding: 30rpx;
+  border-radius: 16rpx;
+}
+
 .contributor-card {
   background: #fff;
   margin-bottom: 20rpx;
@@ -40,7 +49,7 @@
   color: #ffffff;
   flex-wrap: wrap;
   padding: 10rpx 24rpx;
-  margin-right: 25rpx;
+  margin-right: 20rpx;
   background: linear-gradient(145deg, #00b26a 0%, #00d177 100%);
   border-radius: 50rpx;
   box-shadow: 0 4rpx 12rpx rgba(0,178,106,0.15);

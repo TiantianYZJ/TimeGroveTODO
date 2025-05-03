@@ -2,6 +2,11 @@ Page({
   data: {
     contributors: [
       {
+        name: "TiantianYZJ.（作者）",
+        contributions: ["UI设计", "代码编写", "功能测试"],
+        avatar: "https://pic1.imgdb.cn/item/6815679258cb8da5c8d71802.jpg"
+      },
+      {
         name: "wendy",
         contributions: ["建议反馈", "功能测试", "需求分析"],
         avatar: "https://pic1.imgdb.cn/item/6813885858cb8da5c8d638ae.jpg"

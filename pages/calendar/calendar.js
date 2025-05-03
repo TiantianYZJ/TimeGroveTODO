@@ -47,11 +47,6 @@ Page({
     console.log('日历加载完成', e.detail);
     this.calendar = this.selectComponent('#calendar');
     
-    // 使用setStyle方法设置样式变量
-    if(this.calendar && this.calendar.setStyle) {
-      
-    }
-    
     // 转换全局缓存为marks格式
     this.convertMarks();
     this.clearSelection();
@@ -89,22 +84,46 @@ Page({
     });
   },
 
-  handleCalendar(e) {
-    const { type } = e.currentTarget.dataset;
-    this.setData({ type, visible: true });
-  },
-
   handleConfirm(e) {
-    const { checked } = e.detail; // 获取新组件返回的日期对象
-    const currentKey = `${checked.year}-${String(checked.month).padStart(2,'0')}-${String(checked.day).padStart(2,'0')}`;
+    const { checked } = e.detail;
+    
+    // 创建标准日期对象
+    const standardDate = new Date(
+      checked.year,
+      checked.month - 1, // 月份需要-1
+      checked.day
+    );
+    
+    // 使用标准化格式方法
+    const currentKey = this.formatDate(standardDate);
 
-    // 获取并过滤待办事项
+    // 获取待办事项并去重
     const todos = wx.getStorageSync('todos') || [];
+    const uniqueTodos = new Map();
+    
     const filtered = todos.filter(todo => {
-      const todoDate = new Date(todo.setDate);
-      const todoKey = this.formatDate(todoDate);
-      return todoKey === currentKey;
+      try {
+        // 统一处理日期格式
+        const todoDate = new Date(todo.setDate);
+        const todoKey = this.formatDate(todoDate);
+        
+        // 创建唯一标识（内容+日期+备注）
+        const uniqueId = `${todo.text}|${todoKey}|${todo.remarks || ''}`;
+        
+        // 匹配日期且未重复
+        if (todoKey === currentKey && !uniqueTodos.has(uniqueId)) {
+          uniqueTodos.set(uniqueId, true);
+          return true;
+        }
+        return false;
+      } catch (e) {
+        console.error('日期解析错误:', todo.setDate);
+        return false;
+      }
     });
+
+    console.log('选中日期:', currentKey);
+    console.log('筛选后的待办事项:', filtered);
 
     this.setData({
       selectedTodos: filtered,

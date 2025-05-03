@@ -19,7 +19,7 @@
 
 .container {
   min-height: 100vh;
-  padding: 40rpx;
+  padding: 10rpx 30rpx;
 }
 
 .form-container {
@@ -29,7 +29,6 @@
 }
 
 .form-item {
-  margin-bottom: 10rpx;
   padding-bottom: 10rpx;
 }
 

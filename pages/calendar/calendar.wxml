@@ -14,8 +14,7 @@
 
 <view class="todo-list" wx:if="{{selectedDate}}">
   <text class="todo-text">{{selectedDate}}的待办</text>
-  <block wx:for="{{selectedTodos}}" wx:key="index">
-    <t-swipe-cell 
+  <t-swipe-cell 
     class="todo-item {{item._animate || ''}}"
     wx:for="{{selectedTodos}}"
     wx:key="index"
@@ -44,5 +43,4 @@
       <view class="btn delete-btn" data-index="{{index}}" bindtap="handleSwipeAction" data-type="delete">删除</view>
     </view> -->
   </t-swipe-cell>
-  </block>
 </view>

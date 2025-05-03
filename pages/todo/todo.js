@@ -10,7 +10,6 @@ Page({
   data: {
     inputValue: '',
     todos: [],
-    
 
     latestNoticeTitle: "",  // 最新公告标题
     latestNoticeContent: "", // 最新公告内容
@@ -396,7 +395,16 @@ Page({
     }
     //识别结束事件
     manager.onStop = function (res) {
-      const text = res.result;
+      var text = res.result;
+  
+      // 新增末尾标点过滤
+      if (text && text.length > 0) {
+        const lastChar = text[text.length - 1]
+        if (['。', '.', '，', ','].includes(lastChar)) {
+          text = text.slice(0, -1)
+        }
+      }
+
       that.setData({ content: text });
       wx.hideLoading();
 

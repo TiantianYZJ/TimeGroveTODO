@@ -1,6 +1,6 @@
 <view wx:if="{{isVoiceMode}}" class="voice-tip">
-  <image src="/images/todo-active.png" class="voice-icon"/>
-  <text class="tip-text">已通过语音输入待办内容</text>
+  <image src="../../images/todo-active.png" class="voice-icon"/>
+  <text class="tip-text">已通过语音输入待办内容，请继续编辑其他信息</text>
 </view>
 
 <view class="container">
@@ -8,13 +8,6 @@
     <!-- 问题式表单项 -->
     <view class="form-item">
       <text class="question-title">待办事项内容</text>
-      <!-- <input style="height: 100rpx; display: block; box-sizing: border-box"
-        type="text"
-        placeholder="请输入待办内容（必填）"
-        bindinput="onInput"
-        value="{{inputValue}}"
-        class="input-field"
-      /> -->
       <t-input 
         style="--td-input-bg-color: #f8f8f8" 
         placeholder="请输入待办内容" 
@@ -55,13 +48,6 @@
 
     <view class="form-item">
       <text class="question-title">备注（选填）</text>
-      <!-- <textarea style="width: 667rpx; display: block; box-sizing: border-box; top: -17rpx; position: relative" 
-        auto-height 
-        placeholder="可在此添加备注信息" 
-        bindinput="onRemarksInput" 
-        value="{{remarks}}"
-        class="input-field"
-      /> -->
       <t-textarea
         placeholder="可在此添加备注信息"
         value="{{remarks}}"

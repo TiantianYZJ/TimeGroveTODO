@@ -1,4 +1,11 @@
 <view class="container">
+  <text class="intro-text">他们是为本小程序的诞生和完善做出宝贵贡献的伙伴们：
+• 提供创意灵感和功能建议
+• 参与测试并反馈优化建议
+• 协助推广让更多人受益
+• 持续支持项目迭代更新
+感谢所有贡献者的智慧与热情！如果您有好的建议，欢迎通过右下角客服按钮与我们联系。</text>
+
   <view 
     wx:for="{{contributors}}" 
     wx:key="index" 
@@ -19,3 +26,5 @@
     </view>
   </view>
 </view>
+
+<t-fab icon="service" button-props="{{serviceFab}}" />
