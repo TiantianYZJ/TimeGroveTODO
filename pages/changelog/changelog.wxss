@@ -1,3 +1,7 @@
+.container {
+  padding-bottom: 10rpx;
+}
+
 /* 优化日志卡片样式 */
 .log-card {
   background: linear-gradient(145deg, #ffffff 0%, #f8faf9 100%);

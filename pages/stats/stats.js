@@ -4,7 +4,7 @@ Page({
     completed: 0,
     progress: 0,
     categoryStats: [],
-    lastUpdated: null,
+    lastUpdated: "",
     locationStats: []
   },
 
@@ -81,11 +81,8 @@ Page({
   },
 
   getLastUpdatedTime(todos) {
-    if (!todos.length) return null;
-    const sorted = [...todos].sort((a, b) => 
-      new Date(b.time) - new Date(a.time)
-    );
-    const lastDate = new Date(sorted[0].time);
+    const lastDate = new Date();
+    // 确保分钟数始终是两位数
     return `${lastDate.getMonth() + 1}月${lastDate.getDate()}日 ${lastDate.getHours()}:${lastDate.getMinutes().toString().padStart(2, '0')}`;
   },
   
@@ -143,76 +140,153 @@ Page({
     };
   },
 
+  // 在现有代码中添加生成分享图片方法
   generateShareImage() {
-    wx.showToast({ title: '正在开发，敬请期待', icon: 'none' })
-    return
-
-    wx.showLoading({ title: '生成截图中...', mask: true })
+    const that = this;
+    wx.showLoading({ title: '生成中...' });
     
-    // 获取设备信息
-    const { pixelRatio } = wx.getWindowInfo()
-    
-    // 创建截图查询
-    const query = wx.createSelectorQuery()
-    query.selectAll('.capture-area').boundingClientRect()
-    
-    query.exec(async (res) => {
-      const containers = res[0]
-      if (!containers || containers.length === 0) {
-        wx.showToast({ title: '截图区域获取失败', icon: 'error' })
-        return
+    // 新版 Canvas API
+    wx.createSelectorQuery()
+    .select('#shareCanvas')
+    .fields({ node: true, size: true })
+    .exec(async (res) => {
+      const canvas = res[0].node;
+      const ctx = canvas.getContext('2d');
+      const dpr = wx.getWindowInfo().pixelRatio;
+      function drawRoundRect(x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + width, y, x + width, y + height, radius);
+        ctx.arcTo(x + width, y + height, x, y + height, radius);
+        ctx.arcTo(x, y + height, x, y, radius);
+        ctx.arcTo(x, y, x + width, y, radius);
+        ctx.closePath();
       }
-
-      try {
-        // 创建临时canvas
-        const ctx = wx.createCanvasContext('shareCanvas')
         
-        // 遍历所有截图区域
-        let totalHeight = 0
-        const canvasWidth = 750 // 小程序标准宽度
-        
-        // 预绘制背景
-        ctx.setFillStyle('#ffffff')
-        ctx.fillRect(0, 0, canvasWidth, 3000) // 预填充足够高度
-        
-        // 绘制每个卡片区域
-        for (const container of containers) {
-          const { tempFilePath } = await wx.canvasToTempFilePath({
-            x: container.left,
-            y: container.top,
-            width: container.width,
-            height: container.height,
-            destWidth: container.width * pixelRatio,
-            destHeight: container.height * pixelRatio
-          })
-          
-          ctx.drawImage(tempFilePath, 0, totalHeight, canvasWidth, container.height)
-          totalHeight += container.height + 20 // 添加间隔
-        }
+      canvas.width = 750 * dpr;
+      canvas.height = 1000 * dpr;
+      ctx.scale(dpr, dpr);
 
-        // 生成最终图片
-        ctx.draw(true, async () => {
-          const { tempFilePath } = await wx.canvasToTempFilePath({
-            canvasId: 'shareCanvas',
-            destWidth: canvasWidth,
-            destHeight: totalHeight
-          })
+      // 新版 Canvas 绘制逻辑
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 750, 1000);
+      
+      // 添加渐变背景
+      const gradient = ctx.createLinearGradient(0, 0, 750, 0);
+      gradient.addColorStop(0, '#f0faf5');
+      gradient.addColorStop(1, '#ffffff');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 750, 180);
 
-          wx.hideLoading()
+      // 标题样式优化
+      ctx.font = 'bold 36px "PingFang SC"';
+      ctx.fillStyle = '#2d3436';
+      ctx.fillText('📊 待办统计报告', 50, 100);
+      ctx.beginPath();
+      ctx.moveTo(50, 120);
+      ctx.lineTo(220, 120);
+      ctx.strokeStyle = '#00B26A';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // 核心指标面板美化
+      ctx.beginPath();
+      drawRoundRect(40, 140, 670, 100, 16);
+      ctx.fillStyle = 'rgba(0,178,106,0.1)';
+      ctx.fill();
+      
+      ctx.font = '28px sans-serif';
+      ctx.fillStyle = '#00B26A';
+      ctx.fillText('✅ 总待办', 60, 180);
+      ctx.fillText('🎯 已完成', 280, 180);
+      ctx.fillText('📈 完成率', 500, 180);
+      
+      ctx.font = 'bold 32px sans-serif';
+      ctx.fillStyle = '#2d3436';
+      ctx.fillText(this.data.total, 60, 220);
+      ctx.fillText(this.data.completed, 280, 220); 
+      ctx.fillText(`${this.data.progress}%`, 500, 220);
+
+      // 分类统计美化（添加图标和阴影）
+      let yPos = 280;
+      ctx.font = 'bold 30px sans-serif';
+      ctx.fillStyle = '#2d3436';
+      ctx.fillText('📋 分类完成率', 50, yPos);
+      yPos += 40;
+
+      this.data.categoryStats.forEach((item, index) => {
+        // 带圆角的进度条
+        ctx.beginPath();
+        drawRoundRect(50, yPos, 650, 30, 15);
+        ctx.fillStyle = 'rgba(76,175,80,0.15)';
+        ctx.fill();
+        
+        ctx.beginPath();
+        drawRoundRect(50, yPos, 650 * (item.completed / item.total), 30, 15);
+        ctx.fillStyle = '#00B26A';
+        ctx.fill();
+        
+        // 文字添加阴影
+        ctx.shadowColor = 'rgba(0,0,0,0.1)';
+        ctx.shadowBlur = 4;
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '24px sans-serif';
+        ctx.fillText(`${item.completed}/${item.total} (${item.percent})`, 60, yPos + 20);
+        ctx.shadowBlur = 0; // 重置阴影
+        
+        yPos += 50;
+      });
+
+      // 位置分布优化（添加图标）
+      yPos += 40;
+      ctx.font = 'bold 30px sans-serif';
+      ctx.fillStyle = '#2d3436';
+      ctx.fillText('📍 高频地点', 50, yPos);
+      yPos += 40;
+
+      this.data.locationStats.slice(0,5).forEach((item, index) => {
+        // 圆形图标
+        ctx.beginPath();
+        ctx.arc(60, yPos-7, 12, 0, Math.PI * 2);
+        ctx.fillStyle = '#00B26A';
+        ctx.fill();
+        
+        ctx.fillStyle = '#666';
+        ctx.font = '28px sans-serif';
+        ctx.fillText(`${item.name}: ${item.count}次（${(item.count/this.data.locationTotal*100).toFixed(1)}%）`, 80, yPos + 4);
+        yPos += 40;
+      });
+
+      // 更新时间样式优化
+      ctx.fillStyle = '#999';
+      ctx.font = 'italic 24px sans-serif';
+      ctx.fillText(`⏰ 数据更新于：${this.data.lastUpdated}`, 50, 980);
+
+      // 生成图片
+      wx.canvasToTempFilePath({
+        canvas,
+        success: res => {
+          wx.hideLoading();
           wx.shareFileMessage({
-            filePath: tempFilePath,
-            fileName: '统计报告.png'
-          })
-        })
-      } catch (e) {
-        wx.hideLoading()
-        console.error('截图失败:', e)
-        wx.showToast({ 
-          title: '生成失败: ' + (e.errMsg || '未知错误'),
-          icon: 'none',
-          duration: 3000
-        })
-      }
-    })
+            filePath: res.tempFilePath,
+            fileName: '待办统计报告.png'
+          });
+          // 弹出分享菜单
+          wx.showShareImageMenu({
+            path: res.tempFilePath,
+            success: () => {
+              wx.shareFileMessage({
+                filePath: res.tempFilePath,
+                fileName: '待办统计报告.png'
+              });
+            }
+          });
+        },
+        fail: () => {
+          wx.hideLoading();
+          wx.showToast({ title: '生成失败', icon: 'none' });
+        }
+      });
+    });
   },
 })

@@ -18,25 +18,24 @@
 }
 
 .container {
-  min-height: 100vh;
   padding: 10rpx 30rpx;
 }
 
 .form-container {
   display: flex;
   flex-direction: column;
-  gap: 30rpx;
+  gap: 10rpx;
 }
 
 .form-item {
-  padding-bottom: 10rpx;
+  padding-bottom: 20rpx;
 }
 
 .question-title {
   display: block;
   font-size: 34rpx;
   color: #333;
-  margin-bottom: 30rpx;
+  margin-bottom: 15rpx;
   padding-left: 20rpx;
   border-left: 8rpx solid #00b26a;
 }
@@ -46,60 +45,4 @@
   background: #f8f8f8;
   border-radius: 8rpx;
   color: #666;
-}
-
-.form-actions.vertical {
-  flex-direction: column;
-  gap: 30rpx;
-  margin-top: 80rpx;
-}
-
-/* 保留原有基本样式，新增以下内容 */
-.input-field {
-  background: #f8f8f8;
-  border-radius: 8rpx;
-  padding: 30rpx;
-}
-
-.confirm-btn {
-  width: 100%;
-}
-
-.t-input,
-.t-textarea {
-  border-radius: 12rpx !important;
-  overflow: hidden;
-}
-
-.input-field {
-  width: 100%;
-  min-height: 100rpx;
-  padding: 30rpx;
-  font-size: 32rpx;
-  border-bottom: 2rpx solid rgb(66, 66, 66);
-  transition: border-color 0.3s;
-}
-
-.input-field:focus {
-  border-bottom-color: #00b26a;
-}
-
-.form-actions {
-  display: flex;
-  gap: 30rpx;
-  margin-top: 60rpx;
-}
-
-.confirm-btn {
-  flex: 1;
-  background: #00b26a;
-  color: white;
-  border-radius: 8rpx;
-}
-
-.single-line {
-  line-height: 20rpx;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }

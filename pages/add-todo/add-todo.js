@@ -61,15 +61,21 @@ Page({
     }
     
     if (options.edit) { // 编辑模式
-      // 新增location解析
-      const location = options.location ? JSON.parse(decodeURIComponent(options.location)) : null
+      // 修复位置参数解析逻辑
+      const locationParam = options.location;  // 添加默认值防止undefined
+      let parsedLocation = false;
+      try {
+        parsedLocation = JSON.parse(decodeURIComponent(locationParam));
+      } catch (e) {
+        console.error('位置参数解析失败:', e);
+      }
       
       this.setData({
         inputValue: decodeURIComponent(options.text),
         setDate: options.setDate, // 改为setDate
         setTime: options.setTime || '12:00', // 新增时间参数
         remarks: decodeURIComponent(options.remarks),
-        location, // 新增位置数据
+        location: parsedLocation, // 新增位置数据
         isEdit: true,
         editIndex: options.index
       })

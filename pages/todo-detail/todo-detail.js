@@ -38,10 +38,22 @@ Page({
 
   onLoad(options) {
     if(options.isShare === '1') {
+      console.log(options)
+
       // 被分享方直接使用传入的参数构建todo对象
       const setDate = new Date(options.setDate);
       const formattedDate = this.formatRichDate(setDate);
 
+      // 修复位置参数解析逻辑
+      const locationParam = options.location;  // 添加默认值防止undefined
+      let parsedLocation = false;
+      try {
+        parsedLocation = JSON.parse(decodeURIComponent(locationParam));
+      } catch (e) {
+        console.error('位置参数解析失败:', e);
+      }
+
+      console.log(parsedLocation)
       // 被分享方直接使用传入的参数构建todo对象
       this.setData({
         todo: {
@@ -49,7 +61,7 @@ Page({
           setDate: options.setDate, // 保持原始日期字符串
           setTime: options.setTime || '12:00', // 新增时间参数
           remarks: decodeURIComponent(options.remarks || ''),
-          location: JSON.parse(decodeURIComponent(options.location || '{}'))
+          location: parsedLocation
         },
         formattedDate, // 添加格式化后的日期
         isShare: true
@@ -164,7 +176,7 @@ Page({
   editTodo() {
     const todo = this.data.todo  // 新增这行获取当前待办数据
     wx.navigateTo({
-      url: `/pages/add-todo/add-todo?edit=1&text=${encodeURIComponent(todo.text)}&setDate=${todo.setDate}&setTime=${todo.setTime}&remarks=${encodeURIComponent(todo.remarks || '')}&index=${this.data.currentIndex}&location=${encodeURIComponent(JSON.stringify(todo.location))}`
+      url: `/pages/add-todo/add-todo?edit=1&text=${encodeURIComponent(todo.text)}&setDate=${todo.setDate}&setTime=${todo.setTime || '12:00'}&remarks=${encodeURIComponent(todo.remarks || '')}&index=${this.data.currentIndex}&location=${encodeURIComponent(JSON.stringify(todo.location))}`
     })
   },
   
@@ -209,10 +221,10 @@ Page({
 
   copyDate() {
     // 从原始数据获取标准日期格式
-    const stdDate = this.formatDate(new Date(this.data.todo.setDate))
+    const stdDate = this.formatDate(new Date(this.data.todo.setDate)) +' '+ this.data.todo.setTime
     wx.setClipboardData({
       data: stdDate,
-      success: () => wx.showToast({ title: '日期已复制' })
+      success: () => wx.showToast({ title: '时间已复制' })
     })
   },
   

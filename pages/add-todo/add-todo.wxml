@@ -71,9 +71,7 @@
         style="--td-textarea-background-color:#f8f8f8"
       />
     </view>
-
-    <view class="form-actions vertical">
-      <button class="confirm-btn" bindtap="addTodo">完成</button>
-    </view>
   </view>
 </view>
+
+<t-fab icon="check" text="完成" bindclick="addTodo"/>

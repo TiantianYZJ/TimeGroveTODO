@@ -1,6 +1,7 @@
 <canvas 
-  canvas-id="shareCanvas"
-  style="width: 750rpx; height: 3000rpx; position: absolute; left: -9999rpx">
+  type="2d" 
+  id="shareCanvas"
+  style="width: 750rpx; height: 1800rpx; position: absolute; left: -9999rpx">
 </canvas>
 
 <view class="capture-area">
@@ -81,4 +82,9 @@
   </view>
 </view>
 
-<t-fab icon="share" bind:click="generateShareImage" draggable />
+<t-fab 
+  wx:if="{{!isShare}}"
+  icon="share" 
+  bind:click="generateShareImage" 
+  text="生成报告"
+/>

@@ -30,6 +30,22 @@ Page({
     }
   },
 
+  onShareAppMessage() {
+    return {
+      title: '时光绿径待办-今天吃什么',
+      path: '/pages/eating/eating',
+      imageUrl: 'https://pic1.imgdb.cn/item/6814180958cb8da5c8d64852.png'
+    }
+  },
+  
+  onShareTimeline() {
+    return {
+      title: '时光绿径待办-今天吃什么',
+      path: '/pages/eating/eating',
+      imageUrl: 'https://pic1.imgdb.cn/item/6814180958cb8da5c8d64852.png'
+    }
+  },
+
   handleMealSelect(e) {
     const index = e.detail.value
     this.setData({

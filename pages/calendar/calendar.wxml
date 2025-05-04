@@ -14,35 +14,43 @@
 
 <view class="todo-list" wx:if="{{selectedDate}}">
   <text class="todo-text">{{selectedDate}}的待办</text>
-  <t-swipe-cell 
-    class="todo-item {{item._animate || ''}}"
-    wx:for="{{selectedTodos}}"
-    wx:key="index"
-    data-index="{{index}}"
-  >
-    <t-cell
-      class="{{item.completed ? 'completed' : ''}}"
-      title="{{item.text}}"
-      description="{{item.remarks}}"
-      note="{{item.setTime}}"
-      bordered="{{false}}"
-      custom-style="width:100%"
-      bindtap="navigateToDetail"
+  
+  <block wx:if="{{selectedTodos.length > 0}}">
+    <t-swipe-cell 
+      class="todo-item {{item._animate || ''}}"
+      wx:for="{{selectedTodos}}"
+      wx:key="index"
       data-index="{{index}}"
     >
-      <!-- bindtap="navigateToDetail" -->
-      <view slot="right-icon">
-        <checkbox 
-          checked="{{item.completed}}" 
-          catchtap="toggleTodo" 
-          data-index="{{index}}"
-        />
-      </view>
-    </t-cell>
+      <t-cell
+        class="{{item.completed ? 'completed' : ''}}"
+        title="{{item.text}}"
+        description="{{item.remarks}}"
+        note="{{item.setTime}}"
+        bordered="{{false}}"
+        custom-style="width:100%"
+        bindtap="navigateToDetail"
+        data-index="{{index}}"
+      >
+        <!-- bindtap="navigateToDetail" -->
+        <view slot="right-icon">
+          <checkbox 
+            checked="{{item.completed}}" 
+            catchtap="toggleTodo" 
+            data-index="{{index}}"
+          />
+        </view>
+      </t-cell>
 
-    <view slot="right" class="btn-wrapper">
-      <view class="btn edit-btn" data-index="{{index}}" bindtap="handleSwipeAction" data-type="edit">编辑</view>
-      <view class="btn delete-btn" data-index="{{index}}" bindtap="handleSwipeAction" data-type="delete">删除</view>
+      <view slot="right" class="btn-wrapper">
+        <view class="btn edit-btn" data-index="{{index}}" bindtap="handleSwipeAction" data-type="edit">编辑</view>
+        <view class="btn delete-btn" data-index="{{index}}" bindtap="handleSwipeAction" data-type="delete">删除</view>
+      </view>
+    </t-swipe-cell>
+  </block>
+  <block wx:else>
+    <view class="no-todo-container">
+      <text class="no-todo-text">没有待办哦，快去添加吧～</text>
     </view>
-  </t-swipe-cell>
+  </block>
 </view>

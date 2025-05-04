@@ -26,6 +26,11 @@ Page({
         contributions: ["功能建议"],
         avatar: "https://pic1.imgdb.cn/item/6814dd7d58cb8da5c8d70635.png"
       },
+      {
+        name: "zp、", 
+        contributions: ["功能建议"],
+        avatar: "https://pic1.imgdb.cn/item/68176bbf58cb8da5c8dc5a2d.jpg"
+      },
     ],
 
     serviceFab: {

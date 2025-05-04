@@ -162,9 +162,20 @@ Page({
 
   // 复用todo页方法
   navigateToDetail(e) {
-    const index = e.currentTarget.dataset.index;
+    const selectedIndex = e.currentTarget.dataset.index;
+    // 获取当前展示的待办项
+    const currentTodo = this.data.selectedTodos[selectedIndex];
+    
+    // 在全局todos中查找真实索引
+    const todos = wx.getStorageSync('todos');
+    const realIndex = todos.findIndex(t => 
+        t.text === currentTodo.text && 
+        t.setDate === currentTodo.setDate &&
+        t.setTime === currentTodo.setTime
+    );
+    
     wx.navigateTo({
-      url: `/pages/todo-detail/todo-detail?index=${index}`
+        url: `/pages/todo-detail/todo-detail?index=${realIndex}`
     });
   },
 
@@ -203,7 +214,7 @@ Page({
   editTodo(index) {
     const todo = this.data.selectedTodos[index]
     wx.navigateTo({
-      url: `/pages/add-todo/add-todo?edit=1&index=${index}&text=${encodeURIComponent(todo.text)}&setDate=${todo.setDate}&setTime=${todo.setTime}&remarks=${encodeURIComponent(todo.remarks || '')}&location=${encodeURIComponent(JSON.stringify(todo.location))}`
+      url: `/pages/add-todo/add-todo?edit=1&index=${index}&text=${encodeURIComponent(todo.text)}&setDate=${todo.setDate}&setTime=${todo.setTime || '12:00'}&remarks=${encodeURIComponent(todo.remarks || '')}&location=${encodeURIComponent(JSON.stringify(todo.location))}`
     })
   },
 

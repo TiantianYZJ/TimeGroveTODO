@@ -1,8 +1,6 @@
 .container {
-  padding: 40rpx;
+  padding: 30rpx;
   padding-top: 25rpx;
-  padding-bottom: 100rpx;
-  min-height: 100vh;
 }
 
 .todo-title {
@@ -126,29 +124,4 @@
   background: #00b26a;
   color: white;
   font-size: 32rpx;
-}
-
-/* 新增分享相关样式 */
-.share-footer {
-  background-color: #e3f5eb;
-  position: fixed;
-  bottom: 10rpx;
-  width: 100%;
-  padding: 40rpx;
-  text-align: center;
-  margin-left: -40rpx;
-}
-
-.share-tip {
-  display: block;
-  color: #666;
-  font-size: 28rpx;
-  margin-bottom: 30rpx;
-}
-
-.add-btn {
-  background: #00b26a;
-  color: white;
-  border-radius: 50rpx;
-  width: 90%;
 }

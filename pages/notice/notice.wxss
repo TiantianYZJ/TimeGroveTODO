@@ -1,5 +1,5 @@
 .container {
-  padding: 0;
+  padding-bottom: 10rpx;
 }
 
 /* 与changelog保持一致的卡片样式 */

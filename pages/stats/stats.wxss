@@ -1,3 +1,7 @@
+.capture-area {
+  padding-bottom: 10rpx;
+}
+
 .stats-card {
   display: flex;
   justify-content: space-around;

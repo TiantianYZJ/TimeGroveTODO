@@ -3,7 +3,7 @@ Page({
     changelogList: [
       {
         version: "2.0.0",
-        date: "2025-05-04",
+        date: "2025-05-05",
         content: [
           "设计风格焕新升级，更有沉浸感",
           "待办支持添加详细时间点（小时、分钟）",
@@ -13,8 +13,10 @@ Page({
           "日历组件全新升级，支持更丰富的动效和视觉效果",
           "“日历”页代办卡片支持滑动、点击、修改完成状态",
           "修复“日历”页待办项循环加载的问题",
+          "“统计”页支持一键生成报告，可选分享好友或保存本地",
           "“更多”页新增“鸣谢”页面，感谢为本小程序开发做出过贡献的人们",
           "“更多”页新增“支持与推广”页面",
+          "“更多”页新增“今天吃什么”小应用，解决你的选择困难症",
           "修复已知问题"
         ]
       },
@@ -22,7 +24,7 @@ Page({
         version: "1.4.2",
         date: "2025-04-25",
         content: [
-          "“更多”-“数据管理”页生成数据包后支持一键转发，可发给自己/朋友；",
+          "“更多”-“数据管理”页生成数据包后支持一键转发，可发给自己/朋友",
           "美化“公告”页",
           "美化“更新日志”页",
           "修复已知问题"
@@ -104,16 +106,16 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: '时光绿径待办-您的每日任务足迹管家',
-      path: '/pages/todo/todo',
+      title: '时光绿径待办-更新日志',
+      path: '/pages/changelog/changelog',
       imageUrl: 'https://pic1.imgdb.cn/item/6814180958cb8da5c8d64852.png'
     }
   },
 
   onShareTimeline() {
     return {
-      title: '时光绿径待办-您的每日任务足迹管家',
-      path: '/pages/todo/todo',
+      title: '时光绿径待办-更新日志',
+      path: '/pages/changelog/changelog',
       imageUrl: 'https://pic1.imgdb.cn/item/6814180958cb8da5c8d64852.png'
     }
   },

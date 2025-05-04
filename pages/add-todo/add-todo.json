@@ -2,7 +2,8 @@
   "usingComponents": {
     "t-input": "tdesign-miniprogram/input/input",
     "t-calendar": "tdesign-miniprogram/calendar/calendar",
-    "t-textarea": "tdesign-miniprogram/textarea/textarea"
+    "t-textarea": "tdesign-miniprogram/textarea/textarea",
+    "t-fab": "tdesign-miniprogram/fab/fab"
   },
   "navigationBarTitleText": "编辑待办"
 }

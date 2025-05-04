@@ -48,13 +48,7 @@
     </view>
   </view>
 </view>
-<!-- 底部新增分享提示 -->
-<view wx:if="{{isShare}}" class="share-footer">
-  <text class="share-tip">正在查看来自于分享的待办</text>
-  <button 
-    class="add-btn" 
-    bindtap="addToMyTodos"
-  >添加到我的待办</button>
-</view>
 
 <t-fab wx:if="{{!isShare}}" icon="share" button-props="{{shareButton}}" bind:click="onShareAppMessage" text="分享给朋友" />
+
+<t-fab wx:if="{{isShare}}" icon="add"  bind:click="addToMyTodos" text="添加到我的待办" />
