@@ -2,7 +2,7 @@ export const DEFAULT_COLOR = '#001F97';
 export const DEFAULT_SYSTEM_SWATCH_COLORS = [
     '#F2F3FF',
     '#D9E1FF',
-    '#B5C7FF',
+    '#00b26a88',
     '#8EABFF',
     '#618DFF',
     '#366EF4',

@@ -1,0 +1,66 @@
+<view class="container">
+  <t-cell-group title="基本信息" theme="card">
+    <t-radio-group 
+      value="{{form.type}}" 
+      options="{{typeOptions}}"
+      data-field="type"
+      bind:change="handleFormChange"
+    />
+    
+    <t-input 
+      label="金额" 
+      type="digit" 
+      clearable
+      model:value="{{form.amount}}"
+      data-field="amount"
+      bind:change="handleFormChange"
+    />
+    
+    <t-picker
+      title="分类"
+      value="{{form.category}}"
+      options="{{categories}}"
+      data-field="category"
+      bind:change="handleFormChange"
+    />
+    
+    <t-calendar
+      value="{{form.date}}"
+      data-field="date"
+      bind:change="handleFormChange"
+    />
+  </t-cell-group>
+
+  <t-cell-group title="详细信息" theme="card">
+    <t-textarea 
+      label="备注" 
+      maxlength="50"
+      model:value="{{form.remark}}"
+      data-field="remark"
+      bind:change="handleFormChange"
+    />
+    
+    <t-picker
+      title="支付账户"
+      value="{{form.account}}"
+      options="{{accounts}}"
+      data-field="account"
+      bind:change="handleFormChange"
+    />
+    
+    <t-switch 
+      label="周期性账单" 
+      model:value="{{form.cycle !== 'none'}}"
+      data-field="cycle"
+      bind:change="handleFormChange"
+    />
+  </t-cell-group>
+
+  <view class="footer">
+    <t-button 
+      theme="primary" 
+      block
+      bind:click="handleSubmit"
+    >保存记录</t-button>
+  </view>
+</view>

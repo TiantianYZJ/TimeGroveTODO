@@ -27,6 +27,18 @@
       </view>
     </view>
 
+    <view class="form-item">
+      <text class="question-title">时间</text>
+      <picker 
+        mode="time" 
+        value="{{setTime}}" 
+        bindchange="bindTimeChange">
+        <view class="picker-field">
+          {{setTime || '请选择时间'}}
+        </view>
+      </picker>
+    </view>
+
     <t-calendar
       id="calendar"
       value="{{value}}"
@@ -56,7 +68,7 @@
         maxlength="999"
         disableDefaultPadding="{{true}}"
         indicator
-        style="--td-textarea-background-color: #f8f8f8"
+        style="--td-textarea-background-color:#f8f8f8"
       />
     </view>
 

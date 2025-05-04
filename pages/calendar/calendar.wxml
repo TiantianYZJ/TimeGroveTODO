@@ -24,23 +24,25 @@
       class="{{item.completed ? 'completed' : ''}}"
       title="{{item.text}}"
       description="{{item.remarks}}"
+      note="{{item.setTime}}"
       bordered="{{false}}"
       custom-style="width:100%"
+      bindtap="navigateToDetail"
       data-index="{{index}}"
     >
       <!-- bindtap="navigateToDetail" -->
-      <!-- <view slot="right-icon">
+      <view slot="right-icon">
         <checkbox 
           checked="{{item.completed}}" 
           catchtap="toggleTodo" 
           data-index="{{index}}"
         />
-      </view> -->
+      </view>
     </t-cell>
 
-    <!-- <view slot="right" class="btn-wrapper">
+    <view slot="right" class="btn-wrapper">
       <view class="btn edit-btn" data-index="{{index}}" bindtap="handleSwipeAction" data-type="edit">编辑</view>
       <view class="btn delete-btn" data-index="{{index}}" bindtap="handleSwipeAction" data-type="delete">删除</view>
-    </view> -->
+    </view>
   </t-swipe-cell>
 </view>

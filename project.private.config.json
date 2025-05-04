@@ -9,6 +9,27 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/star/star",
+          "pathName": "pages/star/star",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/eating/eating",
+          "pathName": "pages/eating/eating",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/accounting/accounting",
+          "pathName": "pages/accounting/accounting",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/more/more",
           "pathName": "pages/more/more",
           "query": "",

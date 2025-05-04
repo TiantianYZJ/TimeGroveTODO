@@ -2,6 +2,7 @@ Page({
   data: {
     inputValue: '',
     setDate: '',  // 初始值改为今天
+    setTime: '',  // 新增时间字段
     remarks: '',
     location: null, // 新增位置字段
     editing: false,
@@ -26,8 +27,6 @@ Page({
       }
       return day;
     },
-
-    isModified: false,  // 新增修改状态标识
   },
 
   onShareAppMessage() {
@@ -49,7 +48,10 @@ Page({
   onLoad(options) {
     // 新增：设置默认日期为今天
     const today = new Date().toISOString().split('T')[0].replace(/-/g, '-')
-    this.setData({ setDate: today })
+    this.setData({ 
+      setDate: today,
+      setTime: this.data.setTime || '12:00' // 设置默认时间
+    })
 
     if (options.voiceText) {
       this.setData({
@@ -65,6 +67,7 @@ Page({
       this.setData({
         inputValue: decodeURIComponent(options.text),
         setDate: options.setDate, // 改为setDate
+        setTime: options.setTime || '12:00', // 新增时间参数
         remarks: decodeURIComponent(options.remarks),
         location, // 新增位置数据
         isEdit: true,
@@ -78,18 +81,14 @@ Page({
     const field = e.currentTarget.dataset.field;
     this.setData({
       [field]: e.detail.value,
-      isModified: true
     });
-    wx.enableAlertBeforeUnload({ enable: true });
   },
 
   // 修改备注处理逻辑
   handleRemarksChange(e) {
     this.setData({
       remarks: e.detail.value,
-      isModified: true
     });
-    wx.enableAlertBeforeUnload({ enable: true });
   },
 
   // 新增日期选择处理
@@ -114,9 +113,7 @@ Page({
     const selectedDate = this.formatDate(new Date(e.detail.value));
     this.setData({
       setDate: selectedDate,
-      isModified: true
     });
-    wx.enableAlertBeforeUnload({ enable: true });
   },
   
   // 保持原有日期格式方法
@@ -126,6 +123,14 @@ Page({
     const day = date.getDate().toString().padStart(2, '0');
     return `${year}-${month}-${day}`;
   },
+
+  // 新增时间选择处理
+  bindTimeChange(e) {
+    this.setData({
+      setTime: e.detail.value,
+    });
+  },
+
 
   // 新增备注输入处理
   onRemarksInput(e) {
@@ -153,9 +158,7 @@ Page({
             latitude: res.latitude,
             longitude: res.longitude
           },
-          isModified: true
         });
-        wx.enableAlertBeforeUnload({ enable: true });
       }
     })
   },
@@ -171,6 +174,7 @@ Page({
       todos[this.data.editIndex] = {
         text: this.data.inputValue,
         setDate: this.data.setDate,
+        setTime: this.data.setTime, // 新增时间存储
         remarks: this.data.remarks,
         completed: todos[this.data.editIndex].completed, // 保留完成状态
         location: this.data.location // 新增位置保存
@@ -183,21 +187,23 @@ Page({
       const text = this.data.inputValue.trim()
       const setDate = this.data.setDate // 获取当前日期值
       
-      if (!text || !setDate) {  // 新增日期校验
+      if (!text || !setDate || !this.data.setTime) {  // 新增日期校验
         wx.showToast({ 
-          title: !text ? '请填写事项内容' : '请选择截止日期', 
+          title: !text ? '请填写事项内容' : !setDate ? '请选择日期' : '请选择时间', 
           icon: 'none' 
         })
         return
       }
-
-      // 保存成功后重置状态
-      this.setData({ isModified: false });
-      wx.enableAlertBeforeUnload({ enable: false });
       
       const pages = getCurrentPages()
       const prevPage = pages[pages.length - 2]
-      prevPage.addTodoFromChild(text, this.data.setDate, this.data.remarks, this.data.location) // 新增位置参数
+      prevPage.addTodoFromChild(
+        text, 
+        this.data.setDate,
+        this.data.setTime,  // 新增时间参数
+        this.data.remarks, 
+        this.data.location
+      )
       wx.navigateBack()
     }
   },

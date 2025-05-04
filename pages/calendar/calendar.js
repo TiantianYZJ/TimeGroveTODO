@@ -49,7 +49,24 @@ Page({
     
     // 转换全局缓存为marks格式
     this.convertMarks();
-    this.clearSelection();
+    
+    // 新增初始化选中逻辑
+    setTimeout(() => {
+      // 获取今日日期对象
+      const today = new Date();
+      const todayDetail = {
+        year: today.getFullYear(),
+        month: today.getMonth() + 1, // 月份需要+1
+        day: today.getDate()
+      };
+      
+      // 手动触发确认事件
+      this.handleConfirm({
+        detail: {
+          checked: todayDetail
+        }
+      });
+    }, 300);
   },
 
   // 保持与全局缓存一致的格式化方法
@@ -82,6 +99,11 @@ Page({
       selectedTodos: [],
       selectedDate: ''
     });
+  },
+
+  parseTime(timeStr) {
+    const [hours, minutes] = (timeStr || '00:00').split(':').map(Number);
+    return hours * 60 + minutes; // 转换为分钟数方便比较
   },
 
   handleConfirm(e) {
@@ -122,8 +144,15 @@ Page({
       }
     });
 
+    // 新增时间排序逻辑
+    const sorted = filtered.sort((a, b) => {
+      const aTime = this.parseTime(a.setTime || '23:59');
+      const bTime = this.parseTime(b.setTime || '23:59');
+      return aTime - bTime;
+    });
+
     console.log('选中日期:', currentKey);
-    console.log('筛选后的待办事项:', filtered);
+    console.log('排序后的待办事项:', sorted);
 
     this.setData({
       selectedTodos: filtered,
@@ -131,8 +160,8 @@ Page({
     });
   },
 
-   // 复用todo页方法
-   navigateToDetail(e) {
+  // 复用todo页方法
+  navigateToDetail(e) {
     const index = e.currentTarget.dataset.index;
     wx.navigateTo({
       url: `/pages/todo-detail/todo-detail?index=${index}`
@@ -146,6 +175,36 @@ Page({
     wx.setStorageSync('todos', todos);
     this.setData({ selectedTodos: todos });
     getApp().updateCalendarCache(todos);
+  },
+
+  // 复用todo页的删除逻辑（约第171行）
+  deleteTodo(index) {
+    const that = this
+    wx.showModal({
+      title: '删除确认',
+      content: '该操作不可撤销，确定继续吗？',
+      confirmText: '删除',
+      confirmColor: '#ff4d4f',
+      success(res) {
+        if (res.confirm) {
+          const todos = wx.getStorageSync('todos')
+          todos.splice(index, 1)
+          wx.setStorageSync('todos', todos)
+          that.setData({
+            selectedTodos: that.data.selectedTodos.filter((_, i) => i !== index)
+          })
+          getApp().updateCalendarCache(todos)
+        }
+      }
+    })
+  },
+
+  // 复用编辑逻辑（约第184行）
+  editTodo(index) {
+    const todo = this.data.selectedTodos[index]
+    wx.navigateTo({
+      url: `/pages/add-todo/add-todo?edit=1&index=${index}&text=${encodeURIComponent(todo.text)}&setDate=${todo.setDate}&setTime=${todo.setTime}&remarks=${encodeURIComponent(todo.remarks || '')}&location=${encodeURIComponent(JSON.stringify(todo.location))}`
+    })
   },
 
   // 复用操作按钮逻辑

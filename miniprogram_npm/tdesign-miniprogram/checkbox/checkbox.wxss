@@ -85,7 +85,7 @@
 }
 .t-checkbox__icon--disabled {
   cursor: not-allowed;
-  color: var(--td-checkbox-icon-disabled-color, var(--td-brand-color-disabled, var(--td-primary-color-3, #b5c7ff)));
+  color: var(--td-checkbox-icon-disabled-color, var(--td-brand-color-disabled, var(--td-primary-color-3, #00b26a88)));
 }
 .t-checkbox__icon--left {
   margin-right: 16rpx;
@@ -141,7 +141,7 @@
 }
 .t-checkbox__icon-line--disabled::before,
 .t-checkbox__icon-line--disabled::after {
-  background: var(--td-checkbox-icon-disabled-color, var(--td-brand-color-disabled, var(--td-primary-color-3, #b5c7ff)));
+  background: var(--td-checkbox-icon-disabled-color, var(--td-brand-color-disabled, var(--td-primary-color-3, #00b26a88)));
 }
 .t-checkbox__content {
   flex: 1;

@@ -3,7 +3,7 @@
   .page {
     --td-brand-color-1: #f2f3ff;
     --td-brand-color-2: #d9e1ff;
-    --td-brand-color-3: #b5c7ff;
+    --td-brand-color-3: #00b26a88;
     --td-brand-color-4: #8eabff;
     --td-brand-color-5: #618dff;
     --td-brand-color-6: #366ef4;

@@ -12,14 +12,10 @@ Page({
   },
 
   onShareAppMessage() {
-    const pages = getCurrentPages()
-    const currentPage = pages[pages.length - 1]
-    // const sharePath = `/pages/todo-detail/todo-detail?index=${currentPage.options.index}&isShare=1`
     const currentTodo = this.data.todo;
-    const sharePath = `/pages/todo-detail/todo-detail?isShare=1&text=${encodeURIComponent(currentTodo.text)}&setDate=${currentTodo.setDate}&remarks=${encodeURIComponent(currentTodo.remarks || '')}&location=${encodeURIComponent(JSON.stringify(currentTodo.location))}`;
-    
+    const sharePath = `/pages/todo-detail/todo-detail?isShare=1&text=${encodeURIComponent(currentTodo.text)}&setDate=${currentTodo.setDate}&setTime=${currentTodo.setTime || '12:00'}&remarks=${encodeURIComponent(currentTodo.remarks || '')}&location=${encodeURIComponent(JSON.stringify(currentTodo.location))}`;
     return {
-      title: '我分享了一项待办：' + this.data.todo.text,
+      title: '我分享了一项待办：' + currentTodo.text,
       path: sharePath,
       imageUrl: 'https://pic1.imgdb.cn/item/6814180958cb8da5c8d64852.png'
     }
@@ -51,6 +47,7 @@ Page({
         todo: {
           text: decodeURIComponent(options.text),
           setDate: options.setDate, // 保持原始日期字符串
+          setTime: options.setTime || '12:00', // 新增时间参数
           remarks: decodeURIComponent(options.remarks || ''),
           location: JSON.parse(decodeURIComponent(options.location || '{}'))
         },
@@ -70,6 +67,7 @@ Page({
       this.setData({ 
         todo,
         formattedDate,
+        setTime: todo.setTime || '12:00', // 兼容旧数据
         isShare: false
       })
     }
@@ -77,6 +75,15 @@ Page({
 
   // 新增日期格式化方法
   formatRichDate(targetDate) {
+    // 添加空值校验
+    if (!targetDate || !(targetDate instanceof Date)) {
+      console.error('无效的日期对象:', targetDate);
+      return '日期格式错误';
+    }
+    
+    // 添加默认时间处理
+    const time = this.data.todo.setTime || '12:00';
+
     const today = new Date().setHours(0,0,0,0)
     const targetTime = targetDate.setHours(0,0,0,0)
     const dayDiff = Math.round((targetTime - today) / (1000 * 3600 * 24))
@@ -96,7 +103,7 @@ Page({
     }
   
     // 组装最终格式
-    return `${this.formatDate(targetDate)} 周${weekDay}（${relative}）`
+    return `${this.formatDate(targetDate)} ${time} 周${weekDay}（${relative}）`
   },
 
   // 保持原有的 formatDate 方法
@@ -157,7 +164,7 @@ Page({
   editTodo() {
     const todo = this.data.todo  // 新增这行获取当前待办数据
     wx.navigateTo({
-      url: `/pages/add-todo/add-todo?edit=1&text=${encodeURIComponent(todo.text)}&setDate=${todo.setDate}&remarks=${encodeURIComponent(todo.remarks || '')}&index=${this.data.currentIndex}&location=${encodeURIComponent(JSON.stringify(todo.location))}`
+      url: `/pages/add-todo/add-todo?edit=1&text=${encodeURIComponent(todo.text)}&setDate=${todo.setDate}&setTime=${todo.setTime}&remarks=${encodeURIComponent(todo.remarks || '')}&index=${this.data.currentIndex}&location=${encodeURIComponent(JSON.stringify(todo.location))}`
     })
   },
   

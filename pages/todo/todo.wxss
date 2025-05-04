@@ -117,7 +117,6 @@
   background: #c8edcc !important;
   box-shadow: inset 4rpx 0 0 #4CAF50,
              0 4rpx 16rpx rgba(76,175,80,0.15);
-  transform: translateY(-2rpx);
 }
 .completed .t-cell__title {
   color: #008550 !important;

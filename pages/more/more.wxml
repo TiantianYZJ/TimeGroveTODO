@@ -11,12 +11,14 @@
   <t-cell title="数据管理" url="/pages/datamanage/datamanage" leftIcon="/images/data.png" hover arrow />
   <!-- <t-cell title="订阅管理" url="/pages/datamanage/datamanage" leftIcon="/images/subscribe.png" hover arrow /> -->
   <t-cell title="更新日志" url="/pages/changelog/changelog" leftIcon="/images/changelog.png" hover arrow />
-  <t-cell title="鸣谢" url="/pages/acknowledge/acknowledge" leftIcon="/images/service.png" hover arrow />
+  <t-cell title="鸣谢" url="/pages/acknowledge/acknowledge" leftIcon="/images/thanks.png" hover arrow />
+  <t-cell title="支持与推广" url="/pages/star/star" leftIcon="/images/star.png" hover arrow />
 </t-cell-group>
 
 <view class="block">
   <t-grid column="{{4}}" hover="{{true}}" theme="card">
-    <t-grid-item t-class-image="image" text="记账本" image="/images/accounting.png" />
+    <!-- <t-grid-item t-class-image="image" text="记账本" image="/images/accounting.png" url="/pages/accounting/accounting"/> -->
+    <t-grid-item t-class-image="image" text="今天吃什么" image="/images/eating.png" url="/pages/eating/eating"/>
   </t-grid>
 </view>
 

@@ -45,17 +45,16 @@ Page({
   // 生成导出数据
   generateExport() {
     const todos = wx.getStorageSync('todos') || []
-    // 字段顺序：[text, setDate, completed, remarks, location]
+    // 新字段顺序：[text, setDate, setTime, completed, remarks, location]
     const compressed = todos.map(t => [
       t.text,
       t.setDate,
+      t.setTime || '12:00', // 新增时间字段
       t.completed,
-      t.remarks || null,  // 空备注不存储
-      t.location || null  // 空位置不存储
+      t.remarks || null,
+      t.location || null
     ])
-    this.setData({
-      exportData: JSON.stringify(compressed)
-    })
+    this.setData({ exportData: JSON.stringify(compressed) })
   },
 
   // 新增复制方法
@@ -85,13 +84,13 @@ Page({
         if (res.confirm) {
           try {
             const compressedData = JSON.parse(this.data.importData)
-            // 数组转对象逻辑
             const newData = compressedData.map(arr => ({
               text: arr[0] || '',
               setDate: arr[1],
-              completed: !!arr[2],
-              remarks: arr[3] || '',
-              location: arr[4] || null,
+              setTime: arr[2] || '12:00', // 新增时间解析
+              completed: !!arr[3],
+              remarks: arr[4] || '',
+              location: arr[5] || null,
               time: new Date().toLocaleString()
             }))
             

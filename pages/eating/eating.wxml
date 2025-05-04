@@ -1,0 +1,30 @@
+<view class="container">
+  <view class="card-style">
+    <picker 
+      mode="selector" 
+      range="{{mealTypes}}"
+      value="{{selectedIndex}}"
+      bindchange="handleMealSelect">
+      <t-cell
+          title="请选择餐时"
+          note="{{selectedMeal || '点击选择'}}"
+          right-icon="chevron-right"
+      />
+    </picker>
+
+    <view class="result-box" wx:if="{{todayFood}}" animation="{{animation}}">
+      <text class="result-text">今日{{selectedMeal}}推荐</text>
+      <text class="food-name">{{todayFood}}</text>
+    </view>
+
+    <view class="btn-container">
+      <t-button 
+        theme="primary" 
+        bind:tap="pickRandomFood"
+        disabled="{{!selectedMeal}}"
+      >
+        随机抽选
+      </t-button>
+    </view>
+  </view>
+</view>

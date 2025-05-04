@@ -36,7 +36,6 @@
       wx:key="index"
       data-index="{{index}}"
     >
-      <!-- 修改后的cell结构 -->
       <t-cell
         class="{{item.completed ? 'completed' : ''}}"
         title="{{item.text}}"

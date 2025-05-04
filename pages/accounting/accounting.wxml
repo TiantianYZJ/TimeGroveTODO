@@ -1,0 +1,65 @@
+<view class="container">
+  <!-- 在卡片组上方添加操作栏 -->
+  <view class="operation-bar">
+    <t-tabs 
+      value="{{filterType}}" 
+      bind:change="handleFilter"
+      theme="card"
+    >
+      <t-tab-panel label="全部" value="all" />
+      <t-tab-panel label="收入" value="income" />
+      <t-tab-panel label="支出" value="expense" />
+    </t-tabs>
+
+    <view class="sort-btn" bind:tap="toggleSort">
+      <t-icon name="{{sortOrder === 'asc' ? 'sort-asc' : 'sort-desc'}}" />
+      <text>{{sortOrder === 'asc' ? '升序' : '降序'}}</text>
+    </view>
+  </view>
+
+  <!-- 月度统计卡片 -->
+  <view class="card-style">
+    <t-cell-group title="{{currentMonth}}" theme="card">
+        <t-cell title="总支出" note="¥{{totalExpense.toFixed(2)}}" />
+        <t-cell title="总收入" note="¥{{totalIncome.toFixed(2)}}" />
+        <t-cell 
+        title="剩余预算" 
+        note="¥{{remainingBudget.toFixed(2)}} → 设置" 
+        right-icon="setting" 
+        bind:click="navToBudget"
+      />
+    </t-cell-group>
+  </view>
+
+  <!-- 快速入口 -->
+  <t-grid column="{{4}}" hover>
+    <t-grid-item 
+      wx:for="{{['餐饮', '交通', '购物', '工资']}}" 
+      wx:key="index"
+      image="/images/more.png"
+      text="{{item}}"
+      bind:click="handleCategoryTap"
+      data-item="{{item}}"
+    />
+  </t-grid>
+
+  <!-- 时间轴账单 -->
+  <t-cell-group title="今日消费" theme="card">
+    <t-swipe-cell 
+      wx:for="{{accountList}}"
+      wx:key="id"
+      right="{{[{ text: '删除', className: 'delete' }]}}"
+    >
+      <t-cell 
+        title="{{item.category}}" 
+        note="{{item.date}} {{item.account}}"
+        right-icon="{{item.type === 'income' ? 'caret-up' : 'caret-down'}}"
+        right-icon-color="{{item.type === 'income' ? '#00b26a' : '#ee3f4d'}}"
+      >
+        <view class="amount {{item.type}}">¥{{item.amount}}</view>
+      </t-cell>
+    </t-swipe-cell>
+  </t-cell-group>
+
+  <t-fab icon="add" bind:click="navToAdd" />
+</view>

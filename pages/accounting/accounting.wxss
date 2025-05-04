@@ -1,0 +1,86 @@
+/* 复用全局卡片样式 */
+.chart-card {
+    margin: 24rpx;
+}
+
+/* 金额颜色 */
+.amount {
+    font-size: 34rpx;
+    font-weight: 500;
+}
+
+/* 修正嵌套写法为独立类 */
+.amount.income { 
+    color: #00b26a; 
+}
+.amount.expense { 
+    color: #ee3f4d; 
+}
+
+/* 进度条样式 */
+.progress-bar {
+    width: 200rpx;
+    height: 30rpx;
+    background: #f0f0f0;
+    border-radius: 15rpx;
+    position: relative;
+}
+
+/* 修正嵌套写法 */
+.progress-bar .progress {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 15rpx;
+}
+
+.progress-bar .percent {
+    position: absolute;
+    right: 10rpx;
+    color: #fff;
+    font-size: 20rpx;
+    line-height: 30rpx;
+}
+
+
+/* 新增滑动删除样式 */
+.delete {
+  background-color: #ee3f4d;
+  color: white;
+}
+
+/* 金额对齐优化 */
+.amount {
+  position: absolute;
+  right: 120rpx;
+}
+
+
+/* 新增操作栏样式 */
+.operation-bar {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background: #fff;
+}
+
+.sort-btn {
+  display: flex;
+  align-items: center;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  color: var(--primary-color);
+}
+
+/* 调整金额位置避免冲突 */
+.amount {
+  right: 160rpx !important;
+}
+
+
+/* 添加分类入口点击态 */
+.t-grid-item {
+  transition: transform 0.2s;
+}
+.t-grid-item:active {
+  transform: scale(0.95);
+}

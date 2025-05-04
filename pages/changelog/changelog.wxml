@@ -2,7 +2,7 @@
   <view class="changelog-list">
     <view wx:for="{{changelogList}}" wx:key="version" class="log-card">
       <view class="log-header">
-        <text class="version">v{{item.version}}</text>
+        <text class="version">V{{item.version}}</text>
         <text class="date">{{item.date}}</text>
       </view>
       <view class="log-content">

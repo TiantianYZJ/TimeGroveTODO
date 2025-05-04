@@ -51,7 +51,7 @@
   color: var(--td-switch-unchecked-disabled-color, var(--td-bg-color-component-disabled, var(--td-gray-color-2, #eeeeee)));
 }
 .t-switch__label--checked.t-switch__label--disabled {
-  color: var(--td-switch-checked-disabled-color, var(--td-brand-color-disabled, var(--td-primary-color-3, #b5c7ff)));
+  color: var(--td-switch-checked-disabled-color, var(--td-brand-color-disabled, var(--td-primary-color-3, #00b26a88)));
 }
 .t-switch__label--large {
   font-size: var(--td-switch-label-large-font-size, 32rpx);
@@ -91,7 +91,7 @@
   background-color: var(--td-switch-unchecked-disabled-color, var(--td-bg-color-component-disabled, var(--td-gray-color-2, #eeeeee)));
 }
 .t-switch__body--checked.t-switch__body--disabled {
-  background-color: var(--td-switch-checked-disabled-color, var(--td-brand-color-disabled, var(--td-primary-color-3, #b5c7ff)));
+  background-color: var(--td-switch-checked-disabled-color, var(--td-brand-color-disabled, var(--td-primary-color-3, #00b26a88)));
 }
 .t-switch__body--large {
   width: var(--td-switch-large-width, 104rpx);

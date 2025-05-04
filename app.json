@@ -12,7 +12,12 @@
     "pages/day-todos/day-todos",
     "pages/user-center/user-center",
     "pages/notice/notice",
-    "pages/acknowledge/acknowledge"
+    "pages/acknowledge/acknowledge",
+    "pages/accounting/accounting",
+    "pages/accounting-add/accounting-add",
+    "pages/accounting-stats/accounting-stats",
+    "pages/eating/eating",
+    "pages/star/star"
   ],
   "window": {
     "navigationBarTextStyle": "black",

@@ -63,6 +63,15 @@
   -webkit-box-orient: vertical;
 }
 
+/* 时间样式调整 */
+.t-cell__note {
+  flex-shrink: 0;
+  font-size: 24rpx !important;  /* 调小字号 */
+  color: #666 !important;
+  margin-top: 8rpx !important;  /* 与备注保持间距 */
+  padding-right: 20rpx;
+}
+
 /* 右侧复选框定位调整 */
 .t-cell__right-icon {
   position: absolute;
@@ -99,7 +108,6 @@
   background: #c8edcc !important;
   box-shadow: inset 4rpx 0 0 #4CAF50,
              0 4rpx 16rpx rgba(76,175,80,0.15);
-  transform: translateY(-2rpx);
 }
 .completed .t-cell__title {
   color: #008550 !important;
@@ -140,6 +148,27 @@
   transition: transform 0.3s ease;
   display: flex;
   align-items: center;
+}
+
+.btn-wrapper {
+  height: 100%;
+}
+
+.btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 110rpx;
+  height: 100%;
+  color: white;
+}
+
+.delete-btn {
+  background-color: #e34d59;
+}
+
+.edit-btn {
+  background-color: #ed7b2f;
 }
 
 

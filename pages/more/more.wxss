@@ -5,9 +5,9 @@
 /* 新增用户信息样式 */
 .user-info {
   padding: 40rpx 30rpx;
+  margin-left: 20rpx;
   display: flex;
   align-items: center;
-  margin-bottom: 20rpx;
 }
 
 .user-avatar {

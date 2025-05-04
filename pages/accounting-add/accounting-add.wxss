@@ -1,0 +1,27 @@
+/* 复用全局卡片样式 */
+.container {
+  padding: 20rpx;
+}
+
+/* 表单元素间距优化 */
+.t-cell-group {
+  margin-bottom: 30rpx;
+}
+
+/* 底部按钮固定 */
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20rpx;
+  background: #fff;
+  box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.05);
+}
+
+/* 输入框重点突出 */
+.t-input__input {
+  font-size: 36rpx;
+  font-weight: 500;
+  color: var(--primary-color);
+}

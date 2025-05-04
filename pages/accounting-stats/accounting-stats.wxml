@@ -1,0 +1,27 @@
+<view class="container">
+  <!-- 环形图 -->
+  <view class="chart-card">
+    <view class="chart-title">消费构成</view>
+    <pie-chart id="pie-chart" />
+  </view>
+
+  <!-- 柱状图 -->
+  <view class="chart-card">
+    <view class="chart-title">消费趋势</view>
+    <column-chart id="column-chart" />
+  </view>
+
+  <!-- 分类对比 -->
+  <t-cell-group title="分类TOP5" theme="card">
+    <t-cell 
+      wx:for="{{categoryStats}}"
+      wx:key="category"
+      title="{{item.category}}"
+    >
+      <view class="progress-bar">
+        <view class="progress" style="width: {{item.percent}}%"></view>
+        <text class="percent">{{item.percent}}%</text>
+      </view>
+    </t-cell>
+  </t-cell-group>
+</view>

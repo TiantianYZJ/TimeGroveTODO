@@ -67,6 +67,7 @@ Page({
       {
         text: '欢迎使用时光绿径待办！',
         setDate: new Date().toISOString().split('T')[0],
+        setTime: '12:00',
         remarks: '您的每日任务足迹管家',
         completed: false,
         time: new Date().toLocaleString()
@@ -74,6 +75,7 @@ Page({
       {
         text: '点击右下角“+”按钮',
         setDate: new Date().toISOString().split('T')[0],
+        setTime: '12:00',
         remarks: '创建你的第一个待办',
         completed: false,
         time: new Date().toLocaleString()
@@ -81,6 +83,7 @@ Page({
       {
         text: '试试语音快速创建待办',
         setDate: new Date().toISOString().split('T')[0],
+        setTime: '12:00',
         remarks: '按下底部麦克风按钮后说话，松手结束',
         completed: false,
         time: new Date().toLocaleString()
@@ -88,6 +91,7 @@ Page({
       {
         text: '点击︎待办卡片可查看待办详情',
         setDate: new Date().toISOString().split('T')[0],
+        setTime: '12:00',
         remarks: `◆ 高效管理，一步到位
 ✅ 待办事项支持多种附加信息，支持一键地点导航（医院/写字楼/社区一键直达）
 ✅ 可视化数据看板，待办完成情况进度条+地理位置图，数据看得见
@@ -106,6 +110,7 @@ Page({
       {
         text: '点击右侧方框即可完成待办',
         setDate: new Date().toISOString().split('T')[0],
+        setTime: '12:00',
         remarks: '再次点击取消完成',
         completed: false,
         time: new Date().toLocaleString()
@@ -113,6 +118,7 @@ Page({
       {
         text: '←——————按住后滑动︎●',
         setDate: new Date().toISOString().split('T')[0],
+        setTime: '12:00',
         remarks: '可快速编辑、删除待办',
         completed: false,
         time: new Date().toLocaleString()
@@ -259,7 +265,7 @@ Page({
 温度：${this.data.weather?.temperature || '未知'}℃
 最后更新时间：${this.data.weather?.last_update || '未知'}
 
-心知天气提供实时天气信息支持`,
+由心知天气提供气象数据`,
       showCancel: false,
       confirmText: "知道了"
     }) 
@@ -352,20 +358,21 @@ Page({
   },
 
   // 修改新增待办方法
-  addTodoFromChild(text, date, remarks, location) {
+  addTodoFromChild(text, setDate, setTime, remarks, location) {
     const newTodo = {
       text,
-      setDate: date, // 强制使用当天日期
+      setDate,
+      setTime,  // 新增时间字段
       remarks,
+      location,
       completed: false,
-      time: new Date().toLocaleString(),
-      location // 新增位置字段
+      time: new Date().toLocaleString()
     }
+    
     const todos = [newTodo, ...this.data.todos]
     this.setData({ todos })
     wx.setStorageSync('todos', todos)
-    getApp().updateCalendarCache(todos);
-    wx.showToast({ title: '已添加', icon: 'success' })
+    getApp().updateCalendarCache(todos)
   },
 
   showClearConfirm() {
