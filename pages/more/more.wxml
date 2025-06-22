@@ -12,7 +12,7 @@
   <!-- <t-cell title="订阅管理" url="/pages/datamanage/datamanage" leftIcon="/images/subscribe.png" hover arrow /> -->
   <t-cell title="更新日志" url="/pages/changelog/changelog" leftIcon="/images/changelog.png" hover arrow />
   <t-cell title="鸣谢" url="/pages/acknowledge/acknowledge" leftIcon="/images/thanks.png" hover arrow />
-  <t-cell title="支持与推广" url="/pages/star/star" leftIcon="/images/star.png" hover arrow />
+  <t-cell title="推广给朋友" url="/pages/star/star" leftIcon="/images/star.png" hover arrow />
 </t-cell-group>
 
 <view class="block">

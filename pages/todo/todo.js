@@ -137,8 +137,8 @@ Page({
       isLoading: true  // 确保初始状态为加载中
     });
     
-    // 获取录音授权
-    this.getRecordAuth()
+    // // 获取录音授权
+    // this.getRecordAuth()
   },
 
   // 显示最新公告弹窗
@@ -375,19 +375,62 @@ Page({
     getApp().updateCalendarCache(todos)
   },
 
-  showClearConfirm() {
+  showClearOptions() {
+    wx.showActionSheet({
+      itemList: ['清空所有待办', '清空已完成待办'],
+      success: (res) => {
+        if (res.tapIndex === 0) { // 第一个选项是"清空所有待办"
+          this.showFinalConfirm();
+        } else if (res.tapIndex === 1) { // 第二个选项是"清空已完成待办"
+          this.handleClearCompleted();
+        }
+      },
+      fail: (err) => {
+        console.log('用户取消选择', err)
+      }
+    });
+  },
+
+  handleClearCompleted() {
     wx.showModal({
-      title: '清空确认',
-      content: '这将永久删除所有待办事项，确定继续吗？',
-      confirmText: '彻底清空',
+      title: '确认清空已完成',
+      content: '将永久删除所有已完成待办',
+      confirmText: '立即清空',
       confirmColor: '#ff4d4f',
       success: (res) => {
         if (res.confirm) {
-          this.showFinalConfirm();
+          const originalLength = this.data.todos.length; // 先保存原始长度
+          const todos = this.data.todos.filter(item => !item.completed);
+          this.setData({ todos });
+          wx.setStorageSync('todos', todos);
+          getApp().updateCalendarCache(todos);
+          wx.showToast({
+            title: `已清除${originalLength - todos.length}项`, // 使用原始长度计算差值
+            icon: 'success'
+          });
         }
       }
     });
   },
+
+  // 修改原来的showClearConfirm方法
+  showClearConfirm() {
+    this.showClearOptions(); // 替换原来的直接弹窗
+  },
+
+  // showClearConfirm() {
+  //   wx.showModal({
+  //     title: '清空确认',
+  //     content: '这将永久删除所有待办事项，确定继续吗？',
+  //     confirmText: '彻底清空',
+  //     confirmColor: '#ff4d4f',
+  //     success: (res) => {
+  //       if (res.confirm) {
+  //         this.showFinalConfirm();
+  //       }
+  //     }
+  //   });
+  // },
 
   showFinalConfirm() {
     wx.showModal({

@@ -64,6 +64,9 @@
     },
     "scope.record": {
       "desc": "需要您的麦克风权限进行语音输入"
+    },
+    "scope.writePhotosAlbum": {
+      "desc": "需要保存图片到相册的权限"
     }
   },
   

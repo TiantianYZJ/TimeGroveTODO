@@ -1,5 +1,5 @@
 <view class="container">
-  <view class="qrcode-card">
+  <!-- <view class="qrcode-card">
     <image 
       src="https://pic1.imgdb.cn/item/681742df58cb8da5c8dbf26d.png" 
       mode="widthFix" 
@@ -11,7 +11,7 @@
       如果觉得好用，欢迎请作者喝杯咖啡
       ↑长按识别二维码支持作者↑
     </text>
-  </view>
+  </view> -->
 
   <view class="promotion-card">
     <image 

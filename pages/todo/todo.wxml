@@ -89,9 +89,9 @@
 </view>
 
 <t-fab icon="add" bind:click="navigateToAdd" style="right: 32rpx; bottom: 32rpx;"/>
-<t-fab 
+<!-- <t-fab 
   icon="microphone-1" 
   bind:touchstart="touchStart" 
   bind:touchend="touchEnd"
   style="right: 32rpx; bottom: 150rpx;"
-/>
+/> -->

@@ -1,30 +1,77 @@
 <view class="container">
-  <view class="card-style">
-    <picker 
-      mode="selector" 
-      range="{{mealTypes}}"
-      value="{{selectedIndex}}"
-      bindchange="handleMealSelect">
-      <t-cell
-          title="请选择餐时"
-          note="{{selectedMeal || '点击选择'}}"
-          right-icon="chevron-right"
-      />
-    </picker>
+  <!-- 顶部统计卡片 -->
+  <view class="stats-card" bindtap="handleShowAllFoods">
+    <view class="stats-badge">
+      <image src="/images/dishes.png" class="dishes-icon" />
+      <text class="stats-number">{{totalCount}}</text>
+      <text class="stats-label">内置菜品</text>
+    </view>
 
-    <view class="result-box" wx:if="{{todayFood}}" animation="{{animation}}">
-      <text class="result-text">今日{{selectedMeal}}推荐</text>
+    <!-- 新增餐型统计 -->
+    <view class="meal-stats">
+      <view class="meal-stat-item" wx:for="{{mealStats}}" wx:key="type">
+        <text class="meal-stat-label">{{item.type}}</text>
+        <text class="meal-stat-number">{{item.count}}</text>
+      </view>
+    </view>
+
+    <t-icon name="help-circle" class="help-icon" bindtap="showStatsHelp" />
+  </view>
+
+  <!-- 餐时选择器改为按钮组 -->
+  <scroll-view class="meal-selector" scroll-x enhanced>
+    <view 
+      wx:for="{{mealTypes}}" 
+      wx:key="index"
+      class="meal-tab {{selectedMeal === item ? 'active' : ''}}"
+      bindtap="handleMealSelect"
+      data-index="{{index}}"
+    >
+      {{item}}
+    </view>
+  </scroll-view>
+
+  <!-- 结果展示区域 -->
+  <view class="result-card" wx:if="{{todayFood}}" animation="{{animation}}">
+    <view class="result-header">
+      <text class="result-title">今日{{selectedMeal}}推荐</text>
+      <t-icon name="refresh" class="refresh-icon" bindtap="pickRandomFood" />
+    </view>
+    <view class="food-card">
       <text class="food-name">{{todayFood}}</text>
+      <view class="divider"></view>
+      <view class="history-section">
+        <text class="history-title">最近选择 ▼</text>
+        <scroll-view class="history-scroll" scroll-x>
+          <block wx:for="{{recentHistory}}" wx:key="index">
+            <view class="history-badge">{{item}}</view>
+          </block>
+          <view wx:if="{{!recentHistory.length}}" class="empty-tip">暂无历史记录</view>
+        </scroll-view>
+      </view>
     </view>
+  </view>
 
-    <view class="btn-container">
-      <t-button 
-        theme="primary" 
-        bind:tap="pickRandomFood"
-        disabled="{{!selectedMeal}}"
-      >
-        随机抽选
-      </t-button>
-    </view>
+  <!-- 功能按钮组 -->
+  <view class="action-buttons">
+    <t-button 
+      theme="primary" 
+      shape="round"
+      icon="view-list"
+      bind:tap="showFullHistory"
+      loading="{{isLoading}}"
+    >
+      查看完整历史
+    </t-button>
+    <t-button 
+      theme="success" 
+      shape="round"
+      icon="refresh"
+      bind:tap="pickRandomFood"
+      disabled="{{!selectedMeal}}"
+      loading="{{isLoading}}"
+    >
+      帮我选择
+    </t-button>
   </view>
 </view>

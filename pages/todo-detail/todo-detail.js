@@ -87,35 +87,44 @@ Page({
 
   // 新增日期格式化方法
   formatRichDate(targetDate) {
-    // 添加空值校验
     if (!targetDate || !(targetDate instanceof Date)) {
       console.error('无效的日期对象:', targetDate);
       return '日期格式错误';
     }
     
-    // 添加默认时间处理
     const time = this.data.todo.setTime || '12:00';
+    const [hours, minutes] = time.split(':').map(Number);
+    targetDate.setHours(hours, minutes, 0, 0);
 
-    const today = new Date().setHours(0,0,0,0)
-    const targetTime = targetDate.setHours(0,0,0,0)
-    const dayDiff = Math.round((targetTime - today) / (1000 * 3600 * 24))
+    const now = new Date();
+    const diffMs = targetDate - now;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     
+    // 获取日期部分(忽略时间)进行比较
+    const targetDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const isSameDay = targetDay.getTime() === today.getTime();
+
     // 周几显示
-    const weekDays = ['日', '一', '二', '三', '四', '五', '六']
-    const weekDay = weekDays[targetDate.getDay()]
-  
+    const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+    const weekDay = weekDays[targetDate.getDay()];
+
     // 相对时间描述
-    let relative = ''
-    if(dayDiff > 0) {
-      relative = `${dayDiff}天后`
-    } else if(dayDiff < 0) {
-      relative = `${Math.abs(dayDiff)}天前`
+    let relative = '';
+    if (isSameDay) {
+      const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      
+      if (diffHours !== 0 || diffMinutes !== 0) {
+        relative = `${Math.abs(diffHours)}小时${Math.abs(diffMinutes)}分${diffMs > 0 ? '后' : '前'}`;
+      } else {
+        relative = '现在';
+      }
     } else {
-      relative = '今天'
+      relative = `${Math.abs(diffDays)}天${diffDays > 0 ? '后' : '前'}`;
     }
-  
-    // 组装最终格式
-    return `${this.formatDate(targetDate)} ${time} 周${weekDay}（${relative}）`
+
+    return `${this.formatDate(targetDate)} ${time} 周${weekDay}\n(${relative})`;
   },
 
   // 保持原有的 formatDate 方法

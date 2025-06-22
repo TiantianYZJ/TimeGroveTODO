@@ -2,6 +2,7 @@
   "usingComponents": {
     "t-swipe-cell": "tdesign-miniprogram/swipe-cell/swipe-cell",
     "t-cell": "tdesign-miniprogram/cell/cell",
-    "t-fab": "tdesign-miniprogram/fab/fab"
+    "t-fab": "tdesign-miniprogram/fab/fab",
+    "t-action-sheet": "tdesign-miniprogram/action-sheet/action-sheet"
   }
 }

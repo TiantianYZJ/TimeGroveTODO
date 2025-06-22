@@ -182,10 +182,34 @@ Page({
   toggleTodo(e) {
     const index = e.currentTarget.dataset.index;
     const todos = wx.getStorageSync('todos');
-    todos[index].completed = !todos[index].completed;
-    wx.setStorageSync('todos', todos);
-    this.setData({ selectedTodos: todos });
-    getApp().updateCalendarCache(todos);
+    
+    // 获取当前展示的待办项
+    const currentTodo = this.data.selectedTodos[index];
+    
+    // 在全局todos中查找真实索引
+    const realIndex = todos.findIndex(t => 
+      t.text === currentTodo.text && 
+      t.setDate === currentTodo.setDate &&
+      t.setTime === currentTodo.setTime
+    );
+    
+    if (realIndex !== -1) {
+      // 更新真实索引项的完成状态
+      todos[realIndex].completed = !todos[realIndex].completed;
+      wx.setStorageSync('todos', todos);
+      
+      // 重新过滤当天待办（保持当前选中日期）
+      const filtered = todos.filter(todo => 
+        this.formatDate(new Date(todo.setDate)) === this.data.selectedDate
+      );
+      
+      this.setData({ 
+        selectedTodos: filtered.sort((a, b) => 
+          this.parseTime(a.setTime || '23:59') - this.parseTime(b.setTime || '23:59')
+        ) 
+      });
+      getApp().updateCalendarCache(todos);
+    }
   },
 
   // 复用todo页的删除逻辑（约第171行）

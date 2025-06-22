@@ -82,13 +82,6 @@
   text-indent: 0; /* 确保没有缩进 */
 }
 
-.label {
-  color: #666;
-  font-size: 30rpx;
-  margin-right: 20rpx;
-  /* 保持标签宽度固定 */
-  flex-shrink: 0;
-}
 
 /* 新增操作栏样式 */
 .action-bar {
