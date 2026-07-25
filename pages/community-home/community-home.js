@@ -37,6 +37,7 @@ Page({
     checkinError: false,
     avatarUrl: '',
     nickname: '',
+    showMaintenanceOverlay: !wx.getStorageSync('hideMaintenance'),
   },
 
   onShow() {
@@ -278,6 +279,11 @@ Page({
     } catch (err) {
       this.setData({ checkinError: true });
     }
+  },
+
+  dismissMaintenance() {
+    wx.setStorageSync('hideMaintenance', true);
+    this.setData({ showMaintenanceOverlay: false });
   },
 
   _getWeekMonths() {

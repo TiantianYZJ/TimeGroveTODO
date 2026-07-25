@@ -106,8 +106,11 @@
 <t-fab wx:if="{{showBackTop}}" icon="arrow-up" bind:click="onToTop" style="right: 32rpx; bottom: 150rpx;" />
 <t-fab icon="add" bind:click="goToEdit" style="right: 32rpx; bottom: 32rpx;" />
 <!-- 社区维护遮罩 -->
-  <view class="maintenance-overlay">
+  <view class="maintenance-overlay" wx:if="{{showMaintenanceOverlay}}">
     <view class="maintenance-card">
+      <view class="maintenance-close" bindtap="dismissMaintenance">
+        <t-icon name="close" size="36rpx" color="#999" />
+      </view>
       <view class="maintenance-icon">
         <t-icon name="tools-circle" size="96rpx" color="#00b26a" />
       </view>
