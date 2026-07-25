@@ -355,6 +355,12 @@
   margin-right: 16rpx;
 }
 
+/* 搜索图标微动效 */
+.search-box:active .search-icon {
+  transform: rotate(10deg) scale(0.9);
+  transition: transform 0.15s ease;
+}
+
 .search-text {
   flex: 1;
   font-size: 28rpx;
@@ -1574,10 +1580,7 @@
 
 .copy-popup {
   width: 580rpx;
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(24rpx) saturate(180%);
-  -webkit-backdrop-filter: blur(24rpx) saturate(180%);
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  background: #ffffff;
   border-radius: 32rpx;
   padding: 48rpx 40rpx;
   box-sizing: border-box;
@@ -1678,10 +1681,7 @@
 .share-popup {
   padding: 48rpx 40rpx 60rpx;
   text-align: center;
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(24rpx) saturate(180%);
-  -webkit-backdrop-filter: blur(24rpx) saturate(180%);
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  background: #ffffff;
   border-radius: 32rpx;
 }
 

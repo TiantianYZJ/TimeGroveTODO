@@ -319,7 +319,7 @@ wx:key="*this"
   wx:if="{{showBackTop}}"
   icon="arrow-up" 
   bind:click="onToTop"
-  style="right: 32rpx; bottom: 268rpx;"
+  style="right: 32rpx; bottom: calc(150rpx + 128rpx);"
 />
 
 <t-fab 
