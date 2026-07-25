@@ -718,38 +718,6 @@
 
 /* ========== 徽标颜色选择器 ========== */
 
-.badge-color-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8rpx;
-  padding-top: 4rpx;
-}
-
-.bc-item {
-  width: 36rpx;
-  height: 36rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2rpx solid #ddd;
-  flex-shrink: 0;
-  box-sizing: border-box;
-}
-
-.bc-item.selected {
-  border-color: #333;
-  border-width: 3rpx;
-}
-
-.bc-item.custom {
-  background: #f0f0f0;
-  font-size: 22rpx;
-  font-weight: 700;
-  color: #999;
-  border-style: dashed;
-}
-
 /* color picker popup */
 .color-picker-popup {
   background: #fff;

@@ -40,7 +40,6 @@ Page({
     editNicknameValue: '',
     badgeTitles: [],
     badgeColors: [],
-    presetColors: ['#00B26A', '#1890FF', '#722ED1', '#FA8C16', '#C8CA4F', '#13C2C2', '#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722', '#795548', '#607d8b'],
     badgeColorPickerVisible: false,
     badgePickerIdx: null,
     badgeCustomColor: '',
@@ -310,15 +309,7 @@ Page({
     }
   },
 
-    selectBadgeColor(e) {
-    const idx = e.currentTarget.dataset.index;
-    const color = e.currentTarget.dataset.color;
-    const colors = [...this.data.badgeColors];
-    colors[idx] = color;
-    this.setData({ badgeColors: colors });
-  },
-
-  openColorPicker(e) {
+    openColorPicker(e) {
     const idx = e.currentTarget.dataset.index;
     const currentColor = this.data.badgeColors[idx] || '#00B26A';
     this.setData({
