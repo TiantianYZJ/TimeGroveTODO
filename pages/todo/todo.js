@@ -50,6 +50,8 @@ Page({
     dragOffsetY: 0,
     dragItemWidth: 0,
     dragItemHeight: 0,
+    // 速度跟踪（拖拽释放时计算速度）
+    _velocityHistory: [],
     touchStartX: 0,
     touchStartY: 0,
     listScrollTop: 0,
@@ -1263,7 +1265,8 @@ Page({
       dragOffsetY: 0,
       scrollEnabled: false,  // 禁用列表滚动
       _longPressTimer: null,
-      dragItemWidth: windowWidth - 40  // rpx 转 px 约等于屏幕宽减去边距
+      dragItemWidth: windowWidth - 40,  // rpx 转 px 约等于屏幕宽减去边距
+      _velocityHistory: []
     });
 
     // 获取拖拽项的准确高度
@@ -1291,6 +1294,14 @@ Page({
   _handleDragMove(touch) {
     const { touchStartX, touchStartY, dragItemHeight, dragItemWidth, placeholderIndex, todos, listScrollTop } = this.data;
 
+    // 速度采样：记录最近 5 帧的位置和时间
+    const now = Date.now();
+    const history = this.data._velocityHistory || [];
+    history.push({ time: now, y: touch.pageY });
+    if (history.length > 5) {
+      history.shift();
+    }
+
     // 计算偏移量
     const offsetX = touch.pageX - touchStartX;
     const offsetY = touch.pageY - touchStartY;
@@ -1300,7 +1311,8 @@ Page({
       dragX: touch.pageX,
       dragY: touch.pageY,
       dragOffsetX: offsetX,
-      dragOffsetY: offsetY
+      dragOffsetY: offsetY,
+      _velocityHistory: history
     });
 
     // 计算新的占位符位置
@@ -1350,7 +1362,18 @@ Page({
    * 内部：处理拖拽结束
    */
   _handleDragEnd() {
-    const { _originalTodos, placeholderIndex, dragIndex } = this.data;
+    const { _originalTodos, placeholderIndex, dragIndex, _velocityHistory } = this.data;
+
+    // 计算释放速度（px/秒）
+    let releaseVelocity = 0;
+    if (_velocityHistory && _velocityHistory.length >= 2) {
+      const last = _velocityHistory[_velocityHistory.length - 1];
+      const first = _velocityHistory[0];
+      const dt = (last.time - first.time) / 1000;
+      if (dt > 0) {
+        releaseVelocity = (last.y - first.y) / dt;
+      }
+    }
 
     const finalTodos = [..._originalTodos];
     const movedItem = finalTodos.splice(dragIndex, 1)[0];
@@ -1363,6 +1386,9 @@ Page({
 
     finalTodos.splice(insertIndex, 0, movedItem);
 
+    // 确定最终插入的索引（插入后 movedItem 所在位置）
+    const finalIndex = insertIndex;
+
     this.setData({
       isDragging: false,
       dragIndex: -1,
@@ -1373,13 +1399,32 @@ Page({
       scrollEnabled: true,
       dragOffsetX: 0,
       dragOffsetY: 0,
-      _isLongPress: false
+      _isLongPress: false,
+      _velocityHistory: []
     });
 
     setLocalTodos(finalTodos);
     getApp().updateCalendarCache(finalTodos);
 
     wx.vibrateShort({ type: 'light' });
+
+    // 为被拖拽的 todo 添加弹性着陆动画
+    if (finalIndex >= 0 && finalIndex < finalTodos.length) {
+      const movedId = movedItem.id;
+      // 延迟一帧确保 DOM 已更新
+      setTimeout(() => {
+        const itemId = `todos[${finalIndex}]._animate`;
+        this.setData({ [itemId]: 'drop-land' });
+        setTimeout(() => {
+          this.setData({ [itemId]: '' });
+        }, 350);
+      }, 50);
+    }
+
+    // 记录高速释放（未来可扩展为弹性滚动）
+    if (Math.abs(releaseVelocity) > 300) {
+      logger.debug('DRAG', 'VELOCITY', '高速释放', { velocity: releaseVelocity });
+    }
   },
 
   // ===========================
