@@ -22,3 +22,27 @@ page {
   --secondary-color: #f0faf5;
   --card-shadow: 0 8rpx 40rpx rgba(0,0,0,0.1);
 }
+
+/* ========== P0: 全局交互反馈 ========== */
+
+/* 通用点击反馈 - 触按即响应 */
+.press-fade:active {
+  opacity: 0.7;
+  transition: opacity 80ms ease-out;
+}
+
+.press-scale:active {
+  transform: scale(0.97);
+  transition: transform 80ms ease-out;
+}
+
+.press-bg:active {
+  background: rgba(0, 0, 0, 0.05) !important;
+  transition: background 80ms ease-out;
+}
+
+/* 自定义导航栏反馈 */
+.nav-header:active {
+  opacity: 0.8;
+  transition: opacity 80ms ease-out;
+}
