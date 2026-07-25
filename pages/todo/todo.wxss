@@ -21,8 +21,9 @@
   border: 1rpx solid rgba(255, 255, 255, 0.3);
   position: relative;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  animation: noticeSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transition:
+    opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 /* 背景光晕装饰 */
@@ -119,21 +120,6 @@
   background: rgba(245, 245, 245, 0.85);
 }
 
-/* 入场弹性动画 */
-@keyframes noticeSlideIn {
-  0% {
-    opacity: 0;
-    transform: translateY(-20rpx) scale(0.95);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(4rpx) scale(1.02);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
 
 /* ===========================
    天气卡片 - 动态背景 + 毛玻璃装饰
@@ -147,7 +133,7 @@
   color: #ffffff;
   overflow: hidden;
   transition: all 0.3s ease;
-  animation: weatherFloat 6s ease-in-out infinite;
+  animation: weatherFloat 8s ease-in-out infinite;
 }
 
 /* 按压反馈 */
@@ -170,7 +156,7 @@
 /* 浮动动画 */
 @keyframes weatherFloat {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6rpx); }
+  50% { transform: translateY(-3rpx); }
 }
 
 /* 天气背景分类 */
