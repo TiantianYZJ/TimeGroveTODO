@@ -94,7 +94,6 @@ Page({
     approvalLoading: false,
     totalApprovalCount: 0,
 
-    _togglingIds: {},
 
     // 卡片长按操作模式
     showCardAction: false,
@@ -653,15 +652,7 @@ Page({
     if (!todo) return;
     
     const todoId = todo.id;
-    
-    if (this.data._togglingIds[todoId]) {
-      return;
-    }
-    
-    this.setData({
-      [`_togglingIds.${todoId}`]: true
-    });
-    
+
     const isCompleting = !todo.completed;
     const now = Date.now();
     const { currentTagFilter } = this.data;
@@ -689,9 +680,8 @@ Page({
       setTimeout(() => {
         const currentTodos = this.data.todos;
         const newTodos = currentTodos.filter(item => item.id !== todoId);
-        this.setData({ 
-          todos: newTodos,
-          [`_togglingIds.${todoId}`]: false
+        this.setData({
+          todos: newTodos
         });
       }, 300);
     } else {
@@ -712,19 +702,10 @@ Page({
           const todoIndex = currentTodos.findIndex(t => t.id === todoId);
           if (todoIndex > -1 && currentTodos[todoIndex]._animate) {
             this.setData({
-              [`todos[${todoIndex}]._animate`]: '',
-              [`_togglingIds.${todoId}`]: false
-            });
-          } else {
-            this.setData({
-              [`_togglingIds.${todoId}`]: false
+              [`todos[${todoIndex}]._animate`]: ''
             });
           }
         }, 600);
-      } else {
-        this.setData({
-          [`_togglingIds.${todoId}`]: false
-        });
       }
     }
 
