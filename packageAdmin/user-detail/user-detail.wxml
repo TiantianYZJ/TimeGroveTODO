@@ -119,30 +119,32 @@
     </view>
     <view class="badge-list">
       <view wx:for="{{badgeTitles}}" wx:for-index="idx" wx:key="idx" class="badge-edit-item">
-        <view class="badge-preview" style="color: {{badgeColors[idx]}}; border-color: {{badgeColors[idx]}}">
-          <text>{{item}}</text>
+        <view class="badge-row-top">
+          <view class="badge-preview" style="color: {{badgeColors[idx]}}; border-color: {{badgeColors[idx]}}">
+            <text>{{item}}</text>
+          </view>
+          <input class="badge-title-input" value="{{item}}" bindinput="onBadgeTitleInput" data-index="{{idx}}" placeholder="称号" />
         </view>
-        <input class="badge-title-input" value="{{item}}" bindinput="onBadgeTitleInput" data-index="{{idx}}" placeholder="称号" />
-        <view class="badge-color-wrap">
+        <view class="badge-row-color">
           <view class="badge-color-group">
             <input class="badge-color-input" value="{{badgeColors[idx]}}" bindinput="onBadgeColorInput" data-index="{{idx}}" placeholder="#RRGGBB" />
             <view class="badge-color-swatch" style="background: {{badgeColors[idx]}}" bindtap="openColorPicker" data-index="{{idx}}"></view>
           </view>
-          <view class="badge-color-grid">
-            <view class="bc-item {{badgeColors[idx] === c ? 'selected' : ''}}"
-              wx:for="{{presetColors}}" wx:key="*this"
-              style="background: {{c}}"
-              data-index="{{idx}}" data-color="{{c}}"
-              bindtap="selectBadgeColor">
-              <t-icon wx:if="{{badgeColors[idx] === c}}" name="check" size="20rpx" color="#fff" />
-            </view>
-            <view class="bc-item custom {{badgePickerIdx == idx ? 'selected' : ''}}" bindtap="openColorPicker" data-index="{{idx}}">
-              <text class="rainbow-text">...</text>
-            </view>
+          <view class="badge-remove" bindtap="removeBadge" data-index="{{idx}}">
+            <t-icon name="delete" size="28rpx" color="#ff4757" />
           </view>
         </view>
-        <view class="badge-remove" bindtap="removeBadge" data-index="{{idx}}">
-          <t-icon name="delete" size="28rpx" color="#ff4757" />
+        <view class="badge-color-grid">
+          <view class="bc-item {{badgeColors[idx] === c ? 'selected' : ''}}"
+            wx:for="{{presetColors}}" wx:key="*this"
+            style="background: {{c}}"
+            data-index="{{idx}}" data-color="{{c}}"
+            bindtap="selectBadgeColor">
+            <t-icon wx:if="{{badgeColors[idx] === c}}" name="check" size="20rpx" color="#fff" />
+          </view>
+          <view class="bc-item custom {{badgePickerIdx == idx ? 'selected' : ''}}" bindtap="openColorPicker" data-index="{{idx}}">
+            <text class="rainbow-text">+</text>
+          </view>
         </view>
       </view>
     </view>
