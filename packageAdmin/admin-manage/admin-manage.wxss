@@ -136,7 +136,7 @@
   height: 72rpx;
   line-height: 72rpx;
   padding: 0 32rpx;
-  background: linear-gradient(135deg, #00B26A, #3ddaa0);
+  background: linear-gradient(135deg, #00b26a, #3ddaa0);
   color: #fff;
   font-size: 28rpx;
   border-radius: 16rpx;

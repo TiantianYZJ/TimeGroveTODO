@@ -1,11 +1,11 @@
 <view class="edit-container">
   <view class="type-selector">
     <view class="type-option {{noticeType === 'custom' ? 'active' : ''}}" bindtap="selectType" data-type="custom">
-      <t-icon name="edit" size="40rpx" color="{{noticeType === 'custom' ? '#00B26A' : '#999'}}" />
+      <t-icon name="edit" size="40rpx" color="{{noticeType === 'custom' ? '#00b26a' : '#999'}}" />
       <text>自定义公告</text>
     </view>
     <view class="type-option {{noticeType === 'version' ? 'active' : ''}}" bindtap="selectType" data-type="version">
-      <t-icon name="history" size="40rpx" color="{{noticeType === 'version' ? '#00B26A' : '#999'}}" />
+      <t-icon name="history" size="40rpx" color="{{noticeType === 'version' ? '#00b26a' : '#999'}}" />
       <text>版本更新</text>
     </view>
   </view>

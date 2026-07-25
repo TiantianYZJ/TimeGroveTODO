@@ -58,7 +58,7 @@
 }
 
 .notice-icon.version-type {
-  background: linear-gradient(135deg, #00B26A 0%, #3ddaa0 100%);
+  background: linear-gradient(135deg, #00b26a 0%, #3ddaa0 100%);
 }
 
 .notice-info {

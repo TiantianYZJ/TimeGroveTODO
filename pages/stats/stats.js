@@ -249,7 +249,7 @@ Page({
           fontSize: 12
         }
       },
-      color: ['#00B26A', '#E8F5E9'],
+      color: ['#00b26a', '#E8F5E9'],
       series: [
         {
           name: '待办完成情况',
@@ -406,7 +406,7 @@ Page({
           data: counts,
           itemStyle: {
             // 避免使用LinearGradient，直接使用颜色字符串
-            color: '#00B26A'
+            color: '#00b26a'
           }
         }
       ]
@@ -638,7 +638,7 @@ Page({
     ctx.fillRect(0, 0, 750, 2200);
 
     const gradient = ctx.createLinearGradient(0, 0, 750, 0);
-    gradient.addColorStop(0, '#00B26A');
+    gradient.addColorStop(0, '#00b26a');
     gradient.addColorStop(1, '#52f099');
     ctx.fillStyle = gradient;
     this.drawRoundRect(ctx, 0, 0, 750, 280, 0);
@@ -699,7 +699,7 @@ Page({
 
     const metrics = [
       { label: '总待办', value: data.total, x: 65, color: '#2d3436' },
-      { label: '已完成', value: data.completed, x: 215, color: '#00B26A' },
+      { label: '已完成', value: data.completed, x: 215, color: '#00b26a' },
       { label: '完成率', value: `${data.progress}%`, x: 365, color: '#26c6da' },
       { label: '平均耗时', value: data.avgCompletionTime, x: 515, color: '#f5a623' }
     ];
@@ -726,7 +726,7 @@ Page({
       ctx.fillText(m.label, m.x, cardY + 155);
 
       ctx.font = 'bold 32px "PingFang SC"';
-      ctx.fillStyle = '#00B26A';
+      ctx.fillStyle = '#00b26a';
       ctx.fillText(String(m.value), m.x, cardY + 190);
     });
 
@@ -764,7 +764,7 @@ Page({
         ctx.fill();
 
         const barGradient = ctx.createLinearGradient(50, 0, 50 + barWidth, 0);
-        barGradient.addColorStop(0, '#00B26A');
+        barGradient.addColorStop(0, '#00b26a');
         barGradient.addColorStop(1, '#52f099');
         ctx.fillStyle = barGradient;
         this.drawRoundRect(ctx, 50, itemY, barWidth, barHeight, 14);
@@ -830,7 +830,7 @@ Page({
 
         const barGradient = ctx.createLinearGradient(50, 0, 50 + barWidth, 0);
         barGradient.addColorStop(0, '#26c6da');
-        barGradient.addColorStop(1, '#00B26A');
+        barGradient.addColorStop(1, '#00b26a');
         ctx.fillStyle = barGradient;
         this.drawRoundRect(ctx, 50, itemY, barWidth, barHeight, 14);
         ctx.fill();
@@ -903,7 +903,7 @@ Page({
       });
       ctx.stroke();
 
-      ctx.strokeStyle = '#00B26A';
+      ctx.strokeStyle = '#00b26a';
       ctx.beginPath();
       lastComplete.forEach((val, i) => {
         const x = chartX + i * stepX;
@@ -925,7 +925,7 @@ Page({
       ctx.arc(chartX + (showDays - 1) * stepX, chartY + chartHeight - (lastCreate[lastCreate.length - 1] / maxVal) * chartHeight, 6, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = '#00B26A';
+      ctx.fillStyle = '#00b26a';
       ctx.beginPath();
       ctx.arc(chartX + (showDays - 1) * stepX, chartY + chartHeight - (lastComplete[lastComplete.length - 1] / maxVal) * chartHeight, 6, 0, Math.PI * 2);
       ctx.fill();
@@ -933,7 +933,7 @@ Page({
       ctx.font = '18px "PingFang SC"';
       ctx.fillStyle = '#26c6da';
       ctx.fillText('● 创建', 50, trendSectionY + 265);
-      ctx.fillStyle = '#00B26A';
+      ctx.fillStyle = '#00b26a';
       ctx.fillText('● 完成', 150, trendSectionY + 265);
     } else {
       ctx.font = '20px "PingFang SC"';
@@ -983,7 +983,7 @@ Page({
           const y = chartY + chartHeight - barHeight;
 
           const gradient = ctx.createLinearGradient(0, y, 0, chartY + chartHeight);
-          gradient.addColorStop(0, '#00B26A');
+          gradient.addColorStop(0, '#00b26a');
           gradient.addColorStop(1, '#26c6da');
           ctx.fillStyle = gradient;
 
@@ -1012,7 +1012,7 @@ Page({
     ctx.fill();
 
     ctx.font = '22px "PingFang SC"';
-    ctx.fillStyle = '#00B26A';
+    ctx.fillStyle = '#00b26a';
     ctx.textAlign = 'center';
     ctx.fillText('时光绿径待办 · 让每一天更有序', 375, 2150);
     ctx.textAlign = 'left';

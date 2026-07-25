@@ -36,6 +36,11 @@
     <t-icon name="location" size="28rpx" color="#00b26a" />
     <text class="location-text">{{post.location.name || post.location.address || post.location.text || post.location}}</text>
   </view>
+  <view wx:if="{{post.poll}}" class="poll-summary" catch:tap="onTapDetail" data-post-id="{{post.postId}}">
+    <t-icon name="poll" size="28rpx" color="#00b26a" />
+    <text class="poll-summary-text">投票 · {{post.poll.totalVotes || 0}}人参与</text>
+    <t-icon name="chevron-right" size="24rpx" color="#999" />
+  </view>
   <view wx:if="{{post.todoIds && post.todoIds.length > 0 || (post.files && post.files.length > 0) || post.shareCode}}" class="post-tags">
     <view wx:if="{{post.todoIds && post.todoIds.length > 0}}" class="tag-card" catch:tap="onTapTodoExpand" data-post-id="{{post.postId}}">
       <view class="tag-card-header">

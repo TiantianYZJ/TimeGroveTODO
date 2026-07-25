@@ -1,0 +1,43 @@
+.app {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg);
+}
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg);
+  height: 100vh;
+  overflow: hidden;
+}
+.content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 移动端遮罩 */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+  animation: fadeIn var(--dur-fast) var(--ease);
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ====== 响应式：平板侧栏收窄 ====== */
+@media (max-width: 1024px) {
+  .app { grid-template-columns: 180px 1fr; }
+}
+/* ====== 响应式：手机侧栏抽屉化 ====== */
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+}
+

@@ -52,10 +52,14 @@ async function formatPostPoll(pollId, userId) {
   const isEnded = !!poll.is_closed || (endTime && now > endTime);
 
   const userVotes = await query(
-    'SELECT option_id FROM post_poll_votes WHERE poll_id = ? AND user_id = ?',
+    'SELECT option_id, custom_text FROM post_poll_votes WHERE poll_id = ? AND user_id = ?',
     [poll.id, userId]
   );
   const userVotedOptionIds = userVotes.map(v => v.option_id);
+  const userCustomTextMap = {};
+  for (const v of userVotes) {
+    if (v.custom_text) userCustomTextMap[v.option_id] = v.custom_text;
+  }
 
   return {
     pollId: poll.id,
@@ -70,9 +74,10 @@ async function formatPostPoll(pollId, userId) {
     userVotedOptionIds,
     options: options.map(o => ({
       optionId: o.id,
-      text: o.text,
+      text: o.is_other && userCustomTextMap[o.id] ? userCustomTextMap[o.id] : o.text,
       voteCount: o.vote_count,
-      isOther: !!o.is_other
+      isOther: !!o.is_other,
+      userCustomText: userCustomTextMap[o.id] || null
     }))
   };
 }

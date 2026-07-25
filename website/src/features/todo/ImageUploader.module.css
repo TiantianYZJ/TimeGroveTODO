@@ -1,0 +1,102 @@
+.uploader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.thumb {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  flex: none;
+}
+
+.thumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumbRemove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--primary-fg);
+  border: 0;
+  cursor: pointer;
+  line-height: 1;
+  transition: background var(--dur-fast) var(--ease);
+}
+
+.thumbRemove svg {
+  width: 11px;
+  height: 11px;
+}
+
+.thumbRemove:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.thumbUploading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--primary-fg);
+}
+
+.thumbUploading svg {
+  width: 20px;
+  height: 20px;
+}
+
+.uploadBtn {
+  width: 80px;
+  height: 80px;
+  border: 1px dashed var(--mt3);
+  background: transparent;
+  color: var(--mt2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex: none;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.uploadBtn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.uploadBtn:active {
+  background: var(--card);
+}
+
+.uploadBtn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.uploadBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.fileInput {
+  display: none;
+}
+
+.hint {
+  font: 500 10px/1 var(--font-mono);
+  color: var(--mt2);
+  margin-top: 4px;
+}

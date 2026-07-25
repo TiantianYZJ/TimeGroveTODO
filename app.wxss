@@ -21,6 +21,11 @@ page {
   --primary-color-rgb: 0, 178, 106;
   --secondary-color: #f0faf5;
   --card-shadow: 0 8rpx 40rpx rgba(0,0,0,0.1);
+  /* 文字色阶变量 - 统一使用 */
+  --text-primary: #2d3436;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --text-disabled: #cccccc;
 }
 
 /* ========== P0: 全局交互反馈 ========== */

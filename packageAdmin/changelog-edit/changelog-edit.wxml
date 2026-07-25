@@ -16,7 +16,7 @@
   <view class="content-section">
     <view class="section-header">
       <view class="section-title">
-        <t-icon name="bulletpoint" size="28rpx" color="#00B26A" />
+        <t-icon name="bulletpoint" size="28rpx" color="#00b26a" />
         <text>更新内容</text>
         <text class="count-badge">{{form.content.length}} 项</text>
       </view>

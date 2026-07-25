@@ -311,7 +311,7 @@ Page({
 
     openColorPicker(e) {
     const idx = e.currentTarget.dataset.index;
-    const currentColor = this.data.badgeColors[idx] || '#00B26A';
+    const currentColor = this.data.badgeColors[idx] || '#00b26a';
     this.setData({
       badgeColorPickerVisible: true,
       badgePickerIdx: idx,

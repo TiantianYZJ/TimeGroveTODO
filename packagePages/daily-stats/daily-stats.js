@@ -289,7 +289,7 @@ Page({
         ctx.fillRect(0, 0, 750, 1800);
 
         const gradient = ctx.createLinearGradient(0, 0, 750, 0);
-        gradient.addColorStop(0, '#00B26A');
+        gradient.addColorStop(0, '#00b26a');
         gradient.addColorStop(1, '#52f099');
         ctx.fillStyle = gradient;
         drawRoundRect(0, 0, 750, 280, 0);
@@ -338,7 +338,7 @@ Page({
         const stats = this.data.dayStats;
         const metrics = [
           { label: '创建待办', value: stats.created, x: 65, color: '#2d3436' },
-          { label: '完成待办', value: stats.completed, x: 215, color: '#00B26A' },
+          { label: '完成待办', value: stats.completed, x: 215, color: '#00b26a' },
           { label: '完成率', value: `${stats.completionRate}%`, x: 365, color: '#26c6da' },
           { label: '平均耗时', value: stats.avgTime, x: 515, color: '#f5a623' }
         ];
@@ -365,7 +365,7 @@ Page({
           ctx.fillText(m.label, m.x, cardY + 155);
 
           ctx.font = 'bold 32px "PingFang SC"';
-          ctx.fillStyle = '#00B26A';
+          ctx.fillStyle = '#00b26a';
           ctx.fillText(String(m.value), m.x, cardY + 190);
         });
 
@@ -409,7 +409,7 @@ Page({
             const y = chartY + chartHeight - barHeight;
 
             const barGradient = ctx.createLinearGradient(0, y, 0, chartY + chartHeight);
-            barGradient.addColorStop(0, '#00B26A');
+            barGradient.addColorStop(0, '#00b26a');
             barGradient.addColorStop(1, '#26c6da');
             ctx.fillStyle = barGradient;
 
@@ -447,7 +447,7 @@ Page({
 
           ctx.beginPath();
           ctx.arc(70, itemY + 12, 14, 0, Math.PI * 2);
-          ctx.fillStyle = todo.completed ? '#00B26A' : '#e0e0e0';
+          ctx.fillStyle = todo.completed ? '#00b26a' : '#e0e0e0';
           ctx.fill();
 
           if (todo.completed) {
@@ -463,7 +463,7 @@ Page({
           }
 
           ctx.font = '24px "PingFang SC"';
-          ctx.fillStyle = todo.completed ? '#00B26A' : '#2d3436';
+          ctx.fillStyle = todo.completed ? '#00b26a' : '#2d3436';
           const text = todo.text.length > 18 ? todo.text.substring(0, 18) + '...' : todo.text;
           ctx.fillText(text, todo.isStar ? 120 : 100, itemY + 18);
 
@@ -485,7 +485,7 @@ Page({
         ctx.fill();
 
         ctx.font = '22px "PingFang SC"';
-        ctx.fillStyle = '#00B26A';
+        ctx.fillStyle = '#00b26a';
         ctx.textAlign = 'center';
         ctx.fillText('时光绿径待办 · 让每一天更有序', 375, 1750);
         ctx.textAlign = 'left';

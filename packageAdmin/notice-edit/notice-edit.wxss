@@ -24,7 +24,7 @@
 }
 
 .type-option.active {
-  border-color: #00B26A;
+  border-color: #00b26a;
   background: rgba(0, 178, 106, 0.05);
 }
 
@@ -34,7 +34,7 @@
 }
 
 .type-option.active text {
-  color: #00B26A;
+  color: #00b26a;
   font-weight: 500;
 }
 
@@ -125,7 +125,7 @@
 }
 
 .toggle-btn.active {
-  background: #00B26A;
+  background: #00b26a;
   color: #fff;
 }
 
@@ -159,7 +159,7 @@
 
 .toolbar-btn:active {
   background: #e8f5e9;
-  border-color: #00B26A;
+  border-color: #00b26a;
 }
 
 .toolbar-icon {
@@ -239,7 +239,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #00B26A 0%, #3ddaa0 100%);
+  background: linear-gradient(135deg, #00b26a 0%, #3ddaa0 100%);
   color: #fff;
   font-size: 32rpx;
   border-radius: 32rpx;

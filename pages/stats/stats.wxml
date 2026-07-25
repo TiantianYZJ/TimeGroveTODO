@@ -41,7 +41,7 @@
     <view class="daily-stats-entry" bindtap="navigateToDailyStats">
       <view class="entry-content">
         <view class="entry-icon">
-          <t-icon name="calendar" size="40rpx" color="#00B26A" />
+          <t-icon name="calendar" size="40rpx" color="#00b26a" />
         </view>
         <view class="entry-text">
           <text class="entry-title">每日统计</text>
@@ -55,7 +55,7 @@
   <!-- 完成情况概览图表 -->
   <view class="card-style">
     <view class="section-title">
-      <t-icon name="chart-pie" size="36rpx" color="#00B26A" />
+      <t-icon name="chart-pie" size="36rpx" color="#00b26a" />
       <text>完成情况概览</text>
     </view>
     <view class="chart-container">
@@ -74,7 +74,7 @@
   <!-- 每日待办趋势图表 -->
   <view class="card-style">
     <view class="section-title">
-      <t-icon name="chart-line" size="36rpx" color="#00B26A" />
+      <t-icon name="chart-line" size="36rpx" color="#00b26a" />
       <text>每日待办趋势</text>
     </view>
     <view class="chart-container">
@@ -85,7 +85,7 @@
   <!-- 创建时间分布图表 -->
   <view class="card-style">
     <view class="section-title">
-      <t-icon name="time" size="36rpx" color="#00B26A" />
+      <t-icon name="time" size="36rpx" color="#00b26a" />
       <text>创建时间分布</text>
     </view>
     <view class="chart-container">
@@ -104,7 +104,7 @@
   <!-- 完成时间分布图表 -->
   <view class="card-style">
     <view class="section-title">
-      <t-icon name="check-circle" size="36rpx" color="#00B26A" />
+      <t-icon name="check-circle" size="36rpx" color="#00b26a" />
       <text>完成时间分布</text>
     </view>
     <view class="chart-container">
@@ -115,7 +115,7 @@
   <!-- 位置分布统计 -->
   <view class="card-style">
     <view class="section-title">
-      <t-icon name="location" size="36rpx" color="#00B26A" />
+      <t-icon name="location" size="36rpx" color="#00b26a" />
       <text>位置分布</text>
     </view>
     <view class="bar-chart">

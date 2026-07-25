@@ -1,6 +1,6 @@
 # 时光绿径待办 — 前端 Web API 接入规范
 
-> 适用对象：前端 React 开发者
+> 适用对象：前端 React / Vue / 小程序开发者
 > 基础 URL：`https://api.yzjtiantian.cn`
 
 ---
@@ -10,24 +10,28 @@
 1. [通用规范](#1-通用规范)
 2. [认证模块](#2-认证模块)
 3. [待办模块](#3-待办模块)
-4. [标签模块](#4-标签模块)
-5. [组合模块](#5-组合模块)
-6. [协作模块](#6-协作模块)
-7. [帖子模块](#7-帖子模块)
-8. [点赞模块](#8-点赞模块)
-9. [帖子评论模块](#9-帖子评论模块)
-10. [评论模块（分享待办）](#10-评论模块分享待办)
-11. [文件上传](#11-文件上传)
-12. [签到模块](#12-签到模块)
-13. [用户模块](#13-用户模块)
-14. [配置模块](#14-配置模块)
-15. [通知模块](#15-通知模块)
-16. [工作报告模块](#16-工作报告模块)
-17. [举报模块](#17-举报模块)
-18. [分享模块](#18-分享模块)
-19. [管理后台模块](#19-管理后台模块)
-20. [日志上报](#20-日志上报)
-21. [TypeScript 类型定义](#21-typescript-类型定义)
+4. [子待办更新语义详解](#4-子待办更新语义详解)
+5. [Web 前端集成最佳实践](#5-web-前端集成最佳实践)
+6. [小程序对接注意事项](#6-小程序对接注意事项)
+7. [标签模块](#7-标签模块)
+8. [组合模块](#8-组合模块)
+9. [协作模块](#9-协作模块)
+10. [帖子模块](#10-帖子模块)
+11. [点赞模块](#11-点赞模块)
+12. [帖子评论模块](#12-帖子评论模块)
+13. [评论模块（分享待办）](#13-评论模块分享待办)
+14. [文件上传](#14-文件上传)
+15. [签到模块](#15-签到模块)
+16. [用户模块](#16-用户模块)
+17. [配置模块](#17-配置模块)
+18. [通知模块](#18-通知模块)
+19. [工作报告模块](#19-工作报告模块)
+20. [举报模块](#20-举报模块)
+21. [分享模块](#21-分享模块)
+22. [管理后台模块](#22-管理后台模块)
+23. [日志上报](#23-日志上报)
+24. [TypeScript 类型定义](#24-typescript-类型定义)
+25. [附录：API 快速索引](#25-附录api-快速索引)
 
 ---
 
@@ -226,26 +230,87 @@ POST /auth/qrcode/confirm                     # 确认登录（authMiddleware）
 
 前缀：`/todos`
 
-### 3.1 获取待办列表
+### 3.1 待办数据模型
 
-```http
-GET /todos/list?page=1&pageSize=50&date=2026-07-12&completed=0&search=关键词&tagIds=1,2&comboId=1&parent_id=null
+待办与子待办**共享同一张表**，通过 `parent_id` 字段实现层级关系：
+
+```
+todo_id: "todo_xxx_root"
+  parentId: null
+  text: "买年货"
+  │
+  ├── todo_id: "todo_xxx_sub1"
+  │     parentId: "todo_xxx_root"
+  │     text: "买零食"
+  │     │
+  │     └── todo_id: "todo_xxx_sub1_1"
+  │           parentId: "todo_xxx_sub1"
+  │           text: "洽洽原味瓜子"
+  │
+  └── todo_id: "todo_xxx_sub2"
+        parentId: "todo_xxx_root"
+        text: "买春联"
+```
+
+**待办 ID 体系：**
+
+| 字段 | 生成方式 | 示例 | 用途 |
+|------|----------|------|------|
+| `id` (API 响应) | 后端 `todo_id` 列 | `todo_1720000000000_abc123` | 客户端稳定标识 |
+| `dbId` (API 响应) | 数据库自增 | `1` | 服务端内部使用 |
+
+**完整待办字段：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `id` | string | 待办唯一 ID，格式 `todo_{timestamp}_{random9}` |
+| `dbId` | number | 数据库自增 ID（仅服务端内部） |
+| `text` | string | 内容 |
+| `setDate` | string\|null | 到期日期 `YYYY-MM-DD` |
+| `setTime` | string\|null | 到期时间 `HH:mm` |
+| `remarks` | string\|null | 备注 |
+| `location` | object\|null | 地理位置 `{name, address, latitude, longitude}` |
+| `completed` | number | 0=未完成，时间戳(ms)=完成时间 |
+| `isStar` | boolean | 是否星标 |
+| `priority` | string | `p1`~`p4`，默认 `p2` |
+| `time` | number | 创建时间戳(ms) |
+| `tags` | number[] | 标签 ID 数组 |
+| `images` | string[] | 图片 URL 数组 |
+| `comboId` | number\|null | 所属组合 ID |
+| `parentId` | string\|null | 父待办 ID。null=根待办，有值=子待办 |
+| `version` | number | 乐观锁版本号（从 1 开始递增） |
+| `isDeleted` | boolean | 是否已软删除 |
+| `deletedAt` | number\|null | 删除时间戳(ms) |
+| `updatedAt` | number\|null | 更新时间戳(ms) |
+
+### 3.2 获取待办列表
+
+```
+GET /todos/list
 Authorization: Bearer <token>
 ```
 
 **查询参数：**
 
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| `page` | number | 页码（默认 1） |
-| `pageSize` | number | 每页数量（默认 50） |
-| `date` | string | 按日期筛选：`YYYY-MM-DD` |
-| `completed` | string | `0`=未完成，`1`=已完成 |
-| `search` | string | 关键词搜索（空格分隔多关键词） |
-| `tagIds` | string | 标签 ID，逗号分隔 |
-| `comboId` | number | 所属组合 ID |
-| `parent_id` | string | `null`=仅根待办，传入 ID=获取子待办 |
-| `includeDeleted` | string | `true`=包含已删除 |
+| 参数 | 类型 | 必填 | 默认 | 说明 |
+|------|------|------|------|------|
+| `page` | number | 否 | 1 | 页码（从 1 开始） |
+| `pageSize` | number | 否 | 50 | 每页条数 |
+| `date` | string | 否 | — | 按到期日期筛选 `YYYY-MM-DD` |
+| `completed` | string | 否 | — | `0`=未完成，`1`=已完成 |
+| `search` | string | 否 | — | 关键词搜索（空格分隔多关键词） |
+| `tagIds` | string | 否 | — | 标签 ID，逗号分隔 |
+| `comboId` | number | 否 | — | 所属组合 ID |
+| `parent_id` | string | 否 | — | **核心参数**：`null`=仅根待办，传入 ID=获取直接子级 |
+| `includeDeleted` | string | 否 | — | `true`=包含已删除 |
+
+> **`parent_id` 说明：** 不传或传 `null` 时，后端默认 `WHERE parent_id IS NULL`——只返回根级待办。获取子待办必须显式传入父待办的 `id`。当 `search` 关键词搜索生效时，会忽略 `parent_id` 过滤返回所有层级。
+
+**请求样例：**
+
+```
+GET /todos/list?page=1&pageSize=50&date=2026-07-13&completed=0
+```
 
 **响应：**
 
@@ -254,39 +319,168 @@ Authorization: Bearer <token>
   "success": true,
   "todos": [
     {
-      "id": 1,
-      "text": "待办内容",
+      "id": "todo_1720000000000_abc123",
+      "dbId": 42,
+      "text": "买年货",
+      "setDate": "2026-07-13",
+      "setTime": null,
+      "remarks": "过年前准备好",
+      "location": null,
       "completed": 0,
+      "isStar": false,
       "priority": "p1",
-      "setDate": "2026-07-12",
+      "time": 1720000000000,
+      "tags": [1, 2],
+      "images": [],
       "comboId": null,
       "parentId": null,
-      "tags": [{"id": 1, "name": "工作"}],
-      "remarks": "备注",
-      "createdAt": "2026-07-12T10:00:00.000Z",
-      "updatedAt": "2026-07-12T10:00:00.000Z"
+      "version": 3,
+      "isDeleted": false,
+      "deletedAt": null,
+      "updatedAt": 1720000100000
     }
   ],
-  "total": 100,
+  "total": 1,
   "page": 1,
   "pageSize": 50
 }
 ```
 
-### 3.2 创建待办
+**获取子待办（传入父待办 ID）：**
 
-```http
+```
+GET /todos/list?parent_id=todo_1720000000000_abc123
+```
+
+```json
+{
+  "success": true,
+  "todos": [
+    {
+      "id": "todo_1720000000000_def456",
+      "text": "买零食",
+      "parentId": "todo_1720000000000_abc123",
+      "completed": 0,
+      "version": 1,
+      ...
+    }
+  ],
+  "total": 2
+}
+```
+
+**小程序对接示例：**
+
+```javascript
+// 获取根待办列表
+wx.request({
+  url: 'https://api.yzjtiantian.cn/todos/list',
+  method: 'GET',
+  header: { 'Authorization': 'Bearer ' + wx.getStorageSync('authToken') },
+  data: { page: 1, pageSize: 50, date: '2026-07-13' },
+  success: (res) => {
+    if (res.data.success) {
+      const rootTodos = res.data.todos  // parentId 均为 null
+    }
+  }
+})
+
+// 获取子待办列表
+wx.request({
+  url: 'https://api.yzjtiantian.cn/todos/list',
+  method: 'GET',
+  header: { 'Authorization': 'Bearer ' + wx.getStorageSync('authToken') },
+  data: { parent_id: 'todo_1720000000000_abc123' },
+  success: (res) => {
+    const subtasks = res.data.todos  // 直接子待办
+  }
+})
+```
+
+**Web 前端集成示例：**
+
+```typescript
+// React + Zustand store
+import { create } from 'zustand'
+import { todosApi } from '@/api/todos'
+import type { Todo } from '@/types'
+
+interface TodoState {
+  todos: Todo[]
+  subtaskMap: Record<string, Todo[]>
+  fetchTodos: (filters?: object) => Promise<void>
+  fetchSubtodos: (parentId: string) => Promise<void>
+}
+
+export const useTodoStore = create<TodoState>((set, get) => ({
+  todos: [],
+  subtaskMap: {},
+
+  fetchTodos: async (filters) => {
+    const all: Todo[] = []
+    let page = 1
+    while (true) {
+      const res = await todosApi.getList({ page, pageSize: 100, ...filters })
+      const batch = res.todos || []
+      all.push(...batch)
+      if (all.length >= (res.total || 0) || batch.length < 100) break
+      page++
+      if (page > 20) break
+    }
+    set({ todos: all })
+  },
+
+  fetchSubtodos: async (parentId) => {
+    const res = await todosApi.getList({ parent_id: parentId })
+    set({ subtaskMap: { ...get().subtaskMap, [parentId]: res.todos || [] } })
+  },
+}))
+```
+
+### 3.3 创建待办
+
+```
 POST /todos/create
 Authorization: Bearer <token>
 Content-Type: application/json
+```
 
+**请求字段：**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `text` | string | 是 | 待办内容（最大 50 字截断，数据库最大 256 字符） |
+| `priority` | string | 否 | `p1`~`p4`，默认 `p2` |
+| `setDate` | string | 否 | `YYYY-MM-DD` |
+| `setTime` | string | 否 | `HH:mm` |
+| `comboId` | number | 否 | 所属组合 ID |
+| `parentId` / `parent_id` | string | 否 | 父待办 ID（创建子待办时传入） |
+| `remarks` | string | 否 | 备注 |
+| `tagIds` | number[] | 否 | 标签 ID 数组 |
+| `isStar` | boolean | 否 | 是否星标 |
+| `images` | string[] | 否 | 图片 URL 数组（通过 `/upload/image` 上传获得） |
+| `location` | object | 否 | `{ name, address, latitude, longitude }` |
+| `subtasks` | SubtaskInput[] | 否 | 嵌套子待办（见下方说明），不传或传 `[]` 时仅创建单条 |
+
+**请求样例（不含子待办）：**
+
+```json
 {
   "text": "买年货",
   "priority": "p1",
-  "setDate": "2026-07-12",
-  "comboId": null,
-  "parentId": null,
-  "remarks": "备注",
+  "setDate": "2026-07-13",
+  "tagIds": [1, 2],
+  "remarks": "过年前准备好"
+}
+```
+
+**请求样例（含子待办）：**
+
+```json
+{
+  "text": "买年货",
+  "priority": "p1",
+  "setDate": "2026-07-13",
   "tagIds": [1, 2],
   "subtasks": [
     {
@@ -303,30 +497,29 @@ Content-Type: application/json
 }
 ```
 
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `text` | string | 是 | 待办内容（最大 200 字） |
-| `priority` | string | 否 | `p1`~`p4`，默认 `p3` |
-| `setDate` | string | 否 | `YYYY-MM-DD` |
-| `comboId` | number | 否 | 所属组合 ID |
-| `parentId` | string | 否 | 父待办 ID（子任务） |
-| `remarks` | string | 否 | 备注 |
-| `tagIds` | number[] | 否 | 标签 ID 数组 |
-| `subtasks` | SubtaskInput[] | 否 | 嵌套子待办（无限层级），不传或传 `[]` 时行为不变 |
-
-> **子待办字段说明：** 子待办只需传 `text` 和可选 `subtasks`。`setDate`、`setTime`、`priority` 创建时自动从父待办继承，无需传入。
-
-**响应（不传 subtasks 时）：**
+**响应（不含子待办）：**
 
 ```json
 {
   "success": true,
-  "id": 1,
-  "todo": { ... }
+  "message": "待办创建成功",
+  "todo": {
+    "id": "todo_1720000000000_abc123",
+    "dbId": 42,
+    "text": "买年货",
+    "parentId": null,
+    "completed": 0,
+    "priority": "p1",
+    "setDate": "2026-07-13",
+    "version": 1,
+    "tags": [1, 2],
+    "time": 1720000000000,
+    "updatedAt": 1720000000000
+  }
 }
 ```
 
-**响应（含子待办时）：**
+**响应（含子待办）：**
 
 ```json
 {
@@ -337,7 +530,8 @@ Content-Type: application/json
     "text": "买年货",
     "parentId": null,
     "completed": 0,
-    "...": "其他待办字段"
+    "priority": "p1",
+    "version": 1
   },
   "subtasks": [
     {
@@ -350,6 +544,22 @@ Content-Type: application/json
     },
     {
       "id": "todo_1720000000000_ghi789",
+      "text": "洽洽原味瓜子",
+      "parentId": "todo_1720000000000_def456",
+      "completed": 0,
+      "priority": "p1",
+      "version": 1
+    },
+    {
+      "id": "todo_1720000000000_jkl012",
+      "text": "焦糖味瓜子",
+      "parentId": "todo_1720000000000_def456",
+      "completed": 0,
+      "priority": "p1",
+      "version": 1
+    },
+    {
+      "id": "todo_1720000000000_mno345",
       "text": "买春联",
       "parentId": "todo_1720000000000_abc123",
       "completed": 0,
@@ -360,56 +570,102 @@ Content-Type: application/json
 }
 ```
 
-> `subtasks` 数组包含所有新创建的子待办（扁平列表，含嵌套的孙待办）。**前端应缓存返回的 `id`**，后续编辑时必须传入。
+> **注意：**
+> - `subtasks` 是**扁平列表**，包含所有层级的子待办。
+> - 子待办自动从父待办继承 `setDate`、`setTime`、`priority`、`comboId`。
+> - **前端必须缓存返回的 `id`**，后续编辑时必须传入这些 `id`。
 
-### 3.3 获取待办详情
+**小程序对接示例：**
 
-```http
+```javascript
+// 创建待办（小程序端生成 todo_id 由后端自动完成）
+wx.request({
+  url: 'https://api.yzjtiantian.cn/todos/create',
+  method: 'POST',
+  header: {
+    'Authorization': 'Bearer ' + wx.getStorageSync('authToken'),
+    'Content-Type': 'application/json'
+  },
+  data: {
+    text: '买年货',
+    priority: 'p1',
+    setDate: '2026-07-13',
+    subtasks: [
+      { text: '买零食', subtasks: [{ text: '洽洽原味瓜子' }] },
+      { text: '买春联' }
+    ]
+  },
+  success: (res) => {
+    const { todo, subtasks } = res.data
+    // 前端将 todo 和 subtasks 存入本地 storage
+    wx.setStorageSync('todo_' + todo.id, todo)
+    subtasks.forEach(st => wx.setStorageSync('todo_' + st.id, st))
+  }
+})
+```
+
+**Web 前端集成示例：**
+
+```typescript
+// React + Zustand — 创建
+async function handleCreate(text: string, subtasks: SubtaskInput[]) {
+  const res = await todosApi.create({ text, priority: 'p1', subtasks })
+  if (res.success && res.todo) {
+    const store = useTodoStore.getState()
+    // 合并到本地列表
+    const newTodos = [...store.todos, res.todo]
+    if (res.subtasks) newTodos.push(...res.subtasks)
+    set({ todos: newTodos })
+    return res.todo
+  }
+}
+```
+
+### 3.4 获取待办详情
+
+```
 GET /todos/:id
 Authorization: Bearer <token>
 ```
 
-**响应中的子待办字段：**
+**请求样例：**
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `parentId` | string \| null | 父待办 ID。`null` 表示根级待办 |
-| `subtasks` | SubtodoItem[] | 直接子任务列表（仅一级，不递归），由 `GET /todos/list?parent_id={id}` 获取子树 |
+```
+GET /todos/todo_1720000000000_abc123
+```
 
-### 3.4 更新待办
+**响应：**
 
-```http
+```json
+{
+  "success": true,
+  "todo": {
+    "id": "todo_1720000000000_abc123",
+    "dbId": 42,
+    "text": "买年货",
+    "setDate": "2026-07-13",
+    "completed": 0,
+    "parentId": null,
+    "priority": "p1",
+    "version": 3,
+    "tags": [1, 2],
+    "time": 1720000000000,
+    "updatedAt": 1720000100000
+  }
+}
+```
+
+> 该接口不返回子待办列表。获取子待办请使用 `GET /todos/list?parent_id={id}`。
+
+### 3.5 更新待办
+
+```
 PUT /todos/:id
 Authorization: Bearer <token>
 Content-Type: application/json
-
-{
-  "text": "新内容",
-  "completed": true,
-  "priority": "p1",
-  "setDate": "2026-07-13",
-  "remarks": "新备注",
-  "tagIds": [1],
-  "version": 3,
-  "subtasks": [
-    {
-      "id": "todo_1720000000000_def456",
-      "text": "编辑了旧子待办的文字"
-    },
-    {
-      "id": "todo_1720000000000_ghi789",
-      "text": "另一个旧子待办",
-      "completed": true
-    },
-    {
-      "text": "全新子待办（无 id）",
-      "subtasks": [
-        { "text": "新子待办的嵌套" }
-      ]
-    }
-  ]
-}
 ```
+
+**请求字段：**
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
@@ -421,41 +677,66 @@ Content-Type: application/json
 | `remarks` | string | 否 | 备注 |
 | `tagIds` | number[] | 否 | 标签 ID 数组 |
 | `comboId` | number | 否 | 所属组合 ID |
-| `parentId` | string | 否 | 移动到新父待办 |
+| `parentId` / `parent_id` | string | 否 | 移动到新父待办 |
+| `isStar` | boolean | 否 | 星标 |
+| `images` | string[] | 否 | 图片 URL 数组 |
+| `location` | object | 否 | `{ name, address, latitude, longitude }` |
 | `version` | number | 否 | **乐观锁版本号**，从 `todo.version` 获取。不传时不校验版本 |
-| `subtasks` | SubtaskInput[] | 否 | **子待办全量替换**（见下方说明），不传时子待办不受影响 |
+| `subtasks` | SubtaskInput[] | 否 | **子待办全量替换**（见第4章），不传时子待办不受影响 |
 
-> **`subtasks` 更新语义（全量替换）：**
->
-> `subtasks` 数组即当前父待办下所有子待办的**完整列表**。后端自动计算差异：
->
-> - **有 `id` 的** — 更新已有子待办（`text` 必改，`completed` 可选）
-> - **无 `id` 的** — 创建新子待办
-> - **数据库中存在、但请求中未出现的 `id`** — 递归软删除（含所有后代）
->
-> 编辑时必须把完整子树传回，否则不在列表中的子待办会被删除。
-> 新增的子待办无需父待办 ID 或继承字段，后端自动从父待办继承。
-
-**响应（不含子待办操作时）：**
+**请求样例（仅更新文本）：**
 
 ```json
 {
-  "success": true,
-  "message": "待办更新成功",
-  "todo": { "所有待办字段" }
+  "text": "买年货（更新版）",
+  "priority": "p2",
+  "version": 3
 }
 ```
 
-**响应（含子待办操作时）：**
+**请求样例（含子待办全量替换）：**
+
+```json
+{
+  "text": "买年货",
+  "version": 3,
+  "subtasks": [
+    {
+      "id": "todo_1720000000000_def456",
+      "text": "买更多零食",
+      "completed": true
+    },
+    {
+      "text": "全新子待办"
+    }
+  ]
+}
+```
+
+**响应（不含子待办操作）：**
 
 ```json
 {
   "success": true,
   "message": "待办更新成功",
-  "todo": { "所有待办字段" },
+  "todo": {
+    "id": "todo_1720000000000_abc123",
+    "text": "买年货",
+    "version": 4
+  }
+}
+```
+
+**响应（含子待办操作）：**
+
+```json
+{
+  "success": true,
+  "message": "待办更新成功",
+  "todo": { "id": "todo_xxx", "version": 4 },
   "newSubtodos": [
     {
-      "id": "todo_1720000000000_jkl012",
+      "id": "todo_1720000000000_pqr678",
       "text": "全新子待办",
       "parentId": "todo_1720000000000_abc123",
       "completed": 0,
@@ -465,67 +746,316 @@ Content-Type: application/json
 }
 ```
 
-> `newSubtodos` 仅在本次请求确实创建了新的子待办时出现。前端应缓存返回的 `id`。
+> `newSubtodos` 仅在本次请求确实创建了新子待办时出现。更新已有子待办不会出现在此数组中。
 
-### 3.5 删除待办（软删除）
+**版本冲突响应（409）：**
 
-```http
+```json
+{
+  "success": false,
+  "message": "版本冲突，请刷新后重试",
+  "currentVersion": 5,
+  "serverData": { "id": "todo_xxx", "version": 5, ... }
+}
+```
+
+**小程序对接示例：**
+
+```javascript
+// 更新待办完成状态
+wx.request({
+  url: 'https://api.yzjtiantian.cn/todos/todo_1720000000000_abc123',
+  method: 'PUT',
+  header: {
+    'Authorization': 'Bearer ' + wx.getStorageSync('authToken'),
+    'Content-Type': 'application/json'
+  },
+  data: { completed: true, version: 3 },
+  success: (res) => {
+    if (res.data.success) {
+      // 更新本地存储
+      const stored = wx.getStorageSync('todo_todo_1720000000000_abc123')
+      if (stored) wx.setStorageSync('todo_todo_1720000000000_abc123', {
+        ...stored, completed: Date.now(), version: res.data.todo.version
+      })
+    }
+  }
+})
+```
+
+**Web 前端集成示例：**
+
+```typescript
+// 乐观更新 + 错误回滚
+async function toggleComplete(id: string) {
+  const store = useTodoStore.getState()
+  const prevTodos = [...store.todos]
+  const todo = store.todos.find(t => t.id === id)
+  if (!todo) return
+
+  // 乐观更新
+  store.setTodos(store.todos.map(t =>
+    t.id === id ? { ...t, completed: Date.now(), version: t.version + 1 } : t
+  ))
+
+  try {
+    await todosApi.update(id, {
+      completed: true,
+      version: todo.version + 1,
+    })
+  } catch {
+    store.setTodos(prevTodos) // 回滚
+  }
+}
+```
+
+### 3.6 删除待办（软删除）
+
+```
 DELETE /todos/:id
 Authorization: Bearer <token>
 ```
 
 删除待办时**递归软删除所有后代**（子待办、孙待办……），不会产生飘零数据。
 
-### 3.6 批量移动待办
+**响应：**
 
-```http
+```json
+{
+  "success": true,
+  "message": "删除成功"
+}
+```
+
+**小程序对接示例：**
+
+```javascript
+wx.request({
+  url: 'https://api.yzjtiantian.cn/todos/todo_1720000000000_abc123',
+  method: 'DELETE',
+  header: { 'Authorization': 'Bearer ' + wx.getStorageSync('authToken') },
+  success: (res) => {
+    if (res.data.success) {
+      // 将待办标记为已删除，或从本地存储中移除
+      // 小程序同步模块稍后会向云端同步此删除操作
+    }
+  }
+})
+```
+
+### 3.7 批量移动待办
+
+```
 POST /todos/batch-move
 Authorization: Bearer <token>
 Content-Type: application/json
+```
 
+**请求：**
+
+```json
 {
-  "todoIds": [1, 2, 3],
+  "todoIds": ["todo_1720000000000_abc123", "todo_1720000000000_def456"],
   "comboId": null
 }
 ```
 
-### 3.7 数据同步（离线优先）
+> `comboId: null` 表示移出组合（变为无组合待办）。`comboId: 5` 表示移动到 ID 为 5 的组合。
 
-```http
-POST /todos/sync
-Authorization: Bearer <token>
-Content-Type: application/json
+**响应：**
 
+```json
 {
-  "syncType": "incremental",
-  "lastSyncTime": "2026-07-12T10:00:00.000Z",
-  "localTodos": { "id": { "text": "...", "updatedAt": "..." } }
+  "success": true,
+  "message": "移动成功"
 }
 ```
 
 ### 3.8 批量获取待办
 
-```http
+```
 POST /todos/batch
 Authorization: Bearer <token>
 Content-Type: application/json
-
-{ "ids": [1, 2, 3] }
 ```
 
-### 3.9 全量同步
+**请求：**
 
-```http
+```json
+{
+  "ids": ["todo_1720000000000_abc123", "todo_1720000000000_def456"]
+}
+```
+
+**响应：**
+
+```json
+{
+  "success": true,
+  "todos": [
+    { "id": "todo_1720000000000_abc123", "text": "买年货", ... },
+    { "id": "todo_1720000000000_def456", "text": "买零食", ... }
+  ]
+}
+```
+
+### 3.9 数据同步（离线优先）
+
+待办系统采用**离线优先**架构。数据以客户端本地存储为主，云端为备份和跨设备同步层。
+
+#### 增量同步
+
+```
+POST /todos/sync
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**请求字段：**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `localChanges` | object[] | 否 | 客户端自 `lastSyncTime` 以来增/改的待办完整数据 |
+| `localDeletedIds` | string[] | 否 | 客户端删除的待办 ID 列表 |
+| `lastSyncTime` | string | 否 | 上次同步时间 ISO 8601 |
+
+**localChanges 内每个对象的字段：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `id` / `todo_id` | string | 待办 ID |
+| `text` | string | 内容 |
+| `completed` | number | 完成状态 |
+| `parentId` / `parent_id` | string\|null | 父待办 ID |
+| `priority` | string | 优先级 |
+| `setDate` | string\|null | 到期日期 |
+| `setTime` | string\|null | 到期时间 |
+| `tags` | number[] | 标签 ID 数组 |
+| `isStar` | boolean | 星标 |
+| `comboId` | number\|null | 组合 ID |
+| `isDeleted` | boolean | 是否已删除 |
+| `version` | number | 版本号 |
+| `time` | number | 创建时间戳 |
+| `updatedAt` | number | 更新时间戳 |
+
+**请求样例：**
+
+```json
+{
+  "localChanges": [
+    {
+      "id": "todo_1720000000000_abc123",
+      "text": "买年货",
+      "completed": 0,
+      "version": 3,
+      "updatedAt": 1720000100000,
+      "parentId": null,
+      "setDate": "2026-07-13",
+      "priority": "p1",
+      "tags": [1, 2],
+      "isStar": false,
+      "isDeleted": false,
+      "time": 1720000000000,
+      "comboId": null
+    }
+  ],
+  "localDeletedIds": ["todo_1720000000000_def456"],
+  "lastSyncTime": "2026-07-12T10:00:00.000Z"
+}
+```
+
+**响应：**
+
+```json
+{
+  "success": true,
+  "cloudChanges": [
+    {
+      "id": "todo_1720000000000_ghi789",
+      "text": "远端新增的待办",
+      "completed": 0,
+      "version": 1,
+      "updatedAt": 1720050000000,
+      "parentId": null,
+      "time": 1720040000000
+    }
+  ],
+  "cloudDeletedIds": ["todo_1720000000000_jkl012"],
+  "syncedAt": "2026-07-13T10:00:00.000Z"
+}
+```
+
+#### 全量同步
+
+```
 GET /todos/full-sync?page=1&pageSize=500
 Authorization: Bearer <token>
 ```
 
-### 3.10 已删除列表 & 恢复 & 永久删除
+首次同步或增量同步出错时的回退方案。返回用户所有待办（含已删除及回收站内数据）。
 
-```http
+**响应：**
+
+```json
+{
+  "success": true,
+  "todos": [
+    { "id": "todo_xxx", "text": "待办1", ... },
+    { "id": "todo_yyy", "text": "待办2", ... }
+  ],
+  "total": 2,
+  "page": 1,
+  "pageSize": 500
+}
+```
+
+#### 冲突解决规则
+
+后端 `resolveConflict(localTodo, serverTodo)` 使用**最后写入者胜出**：
+
+1. 比较 `localTodo.updatedAt` 与 `serverTodo.updatedAt`
+2. 时间戳较新的版本胜出
+3. 平局时保留服务器版本
+
+### 3.10 回收站操作
+
+```
 GET  /todos/deleted                       # 已删除列表
 POST /todos/restore/:todoId               # 恢复
 DELETE /todos/permanent/:todoId           # 永久删除
+```
+
+**已删除列表响应：**
+
+```json
+{
+  "success": true,
+  "todos": [
+    {
+      "id": "todo_1720000000000_def456",
+      "text": "已删除的待办",
+      "isDeleted": true,
+      "deletedAt": 1720500000000,
+      "updatedAt": 1720500000000
+    }
+  ]
+}
+```
+
+> 返回 30 天内的软删除待办。超过 30 天的数据在同步时被自动清理。
+
+**恢复响应：**
+
+```json
+{
+  "success": true,
+  "todo": {
+    "id": "todo_1720000000000_def456",
+    "isDeleted": false,
+    "version": 2,
+    "updatedAt": 1720600000000
+  }
+}
 ```
 
 ### 3.11 待办优先级说明
@@ -539,11 +1069,223 @@ DELETE /todos/permanent/:todoId           # 永久删除
 
 ---
 
-## 4. 标签模块
+## 4. 子待办更新语义详解
+
+### 4.1 全量替换模式
+
+更新待办的 `subtasks` 字段使用**全量替换**语义，而非增量 patch：
+
+```
+前端传入:    [A, B, C]           ← 当前想要的完整列表
+数据库现有:  [A, B, D, E]        ← 数据库中已有的子待办
+
+后端处理:
+  A: 有 id → 更新字段
+  B: 有 id → 更新字段
+  C: 无 id → 新建插入
+  D: 在 DB 但请求中无此 id → 递归软删除（含所有后代）
+  E: 在 DB 但请求中无此 id → 递归软删除（含所有后代）
+
+最终数据库: [A_updated, B_updated, C_new]
+```
+
+### 4.2 前端处理策略
+
+```typescript
+// 推荐模式：读取 → 修改 → 全量写入
+async function addOneSubtask(parentId: string, text: string) {
+  const store = useTodoStore.getState()
+  const parent = store.todos.find(t => t.id === parentId)
+  const children = store.subtaskMap[parentId] || []
+
+  // 保留现有完整子树 + 追加新的
+  const res = await todosApi.update(parentId, {
+    version: (parent?.version || 1) + 1,
+    subtasks: [
+      ...children.map(st => ({
+        id: st.id,
+        text: st.text,
+        completed: !!st.completed,
+      })),
+      { text },  // 无 id → 后台新建
+    ],
+  })
+
+  // 刷新子待办缓存
+  await store.fetchSubtodos(parentId)
+}
+```
+
+### 4.3 常见错误
+
+| 错误场景 | 问题 | 正确做法 |
+|----------|------|----------|
+| 只传新子待办，忘了传已有的 | 已有子待办被软删除 | 每次全量替换 |
+| 编辑子待办时没传 `completed` | 完成状态被重置为 `false` | 传入完整字段 |
+| 更新时没传 `version` | 乐观锁不生效，可能被覆盖 | 从 `todo.version` 获取 |
+| 修改子待办后未刷新 `subtaskMap` | 界面显示旧数据 | 调用 `fetchSubtodos()` |
+| 传入 `subtasks: []` | 所有子待办被删除 | 不传 `subtasks` 字段即可保留 |
+
+---
+
+## 5. Web 前端集成最佳实践
+
+### 5.1 Store 推荐结构（React + Zustand）
+
+```typescript
+interface TodoState {
+  // 数据
+  todos: Todo[]
+  subtaskMap: Record<string, Todo[]>  // parentId → 子待办列表
+  deletedTodos: Todo[]
+  loading: boolean
+
+  // 列表
+  fetchTodos: (filters?: object) => Promise<void>
+  fetchSubtodos: (parentId: string) => Promise<void>
+
+  // 写入
+  createTodo: (data: TodoWriteInput) => Promise<Todo>
+  updateTodo: (id: string, data: TodoWriteInput) => Promise<void>
+  deleteTodo: (id: string) => Promise<void>
+  toggleComplete: (id: string) => Promise<void>
+  toggleStar: (id: string) => Promise<void>
+
+  // 批量
+  batchMove: (todoIds: string[], comboId: number | null) => Promise<void>
+
+  // 回收站
+  restoreTodo: (id: string) => Promise<void>
+  permanentDelete: (id: string) => Promise<void>
+  fetchDeleted: () => Promise<void>
+}
+```
+
+### 5.2 惰性加载子待办
+
+```typescript
+// 子待办按需加载，不在初始化时全量拉取
+function SubtaskSection({ parentId }: { parentId: string }) {
+  const subtasks = useTodoStore(s => s.subtaskMap[parentId])
+  const fetchSubtodos = useTodoStore(s => s.fetchSubtodos)
+
+  useEffect(() => {
+    if (!subtasks) fetchSubtodos(parentId)  // 首次展开时才加载
+  }, [parentId])
+
+  if (!subtasks) return <div className="skeleton" />  // 加载状态
+
+  return (
+    <div>
+      <p>{subtasks.filter(t => t.completed).length} / {subtasks.length} 已完成</p>
+      {subtasks.map(st => (
+        <div key={st.id} className="subtask-item">
+          <input type="checkbox" checked={!!st.completed} readOnly />
+          <span>{st.text}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+### 5.3 版本冲突处理（409）
+
+```typescript
+async function handleUpdateWithRetry(id: string, data: TodoWriteInput) {
+  try {
+    return await todosApi.update(id, data)
+  } catch (err: any) {
+    if (err.response?.status === 409) {
+      // 拉取服务端最新数据
+      const latest = await todosApi.getById(id)
+      // 提示用户或自动合并后重试
+      await todosApi.update(id, { ...data, version: latest.todo.version + 1 })
+    }
+    throw err
+  }
+}
+```
+
+---
+
+## 6. 小程序对接注意事项
+
+### 6.1 认证流程
+
+小程序通过 `wx.login()` 获取 code，调用 `/auth/login` 获取 token：
+
+```javascript
+wx.login({
+  success: (res) => {
+    wx.request({
+      url: 'https://api.yzjtiantian.cn/auth/login',
+      method: 'POST',
+      data: { code: res.code },
+      success: (res) => {
+        const { token, user } = res.data.data
+        wx.setStorageSync('authToken', token)
+      }
+    })
+  }
+})
+```
+
+### 6.2 封装请求（wx.request）
+
+小程序使用统一封装函数处理认证头、401 重定向和错误：
+
+```javascript
+function request({ url, method, data }) {
+  const token = wx.getStorageSync('authToken')
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: 'https://api.yzjtiantian.cn' + url,
+      method,
+      data,
+      header: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      success: (res) => {
+        if (res.statusCode === 401) {
+          // token 过期，跳转登录页
+          wx.navigateTo({ url: '/packagePages/login/login' })
+          reject(new Error('未登录'))
+        } else if (res.data.success) {
+          resolve(res.data)
+        } else {
+          wx.showToast({ title: res.data.message || '请求失败', icon: 'none' })
+          reject(new Error(res.data.message))
+        }
+      },
+      fail: reject
+    })
+  })
+}
+```
+
+### 6.3 离线优先同步要点
+
+小程序使用离线优先架构，核心逻辑在 `utils/sync.js`：
+
+```
+1. 本地存储: `todo_{id}` 键值存储每个待办
+2. 索引维护: `todos_index` 有序 ID 数组
+3. 变更追踪: 记录 updatedAt 判断增量
+4. 同步触发: onShow 自动同步，每次操作后同步
+5. 冲突解决: updatedAt 最后写入者胜出
+```
+
+关键 API 调用仅在同步时发生，日常操作直接操作本地存储。
+
+---
+
+## 7. 标签模块
 
 前缀：`/tags`
 
-### 4.1 获取标签列表
+### 7.1 获取标签列表
 
 ```http
 GET /tags/list
@@ -559,7 +1301,7 @@ Authorization: Bearer <token>
 }
 ```
 
-### 4.2 创建标签
+### 7.2 创建标签
 
 ```http
 POST /tags/create
@@ -569,7 +1311,7 @@ Content-Type: application/json
 { "name": "新标签", "color": "#ff0000" }
 ```
 
-### 4.3 更新 / 删除标签
+### 7.3 更新 / 删除标签
 
 ```http
 PUT    /tags/:id     # 更新
@@ -578,18 +1320,18 @@ DELETE /tags/:id     # 删除
 
 ---
 
-## 5. 组合模块
+## 8. 组合模块
 
 前缀：`/combos`
 
-### 5.1 获取组合列表
+### 8.1 获取组合列表
 
 ```http
 GET /combos/list
 Authorization: Bearer <token>
 ```
 
-### 5.2 获取组合详情
+### 8.2 获取组合详情
 
 ```http
 GET /combos/:id
@@ -618,7 +1360,7 @@ Authorization: Bearer <token>
 }
 ```
 
-### 5.3 创建 / 更新 / 删除组合
+### 8.3 创建 / 更新 / 删除组合
 
 ```http
 POST   /combos/create              # 创建
@@ -626,7 +1368,7 @@ PUT    /combos/:id                  # 更新
 DELETE /combos/:id                  # 删除
 ```
 
-### 5.4 获取组合成员
+### 8.4 获取组合成员
 
 ```http
 GET /combos/:id/members
@@ -642,7 +1384,7 @@ Authorization: Bearer <token>
 }
 ```
 
-### 5.5 设置成员角色
+### 8.5 设置成员角色
 
 ```http
 PUT /combos/:comboId/members/:userId/role
@@ -656,11 +1398,11 @@ Content-Type: application/json
 
 ---
 
-## 6. 协作模块
+## 9. 协作模块
 
 前缀：`/collab`
 
-### 6.1 加入组合
+### 9.1 加入组合
 
 ```http
 POST /collab/join
@@ -670,7 +1412,7 @@ Content-Type: application/json
 { "shareCode": "abc123" }
 ```
 
-### 6.2 自动加入
+### 9.2 自动加入
 
 ```http
 POST /collab/auto-join
@@ -680,7 +1422,7 @@ Content-Type: application/json
 { "shareCode": "abc123" }
 ```
 
-### 6.3 发送加入请求
+### 9.3 发送加入请求
 
 ```http
 POST /collab/request
@@ -690,7 +1432,7 @@ Content-Type: application/json
 { "comboId": 1 }
 ```
 
-### 6.4 请求列表 & 审批
+### 9.4 请求列表 & 审批
 
 ```http
 GET  /collab/requests                                    # 获取请求列表
@@ -698,14 +1440,14 @@ POST /collab/requests/:id/approve                        # 通过
 POST /collab/requests/:id/reject                         # 拒绝
 ```
 
-### 6.5 获取共享待办列表
+### 9.5 获取共享待办列表
 
 ```http
 GET /collab/shared?comboId=1
 Authorization: Bearer <token>
 ```
 
-### 6.6 共享待办 CRUD
+### 9.6 共享待办 CRUD
 
 ```http
 POST   /collab/shared/:comboId/todos                     # 创建共享待办
@@ -714,14 +1456,14 @@ PUT    /collab/shared/:comboId/todos/:todoId/complete     # 完成
 DELETE /collab/shared/:comboId/todos/:todoId              # 删除
 ```
 
-### 6.7 成员管理
+### 9.7 成员管理
 
 ```http
 DELETE /collab/member?comboId=1&userId=2    # 移除成员
 POST   /collab/leave                        # 退出组合
 ```
 
-### 6.8 获取二维码
+### 9.8 获取二维码
 
 ```http
 GET /collab/qrcode?shareCode=abc123
@@ -729,32 +1471,32 @@ GET /collab/qrcode?shareCode=abc123
 
 ---
 
-## 7. 帖子模块
+## 10. 帖子模块
 
 前缀：`/posts`
 
-### 7.1 获取全局帖子列表
+### 10.1 获取全局帖子列表
 
 ```http
 GET /posts/list?cursor=2026-07-12T10:00:00_42&limit=20
 Authorization: Bearer <token>
 ```
 
-### 7.2 获取用户帖子列表
+### 10.2 获取用户帖子列表
 
 ```http
 GET /posts/user/:userId?cursor=...&limit=20
 Authorization: Bearer <token>
 ```
 
-### 7.3 获取组合帖子列表
+### 10.3 获取组合帖子列表
 
 ```http
 GET /posts/combo/:comboId?cursor=...&limit=20
 Authorization: Bearer <token>
 ```
 
-### 7.4 创建帖子
+### 10.4 创建帖子
 
 ```http
 POST /posts/create
@@ -832,7 +1574,7 @@ Content-Type: application/json
 }
 ```
 
-### 7.5 获取帖子详情
+### 10.5 获取帖子详情
 
 ```http
 GET /posts/:postId
@@ -841,7 +1583,7 @@ Authorization: Bearer <token>
 
 **组合帖子访问控制：** 如果帖子有 `comboId`，服务端会校验当前用户是否为组合成员。非成员返回 `403`。
 
-### 7.6 更新帖子
+### 10.6 更新帖子
 
 ```http
 PUT /posts/:postId
@@ -859,21 +1601,21 @@ Content-Type: application/json
 }
 ```
 
-### 7.7 删除帖子
+### 10.7 删除帖子
 
 ```http
 DELETE /posts/:postId
 Authorization: Bearer <token>
 ```
 
-### 7.8 获取访客记录
+### 10.8 获取访客记录
 
 ```http
 GET /posts/:postId/visitors?page=1&pageSize=20
 Authorization: Bearer <token>
 ```
 
-### 7.9 创建投票
+### 10.9 创建投票
 
 ```http
 POST /posts/:postId/poll
@@ -916,7 +1658,7 @@ Content-Type: application/json
 }
 ```
 
-### 7.10 获取投票详情
+### 10.10 获取投票详情
 
 ```http
 GET /posts/:postId/poll
@@ -975,12 +1717,10 @@ Authorization: Bearer <token>
 | `otherDetails` | object[] | "其他"选项详情（见下方权限说明） |
 
 > **匿名投票可见性：** `isAnonymous=true` 时，仅帖主和管理员能看到 `otherDetails`，普通用户收到空数组 `[]`。
->
-> `otherDetails` 包含投票者的 `userId` / `nickname` / `avatar` / `customText` / `createdAt`，仅当帖子有"其他"选项且有人填写时非空。
 
-帖子列表（`/posts/list`、`/posts/user/:userId`、`/posts/combo/:comboId`）和帖子详情（`/posts/:postId`）响应中的 `poll` 字段与之结构一致（不含 `otherDetails`），无投票时 `poll: null`。
+帖子列表和帖子详情响应中的 `poll` 字段与之结构一致（不含 `otherDetails`），无投票时 `poll: null`。
 
-### 7.11 投票 / 改票
+### 10.11 投票 / 改票
 
 ```http
 POST /posts/:postId/poll/vote
@@ -1006,18 +1746,7 @@ Content-Type: application/json
 
 **权限：** 所有已登录用户（帖主除外）。
 
-**响应：**
-
-```json
-{
-  "success": true,
-  "data": {
-    "poll": { "...投票详情(同 getPoll)" }
-  }
-}
-```
-
-### 7.12 关闭投票
+### 10.12 关闭投票
 
 ```http
 POST /posts/:postId/poll/close
@@ -1026,18 +1755,7 @@ Authorization: Bearer <token>
 
 **权限：** 帖主或管理员。
 
-**响应：**
-
-```json
-{
-  "success": true,
-  "data": {
-    "poll": { "...投票详情，isEnded: true" }
-  }
-}
-```
-
-### 7.13 编辑投票
+### 10.13 编辑投票
 
 ```http
 PATCH /posts/:postId/poll
@@ -1064,57 +1782,25 @@ Content-Type: application/json
 
 | 当前状态 | 允许修改的字段 |
 |----------|---------------|
-| 无投票记录 | 全部字段（title, type, allowOther, isAnonymous, endTime, options） |
-| 已有投票记录 | 仅 `endTime` 和 `isAnonymous` 开关，其余字段传入即拒绝 |
+| 无投票记录 | 全部字段 |
+| 已有投票记录 | 仅 `endTime` 和 `isAnonymous` 开关 |
 
-**响应：**
-
-```json
-{
-  "success": true,
-  "data": {
-    "poll": { "...投票详情" }
-  }
-}
-```
-
-### 7.14 获取"其他"选项详情
+### 10.14 获取"其他"选项详情
 
 ```http
 GET /posts/:postId/poll/other-details
 Authorization: Bearer <token>
 ```
 
-**权限：** 帖主、管理员、已投票用户可查看。
-
-> 匿名投票（`isAnonymous=true`）下，仅帖主和管理员可查看，普通投票者返回 `403`。
-
-**响应：**
-
-```json
-{
-  "success": true,
-  "data": {
-    "items": [
-      {
-        "userId": 1,
-        "nickname": "用户A",
-        "avatar": "https://...",
-        "customText": "Go 语言",
-        "createdAt": "2026-07-13 10:00:00"
-      }
-    ]
-  }
-}
-```
+**权限：** 帖主、管理员、已投票用户可查看。匿名投票下仅帖主和管理员可查看。
 
 ---
 
-## 8. 点赞模块
+## 11. 点赞模块
 
 前缀：`/likes`
 
-### 8.1 切换点赞
+### 11.1 切换点赞
 
 ```http
 POST /likes/toggle
@@ -1138,7 +1824,7 @@ Content-Type: application/json
 }
 ```
 
-### 8.2 获取点赞用户列表
+### 11.2 获取点赞用户列表
 
 ```http
 GET /likes/:postId/users
@@ -1147,11 +1833,11 @@ Authorization: Bearer <token>
 
 ---
 
-## 9. 帖子评论模块
+## 12. 帖子评论模块
 
 前缀：`/post-comments`
 
-### 9.1 获取评论列表
+### 12.1 获取评论列表
 
 ```http
 GET /post-comments/:postId?cursor=...&limit=20
@@ -1182,7 +1868,7 @@ Authorization: Bearer <token>
 }
 ```
 
-### 9.2 创建评论
+### 12.2 创建评论
 
 ```http
 POST /post-comments/:postId
@@ -1192,14 +1878,14 @@ Content-Type: application/json
 { "content": "评论内容" }
 ```
 
-### 9.3 删除评论
+### 12.3 删除评论
 
 ```http
 DELETE /post-comments/:commentId
 Authorization: Bearer <token>
 ```
 
-### 9.4 切换评论点赞
+### 12.4 切换评论点赞
 
 ```http
 POST /post-comments/:commentId/like
@@ -1208,18 +1894,18 @@ Authorization: Bearer <token>
 
 ---
 
-## 10. 评论模块（分享待办）
+## 13. 评论模块（分享待办）
 
 前缀：`/comments`
 
-### 10.1 获取评论
+### 13.1 获取评论
 
 ```http
 GET /comments/:sharedTodoId
 Authorization: Bearer <token>
 ```
 
-### 10.2 创建评论
+### 13.2 创建评论
 
 ```http
 POST /comments/:sharedTodoId
@@ -1229,7 +1915,7 @@ Content-Type: application/json
 { "content": "评论内容" }
 ```
 
-### 10.3 删除评论
+### 13.3 删除评论
 
 ```http
 DELETE /comments/:commentId
@@ -1238,11 +1924,11 @@ Authorization: Bearer <token>
 
 ---
 
-## 11. 文件上传
+## 14. 文件上传
 
 前缀：`/upload`
 
-### 11.1 头像上传
+### 14.1 头像上传
 
 ```http
 POST /upload/avatar
@@ -1257,7 +1943,7 @@ file: (binary image, max 2MB)
 | 文件类型 | `image/jpeg`, `image/png`, `image/gif`, `image/webp` |
 | 文件大小 | 2MB |
 
-### 11.2 待办图片上传
+### 14.2 待办图片上传
 
 ```http
 POST /upload/image
@@ -1267,7 +1953,7 @@ Content-Type: multipart/form-data
 file: (binary image, max 10MB)
 ```
 
-### 11.3 代理上传（storage.to 文件）
+### 14.3 代理上传（storage.to 文件）
 
 ```http
 POST /upload/proxy
@@ -1280,7 +1966,7 @@ uploadUrl: "https://xxxx.r2.cloudflarestorage.com/..."
 
 此接口用于中转上传到 storage.to 的 R2 存储，绕过小程序域名白名单限制。Web 端可直接使用 storage.to API。
 
-### 11.4 帖子图片上传
+### 14.4 帖子图片上传
 
 帖子图片使用 **img.scdn.io**（直传，不走后端），流程：
 
@@ -1290,11 +1976,11 @@ uploadUrl: "https://xxxx.r2.cloudflarestorage.com/..."
 
 ---
 
-## 12. 签到模块
+## 15. 签到模块
 
 前缀：`/checkin`
 
-### 12.1 签到
+### 15.1 签到
 
 ```http
 POST /checkin
@@ -1312,7 +1998,7 @@ Authorization: Bearer <token>
 }
 ```
 
-### 12.2 签到状态
+### 15.2 签到状态
 
 ```http
 GET /checkin/status
@@ -1332,21 +2018,21 @@ Authorization: Bearer <token>
 }
 ```
 
-### 12.3 月签到记录
+### 15.3 月签到记录
 
 ```http
 GET /checkin/month?year=2026&month=7
 Authorization: Bearer <token>
 ```
 
-### 12.4 排行榜
+### 15.4 排行榜
 
 ```http
 GET /checkin/leaderboard?type=streak&limit=20
 Authorization: Bearer <token>
 ```
 
-### 12.5 扣减积分
+### 15.5 扣减积分
 
 ```http
 POST /checkin/deduct-points
@@ -1358,25 +2044,25 @@ Content-Type: application/json
 
 ---
 
-## 13. 用户模块
+## 16. 用户模块
 
 前缀：`/users`
 
-### 13.1 搜索用户
+### 16.1 搜索用户
 
 ```http
 GET /users/search?keyword=昵称
 Authorization: Bearer <token>
 ```
 
-### 13.2 批量获取用户
+### 16.2 批量获取用户
 
 ```http
 GET /users/batch?ids=1,2,3
 Authorization: Bearer <token>
 ```
 
-### 13.3 获取用户主页
+### 16.3 获取用户主页
 
 ```http
 GET /users/:userId/profile
@@ -1395,7 +2081,7 @@ Authorization: Bearer <token>
 
 ---
 
-## 14. 配置模块
+## 17. 配置模块
 
 前缀：`/config`（无需认证）
 
@@ -1413,11 +2099,11 @@ GET /config/public-stats/hourly         # 整点统计
 
 ---
 
-## 15. 通知模块
+## 18. 通知模块
 
 前缀：`/notify`
 
-### 15.1 订阅通知
+### 18.1 订阅通知
 
 ```http
 POST /notify/subscribe
@@ -1427,7 +2113,7 @@ Content-Type: application/json
 { "templateId": "xxx", "targetMinutes": 30 }
 ```
 
-### 15.2 计划通知
+### 18.2 计划通知
 
 ```http
 POST /notify/schedule
@@ -1440,7 +2126,7 @@ Content-Type: application/json
 }
 ```
 
-### 15.3 通知列表 & 更新 & 取消
+### 18.3 通知列表 & 更新 & 取消
 
 ```http
 GET    /notify/list?todoId=1              # 按待办查询
@@ -1449,7 +2135,7 @@ PUT    /notify/:id                        # 更新
 DELETE /notify/:id                        # 取消
 ```
 
-### 15.4 共享待办通知
+### 18.4 共享待办通知
 
 ```http
 POST   /notify/shared/schedule            # 创建
@@ -1460,11 +2146,11 @@ DELETE /notify/shared/:id                 # 取消
 
 ---
 
-## 16. 工作报告模块
+## 19. 工作报告模块
 
 前缀：`/work-reports`
 
-### 16.1 日报/周报 CRUD
+### 19.1 日报/周报 CRUD
 
 ```http
 GET    /work-reports?page=1&pageSize=20    # 列表
@@ -1475,7 +2161,7 @@ PUT    /work-reports/:id                   # 更新
 DELETE /work-reports/:id                   # 删除
 ```
 
-### 16.2 报告模板
+### 19.2 报告模板
 
 ```http
 GET  /work-reports/templates/list          # 模板列表
@@ -1504,7 +2190,7 @@ POST /work-reports/templates/defaults      # 初始化默认模板
 
 ---
 
-## 17. 举报模块
+## 20. 举报模块
 
 前缀：`/reports`
 
@@ -1515,11 +2201,11 @@ GET   /reports/my                      # 我的举报
 
 ---
 
-## 18. 分享模块
+## 21. 分享模块
 
 前缀：`/share`
 
-### 18.1 分享快照
+### 21.1 分享快照
 
 ```http
 POST /share/snapshot                           # 创建快照
@@ -1534,11 +2220,11 @@ POST /share/snapshot/batch-metadata            # 批量获取元数据
 
 ---
 
-## 19. 管理后台模块
+## 22. 管理后台模块
 
 前缀：`/admin`（需 `isAdmin` 权限）
 
-### 19.1 统计
+### 22.1 统计
 
 ```http
 GET /admin/stats                                              # 总览统计
@@ -1557,7 +2243,7 @@ GET /admin/stats/cross/notification-effect                    # 通知效果分�
 GET /admin/stats/:type                                        # 通用明细查询
 ```
 
-### 19.2 用户管理
+### 22.2 用户管理
 
 ```http
 GET    /admin/users                                           # 用户列表
@@ -1567,7 +2253,7 @@ PUT    /admin/users/:id/nickname                              # 修改昵称
 PUT    /admin/users/:id/badges                                # 修改徽章
 ```
 
-### 19.3 公告管理
+### 22.3 公告管理
 
 ```http
 GET    /admin/notices
@@ -1576,7 +2262,7 @@ PUT    /admin/notices/:index
 DELETE /admin/notices/:index
 ```
 
-### 19.4 更新日志管理
+### 22.4 更新日志管理
 
 ```http
 GET    /admin/updates
@@ -1585,28 +2271,28 @@ PUT    /admin/updates/:index
 DELETE /admin/updates/:index
 ```
 
-### 19.5 数据库管理
+### 22.5 数据库管理
 
 ```http
 GET /admin/tables                                # 表列表
 GET /admin/tables/:tableName?page=1&pageSize=20  # 表数据
 ```
 
-### 19.6 系统配置
+### 22.6 系统配置
 
 ```http
 GET  /admin/config           # 获取配置
 PUT  /admin/config           # 更新配置
 ```
 
-### 19.7 评论管理
+### 22.7 评论管理
 
 ```http
 GET    /admin/comments        # 评论列表
 DELETE /admin/comments/:id    # 删除评论
 ```
 
-### 19.8 待办详情
+### 22.8 待办详情
 
 ```http
 GET /admin/todo/:todoId
@@ -1614,7 +2300,7 @@ GET /admin/todo/:todoId
 
 ---
 
-## 20. 日志上报
+## 23. 日志上报
 
 前缀：`/log`
 
@@ -1632,7 +2318,7 @@ Content-Type: application/json
 
 ---
 
-## 21. TypeScript 类型定义
+## 24. TypeScript 类型定义
 
 ```typescript
 // ========== 通用 ==========
@@ -1687,34 +2373,45 @@ interface User {
 type Priority = 'p1' | 'p2' | 'p3' | 'p4';
 
 interface Todo {
-  id: number;
+  id: string;                    // 如 "todo_1720000000000_abc123"
+  dbId?: number;                 // 数据库自增 ID（可选）
   text: string;
-  completed: number;
+  completed: number;             // 0=未完成，时间戳(ms)=完成时间
   priority: Priority;
-  setDate: string | null;
+  setDate: string | null;        // "YYYY-MM-DD"
+  setTime?: string | null;       // "HH:mm"
   comboId: number | null;
-  parentId: number | null;
-  tags: Tag[];
-  remarks: string | null;
-  createdAt: string;
-  updatedAt: string;
+  parentId: string | null;       // null=根待办，string=子待办
+  tags: number[];                // 标签 ID 数组（并非 Tag 对象数组）
+  images?: string[];
+  isStar: boolean;
+  version: number;               // 乐观锁版本号
+  isDeleted: boolean;
+  deletedAt?: number | null;     // 删除时间戳(ms)
+  time: number;                  // 创建时间戳(ms)
+  location?: object | null;      // { name, address, latitude, longitude }
+  remarks?: string | null;
+  updatedAt?: number | null;     // 更新时间戳(ms)
 }
 
 interface TodoCreateRequest {
   text: string;
-  priority?: Priority;
+  priority?: Priority;           // 默认 'p2'
   setDate?: string;
   setTime?: string;
   comboId?: number | null;
-  parentId?: string | null;
+  parentId?: string | null;      // 父待办 ID（创建子待办时传）
   remarks?: string;
   tagIds?: number[];
+  isStar?: boolean;
+  images?: string[];
+  location?: { name: string; address: string; latitude: number; longitude: number } | null;
   subtasks?: SubtaskInput[];
 }
 
 interface TodoUpdateRequest {
   text?: string;
-  completed?: boolean;
+  completed?: boolean;           // true=完成，false=取消完成
   priority?: Priority;
   setDate?: string;
   setTime?: string;
@@ -1722,12 +2419,15 @@ interface TodoUpdateRequest {
   parentId?: string | null;
   remarks?: string;
   tagIds?: number[];
-  version?: number;
-  subtasks?: SubtaskInput[];
+  isStar?: boolean;
+  images?: string[];
+  location?: object | null;
+  version?: number;              // 乐观锁版本号
+  subtasks?: SubtaskInput[];     // 全量替换
 }
 
 interface SubtaskInput {
-  /** 更新已有子待办时必须传。新增时不传 */
+  /** 编辑已有子待办时必须传。新增时不传 */
   id?: string;
   /** 子待办内容 */
   text: string;
@@ -1735,15 +2435,6 @@ interface SubtaskInput {
   completed?: boolean;
   /** 嵌套子待办，无限层级 */
   subtasks?: SubtaskInput[];
-}
-
-interface SubtodoItem {
-  id: string;
-  text: string;
-  parentId: string;
-  completed: number;
-  priority: string;
-  version: number;
 }
 
 // ========== 标签 ==========
@@ -1876,10 +2567,7 @@ interface PostPollCreateRequest {
   allowOther?: boolean;
   isAnonymous?: boolean;
   endTime?: string | null;
-  options: Array<{
-    text: string;
-    isOther: boolean;
-  }>;
+  options: Array<{ text: string; isOther: boolean }>;
 }
 
 interface PostPollVoteRequest {
@@ -1893,10 +2581,7 @@ interface PostPollUpdateRequest {
   allowOther?: boolean;
   isAnonymous?: boolean;
   endTime?: string | null;
-  options?: Array<{
-    text: string;
-    isOther: boolean;
-  }>;
+  options?: Array<{ text: string; isOther: boolean }>;
 }
 
 interface GeoLocation {
@@ -1940,7 +2625,7 @@ interface FileUploadResponse {
 
 ---
 
-## 附录：API 快速索引
+## 25. 附录：API 快速索引
 
 | 模块 | 前缀 | 认证 | 主要端点 |
 |------|------|------|---------|
@@ -1963,3 +2648,11 @@ interface FileUploadResponse {
 | 分享 | `/share` | 混合 | snapshot/* |
 | 管理 | `/admin` | 管理员 | stats, users, notices, updates, tables, config |
 | 日志 | `/log` | 全量 | report |
+
+---
+
+> **更新记录**
+>
+> | 日期 | 更新内容 |
+> |------|----------|
+> | 2026-07-13 | 全面升级：修正字段类型（id→string, tags→number[]），修复 priority 默认值 p3→p2，补充完整请求/响应样例，新增小程序对接示例、Web 前端集成示例、子待办更新语义详解、离线同步协议说明 |

@@ -38,7 +38,7 @@
       </view>
       <view class="user-stats">
         <view class="stat-badge todo">
-          <t-icon name="check-circle" size="24rpx" color="#00B26A" />
+          <t-icon name="check-circle" size="24rpx" color="#00b26a" />
           <text>{{item.todo_count || 0}} 待办</text>
         </view>
         <view class="stat-badge combo">

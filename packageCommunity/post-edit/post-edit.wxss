@@ -540,3 +540,106 @@
   font-size: 28rpx;
   color: #999;
 }
+
+/* ===== 投票编辑器 ===== */
+.poll-editor-card {
+  background: #f0fdf6;
+  border-radius: 32rpx;
+  padding: 20rpx;
+  margin-bottom: 12rpx;
+}
+.poll-editor-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+.poll-editor-title {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #00b26a;
+}
+.poll-field {
+  margin-bottom: 14rpx;
+}
+.poll-field-label {
+  display: block;
+  font-size: 26rpx;
+  color: #555;
+  margin-bottom: 6rpx;
+}
+.poll-field-label .required {
+  color: #ff0000;
+  margin-left: 6rpx;
+  font-size: 32rpx;
+}
+.poll-field-input {
+  width: 100%;
+  padding: 16rpx;
+  background: #fff;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+  color: #1a1a1a;
+  box-sizing: border-box;
+  border: 1rpx solid #e0e0e0;
+}
+.poll-field-input[disabled] {
+  background: #f5f5f5;
+  color: #999;
+}
+.poll-field-value {
+  display: block;
+  padding: 16rpx;
+  background: #fff;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+  color: #1a1a1a;
+  border: 1rpx solid #e0e0e0;
+}
+.poll-field-value.placeholder {
+  color: #bbb;
+}
+.poll-option-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 8rpx;
+}
+.poll-option-input {
+  flex: 1;
+  padding: 14rpx;
+  background: #fff;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  color: #333;
+  border: 1rpx solid #e0e0e0;
+}
+.poll-option-input[disabled] {
+  background: #f5f5f5;
+  color: #999;
+}
+.poll-option-remove {
+  padding: 8rpx;
+}
+.poll-add-option {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 10rpx 0;
+}
+.poll-add-text {
+  font-size: 26rpx;
+  color: #00b26a;
+}
+.poll-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8rpx 0;
+  margin-bottom: 4rpx;
+}
+.poll-switch-label {
+  font-size: 26rpx;
+  color: #555;
+}

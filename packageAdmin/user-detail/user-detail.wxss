@@ -157,7 +157,7 @@
 }
 
 .limit-icon.todo {
-  background: linear-gradient(135deg, #00B26A 0%, #3ddaa0 100%);
+  background: linear-gradient(135deg, #00b26a 0%, #3ddaa0 100%);
 }
 
 .limit-icon.combo {
@@ -219,7 +219,7 @@
   align-items: center;
   justify-content: center;
   gap: 8rpx;
-  background: linear-gradient(135deg, #00B26A 0%, #3ddaa0 100%);
+  background: linear-gradient(135deg, #00b26a 0%, #3ddaa0 100%);
   color: #fff;
   font-size: 30rpx;
   border-radius: 32rpx;
@@ -504,7 +504,7 @@
 }
 
 .confirm-btn {
-  background: linear-gradient(135deg, #00B26A 0%, #3ddaa0 100%);
+  background: linear-gradient(135deg, #00b26a 0%, #3ddaa0 100%);
   color: #fff;
 }
 
@@ -671,7 +671,7 @@
 
 .mini-tag.assign-tag {
   background: rgba(0, 178, 106, 0.1);
-  color: #00B26A;
+  color: #00b26a;
 }
 
 .mini-tag.exclude-tag {
@@ -713,7 +713,7 @@
 }
 
 .completed-at {
-  color: #00B26A;
+  color: #00b26a;
 }
 
 /* ========== 徽标颜色选择器 ========== */
@@ -776,7 +776,7 @@
 
 .color-confirm-btn {
   padding: 16rpx 48rpx;
-  background: linear-gradient(135deg, #00B26A, #3ddaa0);
+  background: linear-gradient(135deg, #00b26a, #3ddaa0);
   color: #fff;
   border-radius: 40rpx;
   font-size: 28rpx;

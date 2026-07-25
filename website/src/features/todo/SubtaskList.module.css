@@ -1,0 +1,132 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.item:last-child {
+  border-bottom: 0;
+}
+
+.check {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+  flex: none;
+  transition: transform var(--dur-fast) var(--ease);
+}
+
+.check::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--mt3);
+  display: block;
+  grid-area: 1 / 1;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+.checkDone::before {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.check:active {
+  transform: scale(0.92);
+}
+
+.check svg {
+  grid-area: 1 / 1;
+  width: 10px;
+  height: 10px;
+  color: var(--primary-fg);
+  pointer-events: none;
+}
+
+.text {
+  font-size: 13px;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.textDone {
+  color: var(--mt2);
+  text-decoration: line-through;
+}
+
+.remove {
+  width: 28px;
+  height: 28px;
+  color: var(--mt2);
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  flex: none;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.remove svg {
+  width: 13px;
+  height: 13px;
+}
+
+.remove:hover {
+  color: var(--destructive);
+}
+
+.remove:active {
+  background: color-mix(in srgb, var(--destructive) 8%, transparent);
+}
+
+.addRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.addInput {
+  flex: 1;
+  min-height: 28px;
+  border: 1px solid var(--border);
+  background: var(--input);
+  color: var(--fg);
+  font-size: 13px;
+  padding: 4px 10px;
+  outline: none;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+
+.addInput:focus {
+  border-color: var(--primary-line);
+  box-shadow: var(--ring);
+}
+
+.addInput::placeholder {
+  color: var(--mt2);
+}
+
+.progress {
+  font: 500 10.5px/1 var(--font-mono);
+  color: var(--mt2);
+  margin-bottom: 8px;
+}

@@ -760,7 +760,7 @@
 
 /* 占位符样式 */
 .todo-item.placeholder {
-  border: 3rpx dashed #00B26A;
+  border: 3rpx dashed #00b26a;
   background: rgba(0, 178, 106, 0.08);
   animation: placeholderPulse 1.2s ease-in-out infinite;
   min-height: 120rpx;
@@ -784,12 +784,12 @@
   display: flex;
   align-items: center;
   gap: 16rpx;
-  color: #00B26A;
+  color: #00b26a;
 }
 
 .placeholder-text {
   font-size: 28rpx;
-  color: #00B26A;
+  color: #00b26a;
   font-weight: 500;
 }
 

@@ -20,7 +20,7 @@
   align-items: center;
   gap: 8rpx;
   padding: 8rpx 32rpx;
-  background: linear-gradient(135deg, #00B26A 0%, #3ddaa0 100%);
+  background: linear-gradient(135deg, #00b26a 0%, #3ddaa0 100%);
   border-radius: 32rpx;
 }
 
@@ -88,7 +88,7 @@
   background: rgba(0, 178, 106, 0.1);
   border-radius: 32rpx;
   font-size: 22rpx;
-  color: #00B26A;
+  color: #00b26a;
 }
 
 .add-btn {
@@ -96,7 +96,7 @@
   align-items: center;
   gap: 6rpx;
   padding: 0rpx 32rpx;
-  background: linear-gradient(135deg, #00B26A 0%, #3ddaa0 100%);
+  background: linear-gradient(135deg, #00b26a 0%, #3ddaa0 100%);
   color: #fff;
   font-size: 24rpx;
   border-radius: 32rpx;
@@ -186,7 +186,7 @@
   align-items: center;
   justify-content: center;
   gap: 8rpx;
-  background: linear-gradient(135deg, #00B26A 0%, #3ddaa0 100%);
+  background: linear-gradient(135deg, #00b26a 0%, #3ddaa0 100%);
   color: #fff;
   font-size: 32rpx;
   border-radius: 32rpx;

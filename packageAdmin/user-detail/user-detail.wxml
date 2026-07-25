@@ -43,7 +43,7 @@
         </view>
       </view>
       <view class="info-item">
-        <t-icon name="time" size="32rpx" color="#00B26A" />
+        <t-icon name="time" size="32rpx" color="#00b26a" />
         <view class="info-content">
           <text class="info-label">注册时间</text>
           <text class="info-value">{{user.created_at || '-'}}</text>
@@ -154,7 +154,7 @@
       <view wx:for="{{todos}}" wx:key="id" class="list-item" bindtap="viewTodo" data-todo="{{item}}">
         <view class="item-left">
           <view class="item-icon {{item.completed ? 'completed' : ''}}">
-            <t-icon name="{{item.completed ? 'check-circle-filled' : 'circle'}}" size="36rpx" color="{{item.completed ? '#00B26A' : '#ccc'}}" />
+            <t-icon name="{{item.completed ? 'check-circle-filled' : 'circle'}}" size="36rpx" color="{{item.completed ? '#00b26a' : '#ccc'}}" />
           </view>
           <view class="item-content">
             <view class="item-title-row">
@@ -273,7 +273,7 @@
           <view wx:for="{{item.todos}}" wx:for-item="todo" wx:key="id" class="list-item">
             <view class="item-left">
               <view class="item-icon {{todo.is_completed ? 'completed' : ''}}">
-                <t-icon name="{{todo.is_completed ? 'check-circle-filled' : 'circle'}}" size="36rpx" color="{{todo.is_completed ? '#00B26A' : '#ccc'}}" />
+                <t-icon name="{{todo.is_completed ? 'check-circle-filled' : 'circle'}}" size="36rpx" color="{{todo.is_completed ? '#00b26a' : '#ccc'}}" />
               </view>
               <view class="item-content">
                 <view class="item-title-row">
@@ -301,7 +301,7 @@
         <view wx:for="{{assignedTodosFlat}}" wx:key="id" class="list-item">
           <view class="item-left">
             <view class="item-icon {{item.is_completed ? 'completed' : ''}}">
-              <t-icon name="{{item.is_completed ? 'check-circle-filled' : 'circle'}}" size="36rpx" color="{{item.is_completed ? '#00B26A' : '#ccc'}}" />
+              <t-icon name="{{item.is_completed ? 'check-circle-filled' : 'circle'}}" size="36rpx" color="{{item.is_completed ? '#00b26a' : '#ccc'}}" />
             </view>
             <view class="item-content">
               <view class="item-title-row">
@@ -340,7 +340,7 @@
     <view class="list-card" wx:if="{{comments.length > 0}}">
       <view wx:for="{{comments}}" wx:key="id" class="list-item comment-item">
         <view class="comment-icon">
-          <t-icon name="{{item.parent_id ? 'chat' : 'comment'}}" size="32rpx" color="{{item.parent_id ? '#667eea' : '#00B26A'}}" />
+          <t-icon name="{{item.parent_id ? 'chat' : 'comment'}}" size="32rpx" color="{{item.parent_id ? '#667eea' : '#00b26a'}}" />
         </view>
         <view class="item-content">
           <text class="comment-text">{{item.content}}</text>
@@ -398,7 +398,7 @@
       </view>
       <view class="color-picker-content">
         <t-color-picker
-          value="{{badgeCustomColor || '#00B26A'}}"
+          value="{{badgeCustomColor || '#00b26a'}}"
           type="multiple"
           format="HEX"
           swatchColors=""
@@ -408,8 +408,8 @@
         />
       </view>
       <view class="color-picker-footer">
-        <view class="color-preview" style="background: {{badgeCustomColor || '#00B26A'}}"></view>
-        <text class="color-value">{{badgeCustomColor || '#00B26A'}}</text>
+        <view class="color-preview" style="background: {{badgeCustomColor || '#00b26a'}}"></view>
+        <text class="color-value">{{badgeCustomColor || '#00b26a'}}</text>
         <view class="color-confirm-btn" bindtap="confirmBadgeCustomColor">
           <text>确定</text>
         </view>

@@ -289,6 +289,23 @@
   opacity: 0.6;
 }
 
+.poll-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  background: #f0fdf6;
+  padding: 8rpx 14rpx;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  color: #00b26a;
+  margin-bottom: 8rpx;
+}
+.poll-summary-text {
+  flex: 1;
+  font-size: 26rpx;
+  color: #00b26a;
+}
+
 .post-body-full {
   font-size: 30rpx;
   color: #666;

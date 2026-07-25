@@ -186,7 +186,7 @@
     <view class="color-picker-content">
       <t-color-picker 
         id="colorPicker"
-        value="{{customColor || '#00B26A'}}"
+        value="{{customColor || '#00b26a'}}"
         type="multiple"
         format="HEX"
         swatchColors=""
@@ -196,8 +196,8 @@
       />
     </view>
     <view class="color-picker-footer">
-      <view class="color-preview" style="background: {{customColor || '#00B26A'}}"></view>
-      <text class="color-value">{{customColor || '#00B26A'}}</text>
+      <view class="color-preview" style="background: {{customColor || '#00b26a'}}"></view>
+      <text class="color-value">{{customColor || '#00b26a'}}</text>
       <view class="color-confirm-btn" bindtap="confirmCustomColor">
         <text>确定</text>
       </view>

@@ -38,13 +38,13 @@ Page({
     name: '',
     description: '',
     icon: 'folder',
-    color: '#00B26A',
+    color: '#00b26a',
     isShared: false,
     memberLimit: 50,
     todoIds: [],
     
     icons: iconCategories['常用'],
-    colors: ['#00B26A', '#1890FF', '#722ED1', '#FA8C16', '#C8CA4F', '#13C2C2', 'custom'],
+    colors: ['#00b26a', '#1890FF', '#722ED1', '#FA8C16', '#C8CA4F', '#13C2C2', 'custom'],
     
     selectedTodoCount: 0,
     

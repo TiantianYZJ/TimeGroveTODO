@@ -1,0 +1,530 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import type { Combo } from '@/types'
+import type { Post } from '@/api/posts'
+import { combosApi } from '@/api/combos'
+import { collabApi } from '@/api/collab'
+import { postsApi } from '@/api/posts'
+import { useTodoStore } from '@/stores/todos'
+import { Button, Card, Eyebrow, Stat, StatusChip } from '@/design/primitives'
+import {
+  ListIcon,
+  PlusIcon,
+  CheckIcon,
+  BellIcon,
+  ChartIcon,
+  ClockIcon,
+  HeartIcon,
+  ChatIcon,
+} from '@/design/icons'
+import { TodoItem } from './TodoItem'
+import styles from './ComboDetailView.module.css'
+
+interface Member {
+  id: number
+  nickname: string
+  avatarUrl: string
+  role: string
+  joinedAt: string
+}
+
+interface ComboDetail extends Combo {
+  shareCode?: string
+  todoCount?: number
+  comboPostCount?: number
+  memberCount?: number
+  userRole?: string | null
+  members: Member[]
+  sharedTodos: any[]
+  createdAt: string
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  owner: '超管',
+  admin: '管理',
+  member: '成员',
+}
+
+export function ComboDetailView() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { todos, fetchTodos, loading } = useTodoStore()
+  const [combo, setCombo] = useState<ComboDetail | null>(null)
+  const [detailLoading, setDetailLoading] = useState(true)
+  const [detailError, setDetailError] = useState<string | null>(null)
+  const [pendingRequests, setPendingRequests] = useState(0)
+  const [comboPosts, setComboPosts] = useState<Post[]>([])
+  const [postsLoading, setPostsLoading] = useState(false)
+
+  const fetchRequests = useCallback(async (comboId: number, userRole?: string | null) => {
+    if (userRole !== 'owner' && userRole !== 'admin') {
+      setPendingRequests(0)
+      return
+    }
+    try {
+      const res = await collabApi.getRequests(comboId)
+      if (res.success) {
+        setPendingRequests((res.requests || []).filter((r) => r.status === 'pending').length)
+      }
+    } catch {
+      setPendingRequests(0)
+    }
+  }, [])
+
+  const fetchComboPosts = useCallback(async (comboId: number) => {
+    setPostsLoading(true)
+    try {
+      const res = await postsApi.getComboPosts(comboId, { limit: 10 })
+      const data = (res as unknown as Record<string, unknown>).data as
+        | { list?: Post[] }
+        | undefined
+      const list =
+        data?.list ||
+        (res as unknown as Record<string, unknown>).posts as Post[] ||
+        (res as unknown as Record<string, unknown>).list as Post[] ||
+        []
+      setComboPosts(list)
+    } catch {
+      setComboPosts([])
+    } finally {
+      setPostsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchTodos().catch(() => { /* handled by store */ })
+    if (!id) {
+      setDetailLoading(false)
+      return
+    }
+    const numId = Number(id)
+    if (Number.isNaN(numId)) {
+      setDetailLoading(false)
+      return
+    }
+    setDetailError(null)
+    combosApi
+      .getById(numId)
+      .then((res) => {
+        if (res.success && res.combo) {
+          setCombo(res.combo)
+          if (res.combo.isShared) {
+            fetchRequests(numId, res.combo.userRole ?? null)
+          }
+          // Fetch combo posts (帖子圈)
+          fetchComboPosts(numId)
+        } else {
+          setDetailError('加载组合失败')
+        }
+      })
+      .catch(() => setDetailError('加载失败，请稍后重试'))
+      .finally(() => setDetailLoading(false))
+  }, [id, fetchTodos, fetchRequests, fetchComboPosts])
+
+  const comboTodos = useMemo(
+    () =>
+      todos.filter(
+        (t) => !t.isDeleted && t.comboId === Number(id),
+      ),
+    [todos, id],
+  )
+
+  const stats = useMemo(() => {
+    const total = comboTodos.length
+    const completed = comboTodos.filter((t) => t.completed).length
+    const uncompleted = total - completed
+    const rate = total > 0 ? Math.round((completed / total) * 100) : 0
+    return { total, completed, uncompleted, rate }
+  }, [comboTodos])
+
+  if (detailLoading) {
+    return (
+      <div className={styles.screen}>
+        <div className={styles.skeletonHero}>
+          <div className={styles.skeletonIcon} />
+          <div className={styles.skeletonBody}>
+            <div className={styles.skeletonTitle} />
+            <div className={styles.skeletonSub} />
+          </div>
+        </div>
+        <div className={styles.skeletonStats}>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className={styles.skeletonStat} />
+          ))}
+        </div>
+        <div className={styles.skeletonCard} />
+        <div className={styles.skeletonCard} />
+      </div>
+    )
+  }
+
+  if (detailError && !combo) {
+    return (
+      <div className={styles.screen}>
+        <div className={styles.empty}>
+          <div className={styles.emptyIcon}>
+            <ListIcon />
+          </div>
+          <div className={styles.emptyTitle}>加载失败</div>
+          <div className={styles.emptySub}>{detailError}</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!combo) {
+    return (
+      <div className={styles.screen}>
+        <div className={styles.empty}>
+          <div className={styles.emptyIcon}>
+            <ListIcon />
+          </div>
+          <div className={styles.emptyTitle}>未找到该组合</div>
+          <div className={styles.emptySub}>可能已被删除或不存在</div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.screen}>
+      {/* Hero */}
+      <div className={styles.hero}>
+        <div className={styles.heroLeft}>
+          <div className={styles.hdRow}>
+            <div className={styles.hdIcColor} style={{ background: combo.color }}>
+              <ListIcon />
+            </div>
+            <div>
+              <Eyebrow>COMBO</Eyebrow>
+              <h1 className={styles.title}>
+                {combo.name}
+              </h1>
+            </div>
+          </div>
+          <div className={styles.meta}>
+            <StatusChip tone={combo.isShared ? 'acc' : 'default'}>
+              {combo.isShared ? '共享组合' : '私有组合'}
+            </StatusChip>
+            <span className={styles.sep}>·</span>
+            <span>{stats.total} 项待办</span>
+            {combo.createdAt && (
+              <>
+                <span className={styles.sep}>·</span>
+                <span>创建于 {combo.createdAt.slice(0, 10)}</span>
+              </>
+            )}
+          </div>
+        </div>
+        <div className={styles.actions}>
+          <Button variant="gh" size="sm" onClick={() => navigate('/combos')}>
+            ← 返回
+          </Button>
+          <Button
+            variant="sec"
+            size="sm"
+            icon={<ChartIcon className={styles.btnIcon} />}
+            onClick={() => navigate(`/combos/${combo.id}/stats`)}
+          >
+            组合统计
+          </Button>
+          {combo.isShared && (
+            <Button
+              variant="sec"
+              size="sm"
+              icon={<BellIcon className={styles.btnIcon} />}
+              onClick={() => navigate(`/combos/${combo.id}/collaboration`)}
+            >
+              协作管理
+            </Button>
+          )}
+          <Button
+            variant="sec"
+            size="sm"
+            onClick={() => navigate('/combos', { state: { editComboId: combo.id } })}
+          >
+            编辑
+          </Button>
+          <Button
+            variant="pri"
+            size="sm"
+            icon={<PlusIcon className={styles.btnIcon} />}
+            onClick={() => navigate(`/todos/new?comboId=${combo.id}`)}
+          >
+            添加待办
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className={styles.stats}>
+        <Stat label="总数" value={stats.total} delta="组合内待办" />
+        <Stat
+          label="已完成"
+          value={stats.completed}
+          accent
+          delta={<span className={styles.deltaUp}>已完成</span>}
+        />
+        <Stat label="未完成" value={stats.uncompleted} delta="进行中" />
+        <Stat
+          label="完成率"
+          value={<>{stats.rate}<span className={styles.pctSign}>%</span></>}
+          delta="目标 80%"
+        />
+      </div>
+
+      <div className={styles.grid}>
+        {/* Todo list */}
+        <Card>
+          <div className={styles.cardHead}>
+            <div className={styles.cardHeadL}>
+              <div className={styles.hdIc}>
+                <CheckIcon />
+              </div>
+              <div>
+                <Eyebrow>TODOS</Eyebrow>
+                <h3 className={styles.cardTitle}>
+                  待办 <span className={styles.song}>列表</span>
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.todoList}>
+            {loading && comboTodos.length === 0 && (
+              <div className={styles.skeletonList}>
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className={styles.skeletonRow}>
+                    <div className={styles.skeletonCheck} />
+                    <div className={styles.skeletonBodyRow}>
+                      <div className={styles.skeletonTitle} />
+                      <div className={styles.skeletonSub} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {!loading && comboTodos.length === 0 && (
+              <div className={styles.empty}>
+                <div className={styles.emptyIcon}>
+                  <ListIcon />
+                </div>
+                <div className={styles.emptyTitle}>此组合暂无待办</div>
+                <div className={styles.emptySub}>
+                  点击右上角"添加待办"开始
+                </div>
+              </div>
+            )}
+            {comboTodos.map((t) => (
+              <TodoItem key={t.id} todo={t} />
+            ))}
+          </div>
+
+          {comboTodos.length > 0 && (
+            <div className={styles.cardFoot}>
+              <span className={styles.footText}>共 {comboTodos.length} 项</span>
+            </div>
+          )}
+        </Card>
+
+        {/* Side column: info + members */}
+        <div className={styles.sideCol}>
+          {/* Combo info */}
+          <Card>
+            <div className={styles.cardHead}>
+              <div className={styles.cardHeadL}>
+                <div className={styles.hdIc}>
+                  <BellIcon />
+                </div>
+                <div>
+                  <Eyebrow>INFO</Eyebrow>
+                  <h3 className={styles.cardTitle}>
+                    组合 <span className={styles.song}>信息</span>
+                  </h3>
+                </div>
+              </div>
+            </div>
+            <div className={styles.lines}>
+              <div className={styles.line}>
+                <span className={styles.lineLabel}>描述</span>
+                <span className={styles.lineVal}>
+                  {combo.description || '—'}
+                </span>
+              </div>
+              <div className={styles.line}>
+                <span className={styles.lineLabel}>待办数量</span>
+                <span className={styles.lineVal}>{stats.total}</span>
+              </div>
+              <div className={styles.line}>
+                <span className={styles.lineLabel}>类型</span>
+                <span className={styles.lineVal}>
+                  {combo.isShared ? '共享组合' : '私有组合'}
+                </span>
+              </div>
+              {combo.createdAt && (
+                <div className={styles.line}>
+                  <span className={styles.lineLabel}>创建时间</span>
+                  <span className={styles.monoVal}>
+                    {combo.createdAt.slice(0, 10)}
+                  </span>
+                </div>
+              )}
+              {combo.isShared && combo.shareCode && (
+                <div className={styles.line}>
+                  <span className={styles.lineLabel}>邀请码</span>
+                  <span className={styles.lineVal}>{combo.shareCode}</span>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Members (shared only) */}
+          {combo.isShared && combo.members && combo.members.length > 0 && (
+            <Card>
+              <div className={styles.cardHead}>
+                <div className={styles.cardHeadL}>
+                  <div className={styles.hdIc}>
+                    <ListIcon />
+                  </div>
+                  <div>
+                    <Eyebrow>MEMBERS</Eyebrow>
+                    <h3 className={styles.cardTitle}>
+                      成员 <span className={styles.song}>列表</span>
+                    </h3>
+                  </div>
+                </div>
+                <StatusChip tone="acc">{combo.members.length} 人</StatusChip>
+              </div>
+              <div className={styles.memberList}>
+                {combo.members.map((m) => (
+                  <div key={m.id} className={styles.member}>
+                    <div className={styles.memberAv}>
+                      {m.avatarUrl ? (
+                        <img src={m.avatarUrl} alt={m.nickname} />
+                      ) : (
+                        (m.nickname?.[0] || '?')
+                      )}
+                    </div>
+                    <div className={styles.memberInfo}>
+                      <div className={styles.memberName}>{m.nickname}</div>
+                      <div className={styles.memberJoined}>
+                        {ROLE_LABELS[m.role] || m.role}
+                        {m.joinedAt && ` · ${m.joinedAt.slice(0, 10)}`}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Join requests entry (shared + owner/admin only) */}
+          {combo.isShared && (combo.userRole === 'owner' || combo.userRole === 'admin') && (
+            <div
+              className={styles.reqEntry}
+              onClick={() => navigate(`/combos/${combo.id}/collaboration`)}
+            >
+              <div className={styles.reqEntryL}>
+                <div className={styles.hdIc}>
+                  <ClockIcon />
+                </div>
+                <div>
+                  <div className={styles.reqEntryTitle}>加入申请</div>
+                  <div className={styles.reqEntrySub}>
+                    {pendingRequests > 0 ? `${pendingRequests} 条待处理` : '查看并管理申请'}
+                  </div>
+                </div>
+              </div>
+              {pendingRequests > 0 && (
+                <span className={styles.reqBadge}>{pendingRequests}</span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Posts circle (帖子圈) */}
+      <div className={styles.postsSection}>
+        <Card>
+          <div className={styles.cardHead}>
+            <div className={styles.cardHeadL}>
+              <div className={styles.hdIc}>
+                <ChatIcon />
+              </div>
+              <div>
+                <Eyebrow>POSTS</Eyebrow>
+                <h3 className={styles.cardTitle}>
+                  帖子 <span className={styles.song}>圈</span>
+                </h3>
+              </div>
+            </div>
+            <div className={styles.cardHeadR}>
+              <StatusChip tone="acc">{comboPosts.length} 篇</StatusChip>
+              <Button
+                variant="gh"
+                size="sm"
+                icon={<PlusIcon className={styles.btnIcon} />}
+                onClick={() => navigate(`/community/new?comboId=${combo.id}`)}
+              >
+                发帖
+              </Button>
+            </div>
+          </div>
+
+          {postsLoading && comboPosts.length === 0 && (
+            <div className={styles.postsEmpty}>加载中...</div>
+          )}
+          {!postsLoading && comboPosts.length === 0 && (
+            <div className={styles.postsEmpty}>
+              <div className={styles.emptyIcon}>
+                <ChatIcon />
+              </div>
+              <div className={styles.emptyTitle}>暂无帖子</div>
+              <div className={styles.emptySub}>点击"发帖"分享内容到组合</div>
+            </div>
+          )}
+          {comboPosts.length > 0 && (
+            <div className={styles.postsList}>
+              {comboPosts.map((post) => (
+                <div
+                  key={post.postId}
+                  className={styles.postRow}
+                  onClick={() => navigate(`/community/${post.postId}`)}
+                >
+                  <div className={styles.postAv}>
+                    {post.user?.avatar ? (
+                      <img src={post.user.avatar} alt={post.user.nickname} />
+                    ) : (
+                      post.user?.nickname?.[0] || '?'
+                    )}
+                  </div>
+                  <div className={styles.postMain}>
+                    <div className={styles.postTitle}>{post.title || '无标题'}</div>
+                    <div className={styles.postMeta}>
+                      <span>{post.user?.nickname || '匿名'}</span>
+                      {post.createdAt && (
+                        <>
+                          <span className={styles.sep}>·</span>
+                          <span>{post.createdAt.slice(0, 10)}</span>
+                        </>
+                      )}
+                      <span className={styles.sep}>·</span>
+                      <span className={styles.postStat}>
+                        <HeartIcon className={styles.postStatIcon} />
+                        {post.likesCount || 0}
+                      </span>
+                      <span className={styles.postStat}>
+                        <ChatIcon className={styles.postStatIcon} />
+                        {post.commentsCount || 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+    </div>
+  )
+}

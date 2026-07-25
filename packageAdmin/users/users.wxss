@@ -51,7 +51,7 @@
 
 .search-btn {
   padding: 12rpx 24rpx;
-  background: linear-gradient(135deg, #00B26A 0%, #3ddaa0 100%);
+  background: linear-gradient(135deg, #00b26a 0%, #3ddaa0 100%);
   color: #fff;
   font-size: 24rpx;
   border-radius: 32rpx;
@@ -132,7 +132,7 @@
 
 .stat-badge.todo {
   background: rgba(0, 178, 106, 0.1);
-  color: #00B26A;
+  color: #00b26a;
 }
 
 .stat-badge.combo {

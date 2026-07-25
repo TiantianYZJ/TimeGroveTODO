@@ -1,38 +1,60 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { create } from 'zustand'
 import type { User } from '@/types'
 import { authApi } from '@/api/auth'
 
-export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(localStorage.getItem('authToken'))
-  const user = ref<User | null>(null)
-  const loading = ref(false)
-
-  const isLoggedIn = computed(() => !!token.value)
-
-  function saveToken(t: string) {
-    token.value = t
-    localStorage.setItem('authToken', t)
-  }
-
-  function clearAuth() {
-    token.value = null
-    user.value = null
-    localStorage.removeItem('authToken')
-  }
-
-  async function loginByQrCode() {
-    const res = await authApi.generateQrCode()
-    if (!res.success || !res.data) {
-      throw new Error('生成二维码失败')
-    }
-    return res.data
-  }
-
-  function pollQrCodeStatus(
+interface AuthState {
+  token: string | null
+  user: User | null
+  loading: boolean
+  isLoggedIn: boolean
+  saveToken: (t: string) => void
+  clearAuth: () => void
+  fetchUserInfo: () => Promise<void>
+  loginByQrCode: () => Promise<{ sceneId: string; qrcodeUrl: string; expiresAt: number }>
+  pollQrCodeStatus: (
     sceneId: string,
     onStatusChange?: (status: string) => void,
-  ): { stop: () => void; promise: Promise<void> } {
+  ) => { stop: () => void; promise: Promise<void> }
+  logout: () => void
+  updateProfile: (data: { nickname?: string; avatarUrl?: string }) => Promise<unknown>
+}
+
+export const useAuthStore = create<AuthState>((set, get) => ({
+  token: localStorage.getItem('authToken'),
+  user: null,
+  loading: false,
+  isLoggedIn: !!localStorage.getItem('authToken'),
+
+  saveToken: (t) => {
+    localStorage.setItem('authToken', t)
+    set({ token: t, isLoggedIn: true })
+  },
+
+  clearAuth: () => {
+    localStorage.removeItem('authToken')
+    set({ token: null, user: null, isLoggedIn: false })
+  },
+
+  fetchUserInfo: async () => {
+    if (!get().token) return
+    try {
+      set({ loading: true })
+      const res = await authApi.getUserInfo()
+      if (res.success && res.user) {
+        set({ user: res.user })
+      }
+    } finally {
+      set({ loading: false })
+    }
+  },
+
+  loginByQrCode: async () => {
+    const res = await authApi.generateQrCode()
+    if (!res.success || !res.data) throw new Error('生成二维码失败')
+    return res.data
+  },
+
+  pollQrCodeStatus: (sceneId, onStatusChange) => {
     let stopped = false
     let timerId: ReturnType<typeof setTimeout> | null = null
     const POLL_INTERVAL = 2000
@@ -62,8 +84,8 @@ export const useAuthStore = defineStore('auth', () => {
               break
             case 'confirmed':
               if (res.token && res.user) {
-                saveToken(res.token)
-                user.value = res.user
+                get().saveToken(res.token)
+                set({ user: res.user })
                 resolve()
               } else {
                 reject(new Error('登录失败：未获取到用户信息'))
@@ -82,57 +104,36 @@ export const useAuthStore = defineStore('auth', () => {
       poll()
     })
 
-    function stop() {
-      stopped = true
-      if (timerId !== null) clearTimeout(timerId)
+    return {
+      stop: () => {
+        stopped = true
+        if (timerId !== null) clearTimeout(timerId)
+      },
+      promise,
     }
+  },
 
-    return { stop, promise }
-  }
-
-  async function logout() {
-    clearAuth()
+  logout: () => {
+    get().clearAuth()
     window.location.href = '/login'
-  }
+  },
 
-  async function fetchUserInfo() {
-    if (!token.value) return
-    try {
-      loading.value = true
-      const res = await authApi.getUserInfo()
-      if (res.success && res.user) {
-        user.value = res.user
-      }
-    } finally {
-      loading.value = false
-    }
-  }
-
-  // Token 存在时自动拉取用户信息（解决刷新后显示"未登录"）
-  if (token.value) {
-    fetchUserInfo()
-  }
-
-  async function updateProfile(data: { nickname?: string; avatarUrl?: string }) {
+  updateProfile: async (data) => {
     const res = await authApi.updateUserInfo(data)
-    if (res.success && user.value) {
-      if (data.nickname) user.value.nickname = data.nickname
-      if (data.avatarUrl) user.value.avatarUrl = data.avatarUrl
+    if (res.success && get().user) {
+      set({
+        user: {
+          ...get().user!,
+          nickname: data.nickname ?? get().user!.nickname,
+          avatarUrl: data.avatarUrl ?? get().user!.avatarUrl,
+        },
+      })
     }
     return res
-  }
+  },
+}))
 
-  return {
-    token,
-    user,
-    loading,
-    isLoggedIn,
-    saveToken,
-    clearAuth,
-    loginByQrCode,
-    pollQrCodeStatus,
-    logout,
-    fetchUserInfo,
-    updateProfile,
-  }
-})
+// Auto-fetch user info if token exists (call once on app init)
+if (localStorage.getItem('authToken')) {
+  useAuthStore.getState().fetchUserInfo()
+}

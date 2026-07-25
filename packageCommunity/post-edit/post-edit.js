@@ -86,6 +86,12 @@ Page({
     visitorToken: '',
     attachedFiles: [],
     comboId: null,
+    // poll editor
+    pollDraft: null,
+    showPollEditor: false,
+    pollEndTimeStr: '',
+    pollExists: false,
+    pollHasVotes: false,
   },
 
   onLoad(options) {
@@ -145,7 +151,10 @@ Page({
               selectedComboCode: draft.selectedComboCode || null,
               selectedComboName: draft.selectedComboName || '',
               location: draft.location || null,
-              attachedFiles: draft.attachedFiles || []
+              attachedFiles: draft.attachedFiles || [],
+              pollDraft: draft.pollDraft || null,
+              showPollEditor: !!draft.pollDraft,
+              pollEndTimeStr: draft.pollDraft?.endTime || '',
             });
             this.updateMentionCard(draft.body || '');
           } else {
@@ -196,7 +205,8 @@ Page({
       wx.setStorageSync('communityDraft', {
         title: this.data.title, body: this.data.body, fileList: this.data.fileList, imageUrls: this.data.imageUrls,
         selectedTodoIds: this.data.selectedTodoIds, selectedComboCode: this.data.selectedComboCode,
-        selectedComboName: this.data.selectedComboName, location: this.data.location, attachedFiles: this.data.attachedFiles
+        selectedComboName: this.data.selectedComboName, location: this.data.location, attachedFiles: this.data.attachedFiles,
+        pollDraft: this.data.pollDraft,
       });
     } else if (!this.data.title && !this.data.body) { wx.removeStorageSync('communityDraft'); }
   },
@@ -232,6 +242,8 @@ Page({
       });
       // 解析 markdown body 中的 @提及，转换成 mentionsList
       this.restoreMentionsFromBody(cached.body || '');
+      // 加载已有投票
+      this.loadPollForEdit(postId);
       return;
     }
     try {
@@ -264,6 +276,8 @@ Page({
         });
         // 解析 markdown body 中的 @提及，转换成 mentionsList
         this.restoreMentionsFromBody(post.body || '');
+        // 加载已有投票
+        this.loadPollForEdit(postId);
       }
     } catch (err) { wx.showToast({ title: '加载失败', icon: 'none' }); }
   },
@@ -542,6 +556,115 @@ Page({
 
   clearLocation() {
     this.setData({ location: null });
+  },
+
+  // ===== 投票编辑器 =====
+
+  togglePollEditor() {
+    const show = !this.data.showPollEditor;
+    if (show && !this.data.pollDraft) {
+      // 初始化默认选项
+      this.setData({
+        showPollEditor: true,
+        pollDraft: { title: '', type: 0, allowOther: false, isAnonymous: false, endTime: null, options: [{ text: '', isOther: false }, { text: '', isOther: false }] },
+        pollEndTimeStr: '',
+      });
+    } else {
+      this.setData({ showPollEditor: show });
+    }
+  },
+
+  addPollOption() {
+    const draft = this.data.pollDraft;
+    if (!draft || draft.options.length >= 20) { wx.showToast({ title: '最多20个选项', icon: 'none' }); return; }
+    draft.options.push({ text: '', isOther: false });
+    this.setData({ pollDraft: { ...draft, options: [...draft.options] } });
+  },
+
+  removePollOption(e) {
+    const idx = e.currentTarget.dataset.index;
+    const draft = this.data.pollDraft;
+    if (!draft || draft.options.length <= 2) { wx.showToast({ title: '至少保留2个选项', icon: 'none' }); return; }
+    draft.options.splice(idx, 1);
+    this.setData({ pollDraft: { ...draft, options: [...draft.options] } });
+  },
+
+  onPollTitleInput(e) {
+    const draft = this.data.pollDraft;
+    draft.title = e.detail.value ?? '';
+    this.setData({ pollDraft: { ...draft } });
+  },
+
+  onPollOptionInput(e) {
+    const idx = e.currentTarget.dataset.index;
+    const draft = this.data.pollDraft;
+    draft.options[idx].text = e.detail.value ?? '';
+    this.setData({ pollDraft: { ...draft, options: [...draft.options] } });
+  },
+
+  togglePollType(e) {
+    const draft = this.data.pollDraft;
+    draft.type = e.detail.value ? 1 : 0;
+    this.setData({ pollDraft: { ...draft } });
+  },
+
+  toggleAllowOther(e) {
+    const draft = this.data.pollDraft;
+    draft.allowOther = e.detail.value;
+    this.setData({ pollDraft: { ...draft } });
+  },
+
+  toggleAnonymous(e) {
+    const draft = this.data.pollDraft;
+    draft.isAnonymous = e.detail.value;
+    this.setData({ pollDraft: { ...draft } });
+  },
+
+  onPollEndTimeChange(e) {
+    const val = e.detail.value || '';
+    const draft = this.data.pollDraft;
+    draft.endTime = val ? val + ' 23:59:59' : null;
+    this.setData({ pollDraft: { ...draft }, pollEndTimeStr: val });
+  },
+
+  clearPoll() {
+    wx.showModal({
+      title: '确认清除', content: '确定要清除投票设置吗？',
+      success: (res) => {
+        if (res.confirm) {
+          this.setData({ pollDraft: null, showPollEditor: false, pollEndTimeStr: '', pollExists: false, pollHasVotes: false });
+        }
+      }
+    });
+  },
+
+  async loadPollForEdit(postId) {
+    try {
+      const res = await communityApi.getPoll(postId);
+      if (res.success && res.data && res.data.poll) {
+        const p = res.data.poll;
+        const hasVotes = p.totalVotes > 0;
+        const draft = {
+          title: p.title,
+          type: p.type,
+          allowOther: p.allowOther,
+          isAnonymous: p.isAnonymous,
+          endTime: p.endTime,
+          options: p.options.map(o => ({ text: o.text, isOther: o.isOther })),
+        };
+        const et = p.endTime ? p.endTime.substring(0, 10) : '';
+        this.setData({
+          pollDraft: draft,
+          pollExists: true,
+          pollHasVotes: hasVotes,
+          showPollEditor: true,
+          pollEndTimeStr: et,
+          canPublish: true,
+        });
+      }
+    } catch (err) {
+      console.error('[loadPollForEdit] error:', err);
+    }
   },
 
   // ===== 统一选择弹窗（待办/组合共用） =====
@@ -862,15 +985,45 @@ Page({
       if (this.data.editMode) {
         await communityApi.updatePost(this.data.editPostId, payload);
         wx.showToast({ title: '保存成功', icon: 'success' });
+        // 编辑模式下处理投票更新
+        await this.handlePollSubmit(this.data.editPostId);
       } else {
         await communityApi.createPost(payload);
         wx.showToast({ title: '发布成功', icon: 'success' });
         wx.removeStorageSync('communityDraft');
+        // 新建帖子后创建投票
+        await this.handlePollSubmit(postId);
       }
       setTimeout(() => wx.navigateBack(), 1500);
     } catch (err) {
       wx.showToast({ title: err.message || '操作失败', icon: 'none' });
       this.setData({ submitting: false });
+    }
+  },
+
+  async handlePollSubmit(postId) {
+    const { pollDraft, editMode, pollExists } = this.data;
+    if (!pollDraft || !pollDraft.title || !pollDraft.options || pollDraft.options.length < 2) return;
+    // 验证选项
+    const validOptions = pollDraft.options.filter(o => o.text.trim());
+    if (validOptions.length < 2) { wx.showToast({ title: '请至少填写2个选项', icon: 'none' }); return; }
+    if (!pollDraft.title.trim()) { wx.showToast({ title: '请输入投票标题', icon: 'none' }); return; }
+    const payload = {
+      title: pollDraft.title,
+      type: pollDraft.type,
+      allowOther: pollDraft.allowOther,
+      isAnonymous: pollDraft.isAnonymous,
+      endTime: pollDraft.endTime || null,
+      options: validOptions.map(o => ({ text: o.text, isOther: o.isOther })),
+    };
+    try {
+      if (editMode && pollExists) {
+        await communityApi.updatePoll(postId, payload);
+      } else {
+        await communityApi.createPoll(postId, payload);
+      }
+    } catch (err) {
+      console.error('[handlePollSubmit] error:', err);
     }
   },
 

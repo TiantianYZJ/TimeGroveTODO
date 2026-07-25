@@ -116,6 +116,65 @@
     </view>
   </view>
 
+  <!-- ===== 投票编辑器 ===== -->
+  <view wx:if="{{!showPollEditor}}" class="picker-row" catch:tap="togglePollEditor">
+    <t-icon name="tag" size="38rpx" color="#999" />
+    <text class="picker-placeholder">添加投票</text>
+  </view>
+
+  <view wx:if="{{showPollEditor}}" class="poll-editor-card">
+    <view class="poll-editor-header">
+      <t-icon name="tag" size="32rpx" color="#00b26a" />
+      <text class="poll-editor-title">投票</text>
+      <view class="picker-clear" catch:tap="clearPoll">
+        <t-icon name="close" size="28rpx" color="#999" />
+      </view>
+    </view>
+
+    <view class="poll-field">
+      <text class="poll-field-label">标题<text class="required">*</text></text>
+      <view class="poll-option-row">
+        <input class="poll-option-input" placeholder="投票标题" value="{{pollDraft.title}}" bind:input="onPollTitleInput" maxlength="200" disabled="{{pollHasVotes}}" />
+      </view>
+    </view>
+
+    <view class="poll-field">
+      <text class="poll-field-label">选项<text class="required">*</text></text>
+      <view wx:for="{{pollDraft.options}}" wx:for-item="opt" wx:key="index" class="poll-option-row">
+        <input class="poll-option-input" placeholder="选项 {{index+1}}" value="{{opt.text}}" bind:input="onPollOptionInput" data-index="{{index}}" maxlength="100" disabled="{{pollHasVotes}}" />
+        <view wx:if="{{!pollHasVotes && pollDraft.options.length > 2}}" class="poll-option-remove" catch:tap="removePollOption" data-index="{{index}}">
+          <t-icon name="close" size="24rpx" color="#999" />
+        </view>
+      </view>
+      <view wx:if="{{!pollHasVotes && pollDraft.options.length < 20}}" class="poll-add-option" catch:tap="addPollOption">
+        <t-icon name="add" size="28rpx" color="#00b26a" />
+        <text class="poll-add-text">添加选项</text>
+      </view>
+    </view>
+
+    <view class="poll-switch-row" wx:if="{{!pollHasVotes}}">
+      <text class="poll-switch-label">多选</text>
+      <t-switch value="{{pollDraft.type === 1}}" bind:change="togglePollType" size="small" />
+    </view>
+
+    <view class="poll-switch-row">
+      <text class="poll-switch-label">允许"其他"输入</text>
+      <t-switch value="{{pollDraft.allowOther}}" bind:change="toggleAllowOther" size="small" disabled="{{pollHasVotes}}" />
+    </view>
+
+    <view class="poll-switch-row">
+      <text class="poll-switch-label">匿名投票</text>
+      <t-switch value="{{pollDraft.isAnonymous}}" bind:change="toggleAnonymous" size="small" />
+    </view>
+
+    <view class="poll-field">
+      <text class="poll-field-label">截止时间</text>
+      <picker mode="date" value="{{pollEndTimeStr}}" bind:change="onPollEndTimeChange">
+        <text class="poll-field-value {{pollEndTimeStr ? '' : 'placeholder'}}">{{pollEndTimeStr || '永不过期'}}</text>
+      </picker>
+    </view>
+  </view>
+
   <view class="picker-row" wx:if="{{!location}}" bind:tap="pickLocation">
     <t-icon name="location" size="38rpx" color="#999" />
     <text class="picker-placeholder">添加位置</text>

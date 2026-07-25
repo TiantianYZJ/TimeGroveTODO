@@ -468,3 +468,242 @@
   line-height: 1.6;
 }
 
+/* ===== 投票卡片 ===== */
+.poll-card {
+  margin: 20rpx;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #f0fdf6 0%, #e8faf0 100%);
+  border-radius: 32rpx;
+}
+.poll-title {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 16rpx;
+  flex-wrap: wrap;
+}
+.poll-badge {
+  font-size: 20rpx;
+  color: #00b26a;
+  background: #d4f5e3;
+  padding: 2rpx 12rpx;
+  border-radius: 32rpx;
+}
+.poll-badge-ended {
+  font-size: 20rpx;
+  color: #999;
+  background: #f0f0f0;
+  padding: 2rpx 12rpx;
+  border-radius: 32rpx;
+}
+.poll-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+.poll-option {
+  background: #fff;
+  border-radius: 32rpx;
+  padding: 16rpx;
+  border: 2rpx solid #e0e0e0;
+  overflow: hidden;
+  position: relative;
+}
+.poll-option.selected {
+  border-color: #00b26a;
+  background: #f0fdf6;
+}
+.poll-option.voted {
+  border-color: #00b26a;
+  background: #f0fdf6;
+}
+.poll-option.result {
+  cursor: default;
+}
+.poll-option-content {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  position: relative;
+  z-index: 1;
+}
+.poll-option-selector {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  border: 2rpx solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.poll-option-selector.radio.checked {
+  background: #00b26a;
+  border-color: #00b26a;
+}
+.poll-option-selector.checkbox {
+  border-radius: 32rpx;
+}
+.poll-option-selector.checkbox.checked {
+  background: #00b26a;
+  border-color: #00b26a;
+}
+.poll-option-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+}
+.poll-option-bar-wrap {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 0;
+}
+.poll-option-bar {
+  height: 100%;
+  background: rgba(0, 178, 106, 0.1);
+  border-radius: 32rpx;
+  transition: width 0.3s ease;
+}
+.poll-option-stats {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 22rpx;
+  color: #999;
+  flex-shrink: 0;
+}
+.poll-option-pct {
+  font-weight: 600;
+  color: #00b26a;
+}
+.poll-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14rpx;
+}
+.poll-total {
+  font-size: 24rpx;
+  color: #999;
+}
+.poll-actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.poll-vote-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 56rpx;
+  padding: 0 24rpx;
+  font-size: 26rpx;
+  color: #fff;
+  background: #00b26a;
+  border: none;
+  border-radius: 32rpx;
+  line-height: 1;
+}
+.poll-vote-btn::after {
+  border: none;
+}
+.poll-revote {
+  font-size: 24rpx;
+  color: #00b26a;
+  padding: 8rpx;
+}
+.poll-close-text {
+  font-size: 24rpx;
+  color: #999;
+  padding: 8rpx;
+}
+
+/* ========== "其他"选项输入弹窗 ========== */
+.other-popup-panel {
+  padding: 40rpx 28rpx 40rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(40rpx) saturate(180%);
+  -webkit-backdrop-filter: blur(40rpx) saturate(180%);
+  border-radius: 36rpx 36rpx 0 0;
+}
+.other-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28rpx;
+}
+.other-popup-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  letter-spacing: 0.02em;
+}
+.other-popup-close {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.other-popup-close:active {
+  background: rgba(0, 0, 0, 0.05);
+}
+.other-popup-body {
+  margin-bottom: 28rpx;
+  position: relative;
+}
+.other-input {
+  display: block;
+  width: 100%;
+  min-height: 180rpx;
+  background: rgba(248, 249, 250, 0.9);
+  border-radius: 20rpx;
+  border: 2rpx solid rgba(0, 0, 0, 0.06);
+  padding: 24rpx;
+  font-size: 30rpx;
+  line-height: 1.5;
+  color: #1a1a1a;
+  box-sizing: border-box;
+  caret-color: #00b26a;
+}
+.other-count {
+  position: absolute;
+  right: 16rpx;
+  bottom: 16rpx;
+  font-size: 22rpx;
+  color: #bbb;
+  background: rgba(255,255,255,0.6);
+  padding: 4rpx 12rpx;
+  border-radius: 16rpx;
+}
+.other-popup-footer {
+  display: flex;
+  justify-content: center;
+}
+.other-confirm-btn {
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 500;
+  background: #00b26a;
+  border-radius: 44rpx;
+  border: none;
+  transition: opacity 0.2s ease;
+}
+.other-confirm-btn:active {
+  opacity: 0.8;
+}
+.other-confirm-btn::after {
+  border: none;
+}

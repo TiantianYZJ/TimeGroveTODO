@@ -1,3 +1,26 @@
+<wxs module="pollUtil">
+  // 判断 optionId 是否在 selectedOptionIds 中（用于选项选中态）
+  var isSelected = function(selectedOptionIds, optionId) {
+    if (!selectedOptionIds || selectedOptionIds.length === 0) return false;
+    for (var i = 0; i < selectedOptionIds.length; i++) {
+      if (selectedOptionIds[i] === optionId) return true;
+    }
+    return false;
+  };
+  // 计算选项百分比：优先用 totalVotes，否则累加 options.voteCount
+  var getPercent = function(options, voteCount, totalVotes) {
+    var total = totalVotes || 0;
+    if (total === 0 && options && options.length > 0) {
+      for (var i = 0; i < options.length; i++) {
+        total += options[i].voteCount || 0;
+      }
+    }
+    if (total === 0) return 0;
+    return Math.round((voteCount / total) * 100);
+  };
+  module.exports = { isSelected: isSelected, getPercent: getPercent };
+</wxs>
+
 <scroll-view scroll-y class="scroll-view" style="height: calc(100vh - 100rpx);" bind:scrolltolower="onLoadMoreComments"
   refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" bind:refresherrefresh="onRefresh">
   <view wx:if="{{isDeleted}}" class="deleted-notice">
@@ -31,6 +54,55 @@
       <view class="stat-item {{isOwner ? 'visitor-link' : ''}}" bind:tap="{{isOwner ? 'showVisitors' : ''}}"><t-icon name="browse" size="28rpx" /><text>{{post.viewsCount}}次浏览{{isOwner ? ' · 查看访客记录' : ''}}</text></view>
       <view class="stat-item {{post.isLiked ? 'liked' : ''}}" catch:tap="toggleLike"><t-icon name="{{post.isLiked ? 'heart-filled' : 'heart'}}" size="28rpx" /><text>{{post.likesCount || 0}}</text></view>
       <view class="stat-item more-btn" bind:tap="onMore"><t-icon name="more" size="36rpx" color="#999" /></view>
+    </view>
+
+    <!-- ===== 投票卡片 ===== -->
+    <view wx:if="{{poll}}" class="poll-card">
+      <view class="poll-title">
+        <text>{{poll.title}}</text>
+        <text wx:if="{{poll.isAnonymous}}" class="poll-badge">匿名</text>
+        <text wx:if="{{poll.type === 1}}" class="poll-badge">多选</text>
+        <text wx:if="{{poll.isEnded}}" class="poll-badge-ended">已结束</text>
+      </view>
+
+      <view class="poll-options">
+        <view
+          wx:for="{{poll.options}}" wx:key="optionId"
+          class="poll-option {{(!poll.isEnded && !isOwner && (!poll.isVoted || changingVote) && pollUtil.isSelected(selectedOptionIds, item.optionId)) ? 'selected' : ''}} {{((poll.isVoted && !changingVote) || poll.isEnded || isOwner) ? 'result' : ''}} {{!changingVote && poll.isVoted && pollUtil.isSelected(selectedOptionIds, item.optionId) ? 'voted' : ''}}"
+          bindtap="onTapPollOption"
+          data-id="{{item.optionId}}"
+          data-other="{{item.isOther}}"
+        >
+          <view class="poll-option-content">
+            <view wx:if="{{(!poll.isVoted || changingVote) && !poll.isEnded && !isOwner}}" class="poll-option-selector {{poll.type === 0 ? 'radio' : 'checkbox'}} {{pollUtil.isSelected(selectedOptionIds, item.optionId) ? 'checked' : ''}}">
+              <t-icon wx:if="{{pollUtil.isSelected(selectedOptionIds, item.optionId)}}" name="check" size="24rpx" color="#fff" />
+            </view>
+            <text class="poll-option-text">{{item.text}}</text>
+            <view wx:if="{{(poll.isVoted && !changingVote) || poll.isEnded || isOwner}}" class="poll-option-stats">
+              <text>{{item.voteCount || 0}}票</text>
+              <text class="poll-option-pct">{{pollUtil.getPercent(poll.options, item.voteCount, poll.totalVotes)}}%</text>
+            </view>
+          </view>
+          <view wx:if="{{(poll.isVoted && !changingVote) || poll.isEnded || isOwner}}" class="poll-option-bar-wrap">
+            <view class="poll-option-bar" style="width:{{pollUtil.getPercent(poll.options, item.voteCount, poll.totalVotes)}}%"></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="poll-footer">
+        <text class="poll-total">共 {{poll.totalVotes || 0}} 人参与</text>
+        <view class="poll-actions">
+          <!-- 首次投票 -->
+          <button wx:if="{{!poll.isVoted && !poll.isEnded && selectedOptionIds.length > 0 && !isOwner}}" class="poll-vote-btn" bindtap="submitVote" loading="{{submitting}}">提交投票</button>
+          <!-- 已投票 + 改票模式 -->
+          <text wx:if="{{poll.isVoted && changingVote && !isOwner}}" class="poll-revote" catch:tap="cancelChangeVote">取消</text>
+          <button wx:if="{{poll.isVoted && changingVote && selectedOptionIds.length > 0 && !isOwner}}" class="poll-vote-btn" bindtap="submitVote" loading="{{submitting}}">重新投票</button>
+          <!-- 已投票 + 非改票模式 -->
+          <text wx:if="{{poll.isVoted && !changingVote && !poll.isEnded && !isOwner}}" class="poll-revote" catch:tap="startChangeVote">改票</text>
+          <!-- 帖主关闭 -->
+          <text wx:if="{{isOwner && !poll.isEnded}}" class="poll-close-text" catch:tap="closePollAction">关闭投票</text>
+        </view>
+      </view>
     </view>
   </view>
 
@@ -211,6 +283,28 @@
     </button>
   </view>
 </view>
+
+<t-popup
+  visible="{{showPollOtherModal}}"
+  placement="bottom"
+  bind:visible-change="onPollOtherClose"
+>
+  <view class="other-popup-panel">
+    <view class="other-popup-header">
+      <text class="other-popup-title">填写其他内容</text>
+      <view class="other-popup-close" catch:tap="closePollOtherModal">
+        <t-icon name="close" size="36rpx" color="#999" />
+      </view>
+    </view>
+    <view class="other-popup-body">
+      <textarea class="other-input" placeholder="请输入你的想法..." value="{{otherTexts[currentOtherOptionId] || ''}}" bindinput="onPollOtherInput" maxlength="200" auto-focus />
+      <text class="other-count">{{otherTextLength || 0}}/200</text>
+    </view>
+    <view class="other-popup-footer">
+      <button class="other-confirm-btn" bindtap="closePollOtherModal">确定</button>
+    </view>
+  </view>
+</t-popup>
 
 <t-popup
   visible="{{showVisitorsPopup}}"

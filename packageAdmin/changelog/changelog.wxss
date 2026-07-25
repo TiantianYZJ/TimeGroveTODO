@@ -51,7 +51,7 @@
   width: 120rpx;
   height: 64rpx;
   border-radius: 32rpx;
-  background: linear-gradient(135deg, #00B26A 0%, #3ddaa0 100%);
+  background: linear-gradient(135deg, #00b26a 0%, #3ddaa0 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -132,7 +132,7 @@
 }
 
 .change-dot {
-  color: #00B26A;
+  color: #00b26a;
   font-size: 24rpx;
   line-height: 1.6;
 }

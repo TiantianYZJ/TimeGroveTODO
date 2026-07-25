@@ -1,144 +1,160 @@
-import { defineStore } from 'pinia'
-import { ref, reactive } from 'vue'
+import { create } from 'zustand'
 import type { Todo } from '@/types'
-import { todosApi } from '@/api/todos'
+import { todosApi, type TodoWriteInput } from '@/api/todos'
+import { useSyncStore } from './sync'
 
-export const useTodosStore = defineStore('todos', () => {
-  const items = ref<Todo[]>([])
-  const deletedItems = ref<Todo[]>([])
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+type Filter = 'all' | 'today' | 'completed' | 'uncompleted' | 'starred'
 
-  const filter = reactive({
-    tagIds: [] as number[],
-    search: '',
-    showCompleted: true,
-  })
+interface TodoState {
+  todos: Todo[]
+  loading: boolean
+  filter: Filter
+  subtaskMap: Record<string, Todo[]>
+  setFilter: (f: Filter) => void
+  fetchTodos: () => Promise<void>
+  fetchSubtodos: (parentId: string) => Promise<void>
+  createTodo: (data: TodoWriteInput) => Promise<Todo>
+  updateTodo: (id: string, data: TodoWriteInput) => Promise<void>
+  deleteTodo: (id: string) => Promise<void>
+  toggleComplete: (id: string) => Promise<void>
+  toggleStar: (id: string) => Promise<void>
+  restoreTodo: (id: string) => Promise<void>
+  permanentDelete: (id: string) => Promise<void>
+  batchMove: (todoIds: string[], comboId: number | null) => Promise<void>
+}
 
-  async function fetchTodos() {
+export const useTodoStore = create<TodoState>((set, get) => ({
+  todos: [],
+  loading: false,
+  filter: 'all',
+  subtaskMap: {},
+
+  setFilter: (f) => set({ filter: f }),
+
+  fetchTodos: async () => {
     try {
-      loading.value = true
-      error.value = null
-      const params: Record<string, string | number | boolean> = {}
-      if (filter.tagIds.length) params.tagIds = filter.tagIds.join(',')
-      if (filter.search) params.search = filter.search
-      // 默认显示所有（包含已完成），仅在需要筛选未完成时传递参数
-      if (!filter.showCompleted) params.completed = '0'
-      const res = await todosApi.getList(params)
-      if (res.success && res.todos) {
-        items.value = res.todos
+      set({ loading: true })
+      const allTodos: Todo[] = []
+      let page = 1
+      const pageSize = 100
+      // Loop through pages until all todos are loaded
+      while (true) {
+        const res = await todosApi.getList({ page, pageSize })
+        const batch = res.todos || []
+        allTodos.push(...batch)
+        const total = res.total || 0
+        if (allTodos.length >= total || batch.length < pageSize) break
+        page++
+        // Safety limit: max 20 pages (2000 todos)
+        if (page > 20) break
       }
-    } catch (e) {
-      error.value = e instanceof Error ? e.message : '加载待办失败'
+      set({ todos: allTodos })
     } finally {
-      loading.value = false
+      set({ loading: false })
     }
-  }
+  },
 
-  async function createTodo(data: Partial<Todo>) {
+  fetchSubtodos: async (parentId) => {
+    const res = await todosApi.getList({ parent_id: parentId })
+    set({
+      subtaskMap: {
+        ...get().subtaskMap,
+        [parentId]: res.todos || [],
+      },
+    })
+  },
+
+  createTodo: async (data) => {
     const res = await todosApi.create(data)
     if (res.success && res.todo) {
-      items.value.unshift(res.todo)
-    }
-    return res
-  }
-
-  async function updateTodo(id: string, data: Partial<Todo>) {
-    const res = await todosApi.update(id, data)
-    if (res.success) {
-      const idx = items.value.findIndex((t) => t.id === id)
-      if (idx !== -1 && res.todo) {
-        items.value[idx] = res.todo
+      const newTodos = [...get().todos, res.todo]
+      // Batch-created subtasks are returned as a flat list
+      if (res.subtasks && res.subtasks.length > 0) {
+        newTodos.push(...res.subtasks)
+        // Cache subtasks in subtaskMap
+        set({
+          subtaskMap: {
+            ...get().subtaskMap,
+            [res.todo.id]: res.subtasks,
+          },
+        })
       }
+      set({ todos: newTodos })
+      useSyncStore.getState().markPending()
+      return res.todo
     }
-    return res
-  }
+    throw new Error(res.message || '创建失败')
+  },
 
-  async function deleteTodo(id: string) {
-    const res = await todosApi.delete(id)
-    if (res.success) {
-      items.value = items.value.filter((t) => t.id !== id)
-    }
-    return res
-  }
-
-  async function toggleComplete(id: string) {
-    const idx = items.value.findIndex((t) => t.id === id)
-    if (idx === -1) return
-    const original = items.value[idx].completed
-    items.value[idx].completed = original ? 0 : Date.now()
-    try {
-      await todosApi.update(id, { completed: items.value[idx].completed })
-    } catch {
-      items.value[idx].completed = original
-    }
-  }
-
-  async function toggleStar(id: string) {
-    const idx = items.value.findIndex((t) => t.id === id)
-    if (idx === -1) return
-    const original = items.value[idx].isStar
-    items.value[idx].isStar = !original
-    try {
-      await todosApi.update(id, { isStar: items.value[idx].isStar })
-    } catch {
-      items.value[idx].isStar = original
-    }
-  }
-
-  async function fetchTodoById(id: string): Promise<Todo | null> {
-    try {
-      const res = await todosApi.getById(id)
-      if (res.success && res.todo) {
-        const idx = items.value.findIndex((t) => t.id === id || t.todoId === id)
-        if (idx !== -1) items.value[idx] = res.todo
-        return res.todo
+  updateTodo: async (id, data) => {
+    const res = await todosApi.update(id, {
+      ...data,
+      version: (get().todos.find((t) => t.id === id)?.version || 1) + 1,
+      updatedAt: Date.now(),
+    })
+    if (res.success && res.todo) {
+      set({
+        todos: get().todos.map((t) => (t.id === id ? res.todo! : t)),
+      })
+      // If subtasks were updated (full replacement), refresh subtask cache
+      if (data.subtasks !== undefined) {
+        // newSubtodos contains only newly created subtasks
+        // Full refresh from server to get the complete list
+        await get().fetchSubtodos(id)
       }
-      return null
-    } catch {
-      return null
+      useSyncStore.getState().markPending()
     }
-  }
+  },
 
-  async function fetchDeletedTodos() {
-    const res = await todosApi.getDeleted()
-    if (res.success && res.todos) {
-      deletedItems.value = res.todos
-    }
-    return res
-  }
+  deleteTodo: async (id) => {
+    await todosApi.delete(id)
+    set({
+      todos: get().todos.map((t) =>
+        t.id === id ? { ...t, isDeleted: true, updatedAt: Date.now() } : t,
+      ),
+    })
+    useSyncStore.getState().markPending()
+  },
 
-  async function restoreTodo(todoId: string) {
-    const res = await todosApi.restore(todoId)
+  toggleComplete: async (id) => {
+    const todo = get().todos.find((t) => t.id === id)
+    if (!todo) return
+    const newCompleted = todo.completed ? 0 : Date.now()
+    await get().updateTodo(id, { completed: newCompleted })
+  },
+
+  toggleStar: async (id) => {
+    const todo = get().todos.find((t) => t.id === id)
+    if (!todo) return
+    await get().updateTodo(id, { isStar: !todo.isStar })
+  },
+
+  restoreTodo: async (id) => {
+    const res = await todosApi.restore(id)
     if (res.success) {
-      deletedItems.value = deletedItems.value.filter((t) => t.id !== todoId)
+      set({
+        todos: get().todos.map((t) =>
+          t.id === id ? { ...t, isDeleted: false, updatedAt: Date.now() } : t,
+        ),
+      })
+      useSyncStore.getState().markPending()
     }
-    return res
-  }
+  },
 
-  async function permanentDeleteTodo(todoId: string) {
-    const res = await todosApi.permanentDelete(todoId)
-    if (res.success) {
-      deletedItems.value = deletedItems.value.filter((t) => t.id !== todoId)
-    }
-    return res
-  }
+  permanentDelete: async (id) => {
+    await todosApi.permanentDelete(id)
+    set({ todos: get().todos.filter((t) => t.id !== id) })
+  },
 
-  return {
-    items,
-    deletedItems,
-    loading,
-    error,
-    filter,
-    fetchTodos,
-    fetchTodoById,
-    createTodo,
-    updateTodo,
-    deleteTodo,
-    toggleComplete,
-    toggleStar,
-    fetchDeletedTodos,
-    restoreTodo,
-    permanentDeleteTodo,
-  }
-})
+  batchMove: async (todoIds, comboId) => {
+    await todosApi.batchMove(todoIds, comboId)
+    set({
+      todos: get().todos.map((t) =>
+        todoIds.includes(t.id)
+          ? { ...t, comboId: comboId || undefined, updatedAt: Date.now() }
+          : t,
+      ),
+    })
+    useSyncStore.getState().markPending()
+  },
+}))

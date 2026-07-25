@@ -1,42 +1,32 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { create } from 'zustand'
 import type { Notice, Changelog } from '@/types'
 import { configApi } from '@/api/config'
 
-export const useConfigStore = defineStore('config', () => {
-  const notices = ref<Notice[]>([])
-  const changelog = ref<Changelog[]>([])
-  const loading = ref(false)
+interface ConfigState {
+  notices: Notice[]
+  changelogs: Changelog[]
+  loaded: boolean
+  fetchConfig: () => Promise<void>
+}
 
-  async function fetchNotices() {
-    loading.value = true
+export const useConfigStore = create<ConfigState>((set) => ({
+  notices: [],
+  changelogs: [],
+  loaded: false,
+
+  fetchConfig: async () => {
     try {
-      const res = await configApi.getNotices()
-      if (res.success && res.notices) {
-        notices.value = Array.isArray(res.notices) ? res.notices : []
-      }
-    } finally {
-      loading.value = false
+      const [noticesRes, changelogRes] = await Promise.all([
+        configApi.getNotices(),
+        configApi.getChangelog(),
+      ])
+      set({
+        notices: noticesRes.notices || [],
+        changelogs: changelogRes.changelogList || [],
+        loaded: true,
+      })
+    } catch {
+      set({ loaded: true })
     }
-  }
-
-  async function fetchChangelog() {
-    loading.value = true
-    try {
-      const res = await configApi.getChangelog()
-      if (res.success && res.changelogList) {
-        changelog.value = Array.isArray(res.changelogList) ? res.changelogList : []
-      }
-    } finally {
-      loading.value = false
-    }
-  }
-
-  return {
-    notices,
-    changelog,
-    loading,
-    fetchNotices,
-    fetchChangelog,
-  }
-})
+  },
+}))

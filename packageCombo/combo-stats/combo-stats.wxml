@@ -79,7 +79,7 @@
 
         <view class="section-card">
           <view class="section-title">
-            <t-icon name="chart-pie" size="32rpx" color="#00B26A" />
+            <t-icon name="chart-pie" size="32rpx" color="#00b26a" />
             <text>状态分布</text>
           </view>
           <view class="status-section">
@@ -165,7 +165,7 @@
 
         <view class="section-card">
           <view class="section-title">
-            <t-icon name="chart-line" size="32rpx" color="#00B26A" />
+            <t-icon name="chart-line" size="32rpx" color="#00b26a" />
             <text>近7天趋势</text>
           </view>
           <view class="trend-chart">
@@ -289,7 +289,7 @@
 
         <view class="section-card">
           <view class="section-title">
-            <t-icon name="chart-line" size="32rpx" color="#00B26A" />
+            <t-icon name="chart-line" size="32rpx" color="#00b26a" />
             <text>{{isShared ? '我的近7天' : '近7天趋势'}}</text>
           </view>
           <view class="trend-chart personal">

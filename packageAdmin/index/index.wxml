@@ -254,7 +254,7 @@
     </view>
     <view class="tag-rank-list" wx:if="{{stats.tagUsageTop10.length > 0}}">
       <view class="tag-rank-item" wx:for="{{stats.tagUsageTop10}}" wx:key="id">
-        <view class="tag-rank-dot" style="background: {{item.color || '#00B26A'}}"></view>
+        <view class="tag-rank-dot" style="background: {{item.color || '#00b26a'}}"></view>
         <text class="tag-rank-name">{{item.name}}</text>
         <text class="tag-rank-count">{{item.usage_count}}次</text>
       </view>
@@ -306,19 +306,19 @@
     </view>
     <t-cell-group theme="card" class="menu-group">
       <t-cell title="用户管理" url="/packageAdmin/users/users" hover arrow>
-        <t-icon name="user" size="40rpx" color="#00B26A" slot="left-icon" />
+        <t-icon name="user" size="40rpx" color="#00b26a" slot="left-icon" />
       </t-cell>
       <t-cell title="公告管理" url="/packageAdmin/notices/notices" hover arrow>
-        <t-icon name="notification" size="40rpx" color="#00B26A" slot="left-icon" />
+        <t-icon name="notification" size="40rpx" color="#00b26a" slot="left-icon" />
       </t-cell>
       <t-cell title="更新日志" url="/packageAdmin/changelog/changelog" hover arrow>
-        <t-icon name="bulletpoint" size="40rpx" color="#00B26A" slot="left-icon" />
+        <t-icon name="bulletpoint" size="40rpx" color="#00b26a" slot="left-icon" />
       </t-cell>
       <t-cell title="举报管理" url="/packageAdmin/reports/reports" hover arrow>
-        <t-icon name="flag" size="40rpx" color="#00B26A" slot="left-icon" />
+        <t-icon name="flag" size="40rpx" color="#00b26a" slot="left-icon" />
       </t-cell>
       <t-cell title="管理员管理" url="/packageAdmin/admin-manage/admin-manage" hover arrow>
-        <t-icon name="user-circle" size="40rpx" color="#00B26A" slot="left-icon" />
+        <t-icon name="user-circle" size="40rpx" color="#00b26a" slot="left-icon" />
       </t-cell>
     </t-cell-group>
   </view>
@@ -367,7 +367,7 @@
       <scroll-view wx:elif="{{popupData.type === 'todo'}}" scroll-y class="popup-list">
         <view wx:for="{{popupData.list}}" wx:key="id" class="detail-item todo-item clickable" bindtap="navigateToTodoDetail" data-item="{{item}}">
           <view class="todo-status {{item.completed ? 'done' : ''}}">
-            <t-icon name="{{item.completed ? 'check-circle-filled' : 'circle'}}" size="32rpx" color="{{item.completed ? '#00B26A' : '#ccc'}}" />
+            <t-icon name="{{item.completed ? 'check-circle-filled' : 'circle'}}" size="32rpx" color="{{item.completed ? '#00b26a' : '#ccc'}}" />
           </view>
           <view class="todo-info">
             <text class="todo-text">{{item.text}}</text>
@@ -391,7 +391,7 @@
       
       <scroll-view wx:elif="{{popupData.type === 'tag'}}" scroll-y class="popup-list">
         <view wx:for="{{popupData.list}}" wx:key="id" class="detail-item tag-item">
-          <view class="tag-dot" style="background: {{item.color || '#00B26A'}}"></view>
+          <view class="tag-dot" style="background: {{item.color || '#00b26a'}}"></view>
           <view class="tag-info">
             <text class="tag-name">{{item.name}}</text>
             <text class="tag-meta">{{item.user_name || '未知'}}（ID: {{item.user_id}}）| 使用 {{item.usage_count || 0}} 次</text>
@@ -402,7 +402,7 @@
       <scroll-view wx:elif="{{popupData.type === 'notification'}}" scroll-y class="popup-list">
         <view wx:for="{{popupData.list}}" wx:key="id" class="detail-item notification-item">
           <view class="notification-status {{item.is_sent ? 'sent' : 'pending'}}">
-            <t-icon name="{{item.is_sent ? 'check-circle' : 'time'}}" size="32rpx" color="{{item.is_sent ? '#00B26A' : '#ff9800'}}" />
+            <t-icon name="{{item.is_sent ? 'check-circle' : 'time'}}" size="32rpx" color="{{item.is_sent ? '#00b26a' : '#ff9800'}}" />
           </view>
           <view class="notification-info">
             <text class="notification-text">{{item.todo_text || '待办已删除'}}</text>
@@ -414,7 +414,7 @@
       <scroll-view wx:elif="{{popupData.type === 'sync'}}" scroll-y class="popup-list">
         <view wx:for="{{popupData.list}}" wx:key="id" class="detail-item sync-item">
           <view class="sync-status {{item.status}}">
-            <t-icon name="{{item.status === 'success' ? 'check-circle' : 'close-circle'}}" size="32rpx" color="{{item.status === 'success' ? '#00B26A' : '#f5576c'}}" />
+            <t-icon name="{{item.status === 'success' ? 'check-circle' : 'close-circle'}}" size="32rpx" color="{{item.status === 'success' ? '#00b26a' : '#f5576c'}}" />
           </view>
           <view class="sync-info">
             <text class="sync-user">{{item.user_name || '未知用户'}}（ID: {{item.user_id}}）</text>
@@ -452,7 +452,7 @@
       <scroll-view wx:elif="{{popupData.type === 'assignment'}}" scroll-y class="popup-list">
         <view wx:for="{{popupData.list}}" wx:key="id" class="detail-item assignment-item clickable" bindtap="navigateToSharedTodoDetail" data-item="{{item}}">
           <view class="assignment-status {{item.completed_at ? 'done' : ''}}">
-            <t-icon name="{{item.completed_at ? 'check-circle-filled' : 'circle'}}" size="32rpx" color="{{item.completed_at ? '#00B26A' : '#ccc'}}" />
+            <t-icon name="{{item.completed_at ? 'check-circle-filled' : 'circle'}}" size="32rpx" color="{{item.completed_at ? '#00b26a' : '#ccc'}}" />
           </view>
           <view class="assignment-info">
             <text class="assignment-text">{{item.todo_text || '待办已删除'}}</text>
@@ -476,7 +476,7 @@
       <scroll-view wx:elif="{{popupData.type === 'comment'}}" scroll-y class="popup-list">
         <view wx:for="{{popupData.list}}" wx:key="id" class="detail-item comment-item">
           <view class="comment-icon">
-            <t-icon name="{{item.parent_id ? 'chat' : 'comment'}}" size="32rpx" color="{{item.parent_id ? '#667eea' : '#00B26A'}}" />
+            <t-icon name="{{item.parent_id ? 'chat' : 'comment'}}" size="32rpx" color="{{item.parent_id ? '#667eea' : '#00b26a'}}" />
           </view>
           <view class="comment-info">
             <text class="comment-text">{{item.content}}</text>
@@ -496,7 +496,7 @@
       <scroll-view wx:elif="{{popupData.type === 'tagUsage'}}" scroll-y class="popup-list">
         <view wx:for="{{popupData.list}}" wx:key="id" class="detail-item tag-usage-item">
           <view class="tag-rank-num">{{index + 1}}</view>
-          <view class="tag-dot" style="background: {{item.color || '#00B26A'}}"></view>
+          <view class="tag-dot" style="background: {{item.color || '#00b26a'}}"></view>
           <view class="tag-info">
             <text class="tag-name">{{item.name}}</text>
             <text class="tag-meta">{{item.is_system ? '系统标签' : '自定义标签'}} | 使用 {{item.usage_count || 0}} 次</text>
@@ -518,7 +518,7 @@
       
       <scroll-view wx:elif="{{popupData.type === 'tagCompletion'}}" scroll-y class="popup-list">
         <view wx:for="{{popupData.list}}" wx:key="id" class="detail-item tag-completion-item">
-          <view class="tag-dot" style="background: {{item.color || '#00B26A'}}"></view>
+          <view class="tag-dot" style="background: {{item.color || '#00b26a'}}"></view>
           <view class="tag-info">
             <text class="tag-name">{{item.name}}</text>
             <text class="tag-meta">总数: {{item.total}} | 完成: {{item.completed}}</text>
@@ -530,7 +530,7 @@
       <scroll-view wx:elif="{{popupData.type === 'memberRole'}}" scroll-y class="popup-list">
         <view wx:for="{{popupData.list}}" wx:key="roleKey" class="detail-item member-role-item">
           <view class="role-icon {{item.roleKey}}">
-            <t-icon name="{{item.roleKey === 'owner' ? 'user-circle' : item.roleKey === 'admin' ? 'user-setting' : 'user'}}" size="32rpx" color="{{item.roleKey === 'owner' ? '#f5576c' : item.roleKey === 'admin' ? '#667eea' : '#00B26A'}}" />
+            <t-icon name="{{item.roleKey === 'owner' ? 'user-circle' : item.roleKey === 'admin' ? 'user-setting' : 'user'}}" size="32rpx" color="{{item.roleKey === 'owner' ? '#f5576c' : item.roleKey === 'admin' ? '#667eea' : '#00b26a'}}" />
           </view>
           <view class="role-info">
             <text class="role-name">{{item.role}}</text>

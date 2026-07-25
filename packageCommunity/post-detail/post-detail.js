@@ -66,7 +66,17 @@ Page({
     commentAtResults: [],
     commentAtKeyword: '',
     commentMentionsList: [],
-    commentMentionIdCounter: 0
+    commentMentionIdCounter: 0,
+    // poll 相关
+    poll: null,
+    pollLoading: false,
+    selectedOptionIds: [],
+    otherTexts: {},
+    showPollOtherModal: false,
+    currentOtherOptionId: null,
+    otherTextLength: 0,
+    changingVote: false,
+    submitting: false,
   },
 
   onLoad(options) {
@@ -134,6 +144,14 @@ Page({
         const userInfo = app.globalData.userInfo || wx.getStorageSync('user') || {};
         this.setData({ post, isDeleted: post.isDeleted, isOwner: post.userId === userInfo.id });
         this.loadComments(true);
+        // 优先使用帖子返回的 poll 数据直接渲染，同时异步刷新最新投票数据
+        if (post.poll) {
+          this.setData({
+            poll: post.poll,
+            selectedOptionIds: post.poll.isVoted ? [...post.poll.userVotedOptionIds] : [],
+          });
+        }
+        this.loadPoll();
       } else { this.setData({ isDeleted: true }); }
     } catch (err) { wx.showToast({ title: '加载失败', icon: 'none' }); }
   },
@@ -661,5 +679,130 @@ Page({
       const min = String(date.getMinutes()).padStart(2, '0');
       return date.getFullYear() + '年' + m + '月' + d + '日 ' + h + ':' + min;
     } catch (e) { console.warn('[post-detail formatTime] error:', e, dateStr); return ''; }
+  },
+
+  // ===== 投票相关 =====
+
+  async loadPoll() {
+    try {
+      this.setData({ pollLoading: true });
+      const res = await communityApi.getPoll(this.data.postId);
+      if (res.success && res.data) {
+        this.setData({ poll: res.data.poll, pollLoading: false });
+      }
+    } catch (err) {
+      console.error('[loadPoll] error:', err);
+      this.setData({ pollLoading: false });
+    }
+  },
+
+  onTapPollOption(e) {
+    const { poll, changingVote, selectedOptionIds, otherTexts, isOwner } = this.data;
+    if (!poll || poll.isEnded || isOwner) return;
+    if (poll.isVoted && !changingVote) return;
+
+    const optionId = Number(e.currentTarget.dataset.id);
+    const isOther = e.currentTarget.dataset.other === 'true';
+
+    if (poll.type === 0) {
+      this.setData({ selectedOptionIds: [optionId], showPollOtherModal: isOther, currentOtherOptionId: isOther ? optionId : null });
+    } else {
+      const next = [...selectedOptionIds];
+      const idx = next.indexOf(optionId);
+      if (idx > -1) { next.splice(idx, 1); } else { next.push(optionId); }
+      const nxtOther = { ...otherTexts };
+      if (isOther) {
+        if (idx > -1) { delete nxtOther[optionId]; this.setData({ selectedOptionIds: next, otherTexts: nxtOther, showPollOtherModal: false }); }
+        else { this.setData({ selectedOptionIds: next, showPollOtherModal: true, currentOtherOptionId: optionId }); }
+      } else {
+        this.setData({ selectedOptionIds: next, otherTexts: nxtOther });
+      }
+    }
+  },
+
+  onPollOtherInput(e) {
+    const optionId = this.data.currentOtherOptionId;
+    if (optionId === null) return;
+    const otherTexts = { ...this.data.otherTexts };
+    otherTexts[optionId] = e.detail.value || '';
+    this.setData({ otherTexts, otherTextLength: (otherTexts[optionId] || '').length });
+  },
+
+  closePollOtherModal() {
+    this.setData({ showPollOtherModal: false, currentOtherOptionId: null });
+  },
+
+  onPollOtherClose(e) {
+    if (!e.detail.visible) this.setData({ showPollOtherModal: false, currentOtherOptionId: null });
+  },
+
+  startChangeVote() {
+    this.setData({ changingVote: true });
+  },
+
+  cancelChangeVote() {
+    // 恢复原始已投票的选项
+    const poll = this.data.poll;
+    this.setData({
+      changingVote: false,
+      selectedOptionIds: poll.isVoted ? [...poll.userVotedOptionIds] : [],
+      otherTexts: {},
+    });
+  },
+
+  async submitVote() {
+    const { poll, selectedOptionIds } = this.data;
+    if (!poll || selectedOptionIds.length === 0) {
+      wx.showToast({ title: '请选择一个选项', icon: 'none' });
+      return;
+    }
+    if (poll.type === 0 && selectedOptionIds.length > 1) {
+      wx.showToast({ title: '单选投票只能选一项', icon: 'none' });
+      return;
+    }
+    // 检查"其他"选项是否需要填写文本
+    const otherOptions = poll.options.filter(o => o.isOther);
+    for (const o of otherOptions) {
+      if (selectedOptionIds.includes(o.optionId)) {
+        const txt = (this.data.otherTexts[o.optionId] || '').trim();
+        if (!txt) {
+          wx.showToast({ title: '请填写"其他"选项内容', icon: 'none' });
+          return;
+        }
+      }
+    }
+    try {
+      this.setData({ submitting: true });
+      const res = await communityApi.votePoll(this.data.postId, {
+        optionIds: selectedOptionIds,
+        otherTexts: this.data.otherTexts,
+      });
+      if (res.success) {
+        wx.showToast({ title: '投票成功', icon: 'success' });
+        this.setData({ poll: res.data.poll, submitting: false, changingVote: false });
+      }
+    } catch (err) {
+      wx.showToast({ title: err.message || '投票失败', icon: 'none' });
+      this.setData({ submitting: false });
+    }
+  },
+
+  async closePollAction() {
+    wx.showModal({
+      title: '确认关闭', content: '确定要关闭投票吗？关闭后不可重新开启。',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            const result = await communityApi.closePoll(this.data.postId);
+            if (result.success) {
+              wx.showToast({ title: '已关闭', icon: 'success' });
+              this.setData({ poll: result.data.poll });
+            }
+          } catch (err) {
+            wx.showToast({ title: err.message || '操作失败', icon: 'none' });
+          }
+        }
+      }
+    });
   }
 });

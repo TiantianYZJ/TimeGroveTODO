@@ -129,7 +129,7 @@
 
 /* 添加链接样式 */
 .link {
-  color: #00B26A;
+  color: #00b26a;
   text-decoration: underline;
 }
 

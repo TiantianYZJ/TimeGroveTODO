@@ -162,7 +162,7 @@ Page({
       tooltip: {
         show: false
       },
-      color: ['#00B26A', '#E8F5E9'],
+      color: ['#00b26a', '#E8F5E9'],
       series: [
         {
           name: '完成率',
@@ -182,7 +182,7 @@ Page({
               a: {
                 fontSize: 28,
                 fontWeight: 'bold',
-                color: '#00B26A'
+                color: '#00b26a'
               },
               b: {
                 fontSize: 12,
@@ -225,7 +225,7 @@ Page({
       tooltip: {
         show: false
       },
-      color: ['#00B26A', '#f5a623', '#e0e0e0'],
+      color: ['#00b26a', '#f5a623', '#e0e0e0'],
       series: [
         {
           name: '状态分布',

@@ -12,7 +12,7 @@
         <text class="date-main">{{selectedDateDisplay}}</text>
         <text class="date-sub">{{dateWeekday}}</text>
       </view>
-      <t-icon name="calendar" size="44rpx" color="#00B26A" />
+      <t-icon name="calendar" size="44rpx" color="#00b26a" />
     </view>
   </view>
 
@@ -58,7 +58,7 @@
   <!-- 时间分布卡片 -->
   <view class="card-style" wx:if="{{timeDistribution.length > 0}}">
     <view class="section-title">
-      <t-icon name="time" size="36rpx" color="#00B26A" />
+      <t-icon name="time" size="36rpx" color="#00b26a" />
       <text>创建时间分布</text>
     </view>
     <view class="time-distribution">
@@ -85,7 +85,7 @@
   <!-- 待办列表 -->
   <view class="card-style" wx:if="{{dayTodos.length > 0}}">
     <view class="section-title">
-      <t-icon name="view-list" size="36rpx" color="#00B26A" />
+      <t-icon name="view-list" size="36rpx" color="#00b26a" />
       <text>当日待办 ({{dayTodos.length}})</text>
     </view>
     <view class="todo-list">
