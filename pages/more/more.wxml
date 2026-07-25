@@ -127,7 +127,7 @@
   </view>
 
   <view class="tools-card">
-    <t-grid column="{{4}}" hover="{{true}}" theme="card">
+    <t-grid column="{{2}}" hover="{{true}}" theme="card">
       <t-grid-item t-class-image="image" text="今天吃什么" icon="rice" url="/packageTools/eating/eating"/>
       <t-grid-item t-class-image="image" text="密码生成器" icon="lock-on" url="/packageTools/password-generator/password-generator"/>
       <!-- <t-grid-item t-class-image="image" text="智能助手" image="/images/ai.png" url="/pages/ai-chat/ai-chat"/> -->
