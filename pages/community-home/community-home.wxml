@@ -108,10 +108,7 @@
 <!-- 社区维护遮罩 -->
   <view class="maintenance-overlay" wx:if="{{showMaintenanceOverlay}}">
     <view class="maintenance-card">
-      <view class="maintenance-close" bindtap="dismissMaintenance">
-        <t-icon name="close" size="36rpx" color="#999" />
-      </view>
-      <view class="maintenance-icon">
+      <view class="maintenance-icon" bindtap="onMaintenanceTap">
         <t-icon name="tools-circle" size="96rpx" color="#00b26a" />
       </view>
       <text class="maintenance-title">社区功能维护中</text>
