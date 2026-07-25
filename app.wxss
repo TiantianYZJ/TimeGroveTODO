@@ -65,3 +65,32 @@ page {
     transform: translateX(0);
   }
 }
+
+/* ========== P3: 减少动效降级 ========== */
+@media (prefers-reduced-motion: reduce) {
+  /* 关闭所有非必要的循环动画 */
+  .weather-card,
+  .custom-notice,
+  .notice-new-dot {
+    animation: none !important;
+  }
+
+  /* 卡片入场/出场用纯 opacity fade */
+  .todo-item.add-animation {
+    animation: fadeIn 0.2s ease forwards !important;
+  }
+
+  .todo-item.remove-animation {
+    animation: fadeOut 0.2s ease forwards !important;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}

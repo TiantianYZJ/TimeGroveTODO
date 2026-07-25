@@ -1706,3 +1706,24 @@
   text-align: center;
   padding: 16rpx;
 }
+
+/* ========== P3: 减少动效降级 ========== */
+@media (prefers-reduced-motion: reduce) {
+  .custom-notice {
+    animation: none !important;
+    opacity: 1;
+  }
+
+  .weather-card {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .todo-item.drop-land {
+    animation: none !important;
+  }
+
+  .todo-item.first-complete {
+    animation: none !important;
+  }
+}
