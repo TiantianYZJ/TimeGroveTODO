@@ -1,4 +1,42 @@
-@import "../../pages/todo/todo.wxss";
+/* ========== 顶部栏（与 todo 页共享布局） ========== */
+.top {
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  position: fixed;
+  background: #e3f5eb99;
+  backdrop-filter: blur(20rpx) saturate(180%);
+  -webkit-backdrop-filter: blur(20rpx) saturate(180%);
+}
+
+.header {
+  padding: 0 30rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 88rpx;
+}
+
+.title {
+  font-size: 50rpx;
+  font-weight: 600;
+  color: #2d3436;
+  flex: 1;
+}
+
+/* ========== 左滑操作按钮（与 todo 页共享） ========== */
+.btn-wrapper { height: 100%; }
+.btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 110rpx;
+  height: 100%;
+  color: white;
+}
+.delete-btn { background-color: #e34d59; }
+.edit-btn { background-color: #ed7b2f; }
 
 /* 卡片容器：包裹 post-card + 统计行 */
 .post-card-wrapper {
