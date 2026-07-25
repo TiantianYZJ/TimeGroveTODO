@@ -43,7 +43,8 @@ Page({
     presetColors: ['#00B26A', '#1890FF', '#722ED1', '#FA8C16', '#C8CA4F', '#13C2C2', '#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722', '#795548', '#607d8b'],
     badgeColorPickerVisible: false,
     badgePickerIdx: null,
-    badgeCustomColor: ''
+    badgeCustomColor: '',
+    isAdmin: false
   },
 
   onLoad(options) {
@@ -60,15 +61,21 @@ Page({
 
   async loadUserDetail() {
     try {
-      const result = await adminApi.getUserDetail(this.data.userId);
+      const [detailResult, adminListResult] = await Promise.all([
+        adminApi.getUserDetail(this.data.userId),
+        adminApi.getAdminList().catch(() => ({ success: false, data: [] })),
+      ]);
+      const result = detailResult;
       logger.debug('ADMIN', 'DATA', '加载用户详情结果', { keys: Object.keys(result) });
       if (result.success) {
         const user = {
           ...result.user,
           avatar_url: getFullAvatarUrl(result.user.avatar_url)
         };
+        const adminIds = (adminListResult.success ? adminListResult.data || [] : []).map(a => a.user_id);
         this.setData({
-          user,
+          user: { ...user, isAdmin: adminIds.includes(user.id) },
+          isAdmin: adminIds.includes(user.id),
           limits: {
             todo_limit: result.user.todo_limit || 100,
             combo_limit: result.user.combo_limit || 10,
@@ -262,7 +269,48 @@ Page({
     }
   },
 
-  selectBadgeColor(e) {
+  async toggleAdmin() {
+    const isAdmin = this.data.isAdmin;
+    const userId = this.data.userId;
+    const nickname = this.data.user.nickname || '该用户';
+    if (isAdmin) {
+      const res = await wx.showModal({
+        title: '取消管理员',
+        content: `确定移除 ${nickname} 的管理员权限吗？`
+      });
+      if (!res.confirm) return;
+      try {
+        const result = await adminApi.removeAdmin(userId);
+        if (result.success) {
+          wx.showToast({ title: '已移除管理员权限', icon: 'success' });
+          this.setData({ isAdmin: false, 'user.isAdmin': false });
+        } else {
+          wx.showToast({ title: result.message || '操作失败', icon: 'none' });
+        }
+      } catch (err) {
+        wx.showToast({ title: err.message || '操作失败', icon: 'none' });
+      }
+    } else {
+      const res = await wx.showModal({
+        title: '设为管理员',
+        content: `确定将 ${nickname} 设为管理员吗？`
+      });
+      if (!res.confirm) return;
+      try {
+        const result = await adminApi.addAdmin(userId);
+        if (result.success) {
+          wx.showToast({ title: '已设为管理员', icon: 'success' });
+          this.setData({ isAdmin: true, 'user.isAdmin': true });
+        } else {
+          wx.showToast({ title: result.message || '操作失败', icon: 'none' });
+        }
+      } catch (err) {
+        wx.showToast({ title: err.message || '操作失败', icon: 'none' });
+      }
+    }
+  },
+
+    selectBadgeColor(e) {
     const idx = e.currentTarget.dataset.index;
     const color = e.currentTarget.dataset.color;
     const colors = [...this.data.badgeColors];

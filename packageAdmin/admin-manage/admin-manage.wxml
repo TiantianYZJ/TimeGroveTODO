@@ -1,0 +1,68 @@
+<view class="container">
+  <view class="header">
+    <text class="title">管理员管理</text>
+    <text class="subtitle">共 {{adminList.length}} 位管理员</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">
+    <t-loading theme="circular" size="40rpx" />
+    <text>加载中...</text>
+  </view>
+
+  <view wx:elif="{{adminList.length === 0}}" class="empty">
+    <t-icon name="user" size="80rpx" color="#ddd" />
+    <text>暂无管理员</text>
+  </view>
+
+  <view wx:else class="admin-list">
+    <view wx:for="{{adminList}}" wx:key="user_id" class="admin-card" bindtap="goToUserDetail" data-id="{{item.user_id}}">
+      <t-avatar wx:if="{{item.avatar_url}}" image="{{item.avatar_url}}" size="80rpx" />
+      <t-avatar wx:else icon="user" size="80rpx" />
+      <view class="admin-info">
+        <text class="admin-name">{{item.nickname || '未设置昵称'}}（ID: {{item.user_id}}）</text>
+        <text class="admin-date">{{item.created_at || ''}}</text>
+      </view>
+      <view class="admin-remove" catchtap="removeAdmin" data-id="{{item.user_id}}" data-name="{{item.nickname || ''}}">
+        <t-icon name="delete" size="32rpx" color="#ff4757" />
+      </view>
+    </view>
+  </view>
+
+  <t-fab icon="add" text="添加管理员" bind:click="showAddPopup" />
+
+  <t-popup
+    visible="{{addPopupVisible}}"
+    bind:visible-change="onAddPopupClose"
+    placement="bottom"
+    close-on-overlay-click="{{true}}"
+  >
+    <view class="popup-content">
+      <view class="popup-header">
+        <text class="popup-title">添加管理员</text>
+        <view class="popup-close" bindtap="hideAddPopup">
+          <t-icon name="close" size="40rpx" color="#999" />
+        </view>
+      </view>
+      <view class="popup-body">
+        <view class="search-row">
+          <input class="search-input" placeholder="输入用户ID或昵称搜索" value="{{searchKeyword}}" bindinput="onSearchInput" />
+          <button class="search-btn" bindtap="searchUser" loading="{{searchLoading}}">搜索</button>
+        </view>
+        <view wx:if="{{searchResults.length > 0}}" class="search-results">
+          <view wx:for="{{searchResults}}" wx:key="id" class="user-item" bindtap="addAdmin" data-id="{{item.id}}">
+            <t-avatar wx:if="{{item.avatar_url}}" image="{{item.avatar_url}}" size="64rpx" />
+            <t-avatar wx:else icon="user" size="64rpx" />
+            <view class="user-info">
+              <text class="user-name">{{item.nickname || '未设置昵称'}}</text>
+              <text class="user-id">ID: {{item.id}}</text>
+            </view>
+            <t-icon name="add" size="36rpx" color="#00b26a" />
+          </view>
+        </view>
+        <view wx:elif="{{searchKeyword && !searchLoading}}" class="search-empty">
+          <text>未找到匹配的用户</text>
+        </view>
+      </view>
+    </view>
+  </t-popup>
+</view>

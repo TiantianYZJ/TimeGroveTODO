@@ -61,7 +61,7 @@ const isAdmin = async (req, res, next) => {
     }
 
     const { getAdminIds } = require('../controllers/adminController');
-    const adminIds = getAdminIds();
+    const adminIds = await getAdminIds();
     const userId = parseInt(req.user.id);
 
     if (!adminIds.includes(userId)) {

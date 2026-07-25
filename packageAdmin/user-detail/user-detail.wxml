@@ -56,6 +56,13 @@
           <text class="info-value">{{user.last_sync_at || '-'}}</text>
         </view>
       </view>
+      <view class="info-item action-item" bindtap="toggleAdmin">
+        <t-icon name="user-circle" size="32rpx" color="{{user.isAdmin ? '#f5576c' : '#667eea'}}" />
+        <view class="info-content">
+          <text class="info-label">管理员权限</text>
+          <text class="info-value {{user.isAdmin ? 'admin-status' : ''}}">{{user.isAdmin ? '当前为管理员' : '设为管理员'}}</text>
+        </view>
+      </view>
     </view>
   </view>
   

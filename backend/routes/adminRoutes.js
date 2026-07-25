@@ -42,6 +42,10 @@ router.get('/tables/:tableName', authMiddleware, isAdmin, adminController.getTab
 router.get('/config', authMiddleware, isAdmin, adminController.getAdminConfig);
 router.put('/config', authMiddleware, isAdmin, adminController.updateAdminConfig);
 
+router.get('/admin-list', authMiddleware, isAdmin, adminController.getAdminList);
+router.post('/admin-list', authMiddleware, isAdmin, adminController.addAdmin);
+router.delete('/admin-list', authMiddleware, isAdmin, adminController.removeAdmin);
+
 router.get('/comments', authMiddleware, isAdmin, adminController.getComments);
 router.delete('/comments/:id', authMiddleware, isAdmin, adminController.deleteComment);
 

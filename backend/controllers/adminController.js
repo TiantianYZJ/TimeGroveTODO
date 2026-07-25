@@ -47,13 +47,81 @@ function writeJsonFile(filePath, data) {
     }
 }
 
-function getAdminIds() {
+async function getAdminIds() {
     try {
+        // 优先从数据库读取
+        const rows = await query('SELECT user_id FROM admin_users ORDER BY created_at ASC');
+        if (rows.length > 0) {
+            return rows.map(r => r.user_id);
+        }
+        // 兼容：从 JSON 文件导入到数据库
         const config = readJsonFile(adminsPath, { adminIds: [] });
-        return config.adminIds || [];
+        const ids = config.adminIds || [];
+        if (ids.length > 0) {
+            for (const id of ids) {
+                await query('INSERT IGNORE INTO admin_users (user_id) VALUES (?)', [id]);
+            }
+            logger.adminInfo('管理员迁移', `已从 admins.json 导入 ${ids.length} 个管理员到数据库`);
+        }
+        return ids;
     } catch (err) {
         logger.adminError('读取配置', '读取管理员配置失败', { error: err.message });
-        return [];
+        // 降级：从 JSON 文件读取
+        try {
+            const config = readJsonFile(adminsPath, { adminIds: [] });
+            return config.adminIds || [];
+        } catch { return []; }
+    }
+}
+
+async function getAdminList(req, res) {
+    try {
+        const rows = await query(
+            `SELECT au.user_id, u.nickname, u.avatar_url, au.created_at
+             FROM admin_users au
+             LEFT JOIN users u ON au.user_id = u.id
+             ORDER BY au.created_at ASC`
+        );
+        res.json({ success: true, data: rows });
+    } catch (err) {
+        logger.adminError('管理员列表', '获取管理员列表失败', { error: err.message });
+        res.status(500).json({ success: false, message: '获取管理员列表失败' });
+    }
+}
+
+async function addAdmin(req, res) {
+    try {
+        const { userId } = req.body;
+        if (!userId || !Number.isInteger(userId)) {
+            return res.status(400).json({ success: false, message: 'userId 必须是整数' });
+        }
+        const user = await query('SELECT id FROM users WHERE id = ?', [userId]);
+        if (user.length === 0) {
+            return res.status(404).json({ success: false, message: '用户不存在' });
+        }
+        await query('INSERT IGNORE INTO admin_users (user_id) VALUES (?)', [userId]);
+        res.json({ success: true, message: '已添加为管理员' });
+    } catch (err) {
+        logger.adminError('添加管理员', '添加管理员失败', { error: err.message });
+        res.status(500).json({ success: false, message: '添加管理员失败' });
+    }
+}
+
+async function removeAdmin(req, res) {
+    try {
+        const { userId } = req.body;
+        if (!userId || !Number.isInteger(userId)) {
+            return res.status(400).json({ success: false, message: 'userId 必须是整数' });
+        }
+        // 不允许移除自己
+        if (userId === req.user.id) {
+            return res.status(400).json({ success: false, message: '不能移除自己的管理员权限' });
+        }
+        await query('DELETE FROM admin_users WHERE user_id = ?', [userId]);
+        res.json({ success: true, message: '已移除管理员权限' });
+    } catch (err) {
+        logger.adminError('移除管理员', '移除管理员失败', { error: err.message });
+        res.status(500).json({ success: false, message: '移除管理员失败' });
     }
 }
 
@@ -2070,6 +2138,9 @@ module.exports = {
     getAdminConfig,
     updateAdminConfig,
     getAdminIds,
+    getAdminList,
+    addAdmin,
+    removeAdmin,
     deleteComment,
     getComments,
     getRetentionStats,

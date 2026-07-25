@@ -20,7 +20,8 @@
         "changelog/changelog",
         "changelog-edit/changelog-edit",
         "reports/reports",
-        "report-detail/report-detail"
+        "report-detail/report-detail",
+                "admin-manage/admin-manage"
       ]
     },
     {
@@ -162,7 +163,7 @@
   },
 "plugins": {
     "WechatSI": {
-      "version": "0.3.7",
+      "version": "0.3.9",
       "provider": "wx069ba97219f66d99"
     }
   }

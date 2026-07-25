@@ -533,7 +533,23 @@ const adminApi = {
     url: `/admin/notices/${index}`,
     method: 'DELETE'
   }),
-  
+  getAdminList: () => request({
+    url: '/admin/admin-list',
+    method: 'GET'
+  }),
+
+  addAdmin: (userId) => request({
+    url: '/admin/admin-list',
+    method: 'POST',
+    data: { userId }
+  }),
+
+  removeAdmin: (userId) => request({
+    url: '/admin/admin-list',
+    method: 'DELETE',
+    data: { userId }
+  }),
+
   getChangelog: () => request({
     url: '/admin/updates',
     method: 'GET'
@@ -773,6 +789,12 @@ const userApi = {
   getProfile: (userId) => request({
     url: `/users/${userId}/profile`,
     method: 'GET'
+  }),
+
+  search: (keyword) => request({
+    url: '/users/search',
+    method: 'GET',
+    data: { q: keyword }
   })
 };
 
