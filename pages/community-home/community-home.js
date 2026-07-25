@@ -37,7 +37,6 @@ Page({
     checkinError: false,
     avatarUrl: '',
     nickname: '',
-    showMaintenanceOverlay: !wx.getStorageSync('hideMaintenance'),
   },
 
   onShow() {
@@ -281,19 +280,6 @@ Page({
     }
   },
 
-  dismissMaintenance() {
-    wx.setStorageSync('hideMaintenance', true);
-    this.setData({ showMaintenanceOverlay: false });
-  },
-
-  onMaintenanceTap() {
-    if (!this.data._dismissCount) this.data._dismissCount = 0;
-    this.data._dismissCount++;
-    if (this.data._dismissCount >= 5) {
-      this.data._dismissCount = 0;
-      this.dismissMaintenance();
-    }
-  },
 
   _getWeekMonths() {
     const { checkinApi } = require('../../utils/api');

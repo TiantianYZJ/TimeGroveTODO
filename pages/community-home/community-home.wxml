@@ -105,13 +105,3 @@
 
 <t-fab wx:if="{{showBackTop}}" icon="arrow-up" bind:click="onToTop" style="right: 32rpx; bottom: 150rpx;" />
 <t-fab icon="add" bind:click="goToEdit" style="right: 32rpx; bottom: 32rpx;" />
-<!-- 社区维护遮罩 -->
-  <view class="maintenance-overlay" wx:if="{{showMaintenanceOverlay}}">
-    <view class="maintenance-card">
-      <view class="maintenance-icon" bindtap="onMaintenanceTap">
-        <t-icon name="tools-circle" size="96rpx" color="#00b26a" />
-      </view>
-      <text class="maintenance-title">社区功能维护中</text>
-      <text class="maintenance-desc">因个人开发者暂不支持开放社区功能，我们正在迁移账号主体，即将开放，敬请期待</text>
-    </view>
-  </view>

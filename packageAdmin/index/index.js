@@ -155,10 +155,15 @@ Page({
       list: []
     },
     analysisLoading: false,
-    analysisData: null
+    analysisData: null,
+    canManageAdmin: false,
   },
 
   onLoad() {
+    const userInfo = getApp().globalData.userInfo;
+    this.setData({
+      canManageAdmin: userInfo && userInfo.id == 1,
+    });
     this.loadStats();
   },
 

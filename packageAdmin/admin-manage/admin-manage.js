@@ -5,13 +5,21 @@ Page({
   data: {
     adminList: [],
     loading: false,
+    refreshing: false,
     addPopupVisible: false,
+    currentUserId: 0,
     searchKeyword: '',
     searchResults: [],
     searchLoading: false
   },
 
   onShow() {
+    const userInfo = getApp().globalData.userInfo;
+    if (userInfo) this.setData({ currentUserId: userInfo.id });
+    this.loadAdminList();
+  },
+
+  onRefresh() {
     this.loadAdminList();
   },
 
@@ -20,13 +28,17 @@ Page({
     try {
       const result = await adminApi.getAdminList();
       if (result.success) {
-        this.setData({ adminList: result.data || [] });
+        const list = (result.data || []).map(item => ({
+          ...item,
+          created_at: item.created_at ? item.created_at.split('.')[0].replace('T', ' ') : ''
+        }));
+        this.setData({ adminList: list });
       }
     } catch (err) {
       logger.error('ADMIN', 'ADMIN-LIST', '加载管理员列表失败', err);
       wx.showToast({ title: err.message || '加载失败', icon: 'none' });
     } finally {
-      this.setData({ loading: false });
+      this.setData({ loading: false, refreshing: false });
     }
   },
 

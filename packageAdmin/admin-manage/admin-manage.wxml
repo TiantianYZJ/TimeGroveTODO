@@ -4,6 +4,7 @@
     <text class="subtitle">共 {{adminList.length}} 位管理员</text>
   </view>
 
+  <scroll-view scroll-y refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="onRefresh" class="list-scroll">
   <view wx:if="{{loading}}" class="loading">
     <t-loading theme="circular" size="40rpx" />
     <text>加载中...</text>
@@ -22,11 +23,13 @@
         <text class="admin-name">{{item.nickname || '未设置昵称'}}（ID: {{item.user_id}}）</text>
         <text class="admin-date">{{item.created_at || ''}}</text>
       </view>
-      <view class="admin-remove" catchtap="removeAdmin" data-id="{{item.user_id}}" data-name="{{item.nickname || ''}}">
+      <view class="admin-remove" wx:if="{{item.user_id !== currentUserId}}" catchtap="removeAdmin" data-id="{{item.user_id}}" data-name="{{item.nickname || ''}}">
         <t-icon name="delete" size="32rpx" color="#ff4757" />
       </view>
     </view>
   </view>
+
+  </scroll-view>
 
   <t-fab icon="add" text="添加管理员" bind:click="showAddPopup" />
 

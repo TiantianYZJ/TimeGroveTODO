@@ -716,10 +716,18 @@ const getUsers = async (req, res) => {
         const countParams = [];
 
         if (search) {
-            sql += ' WHERE u.nickname LIKE ?';
-            countSql += ' WHERE nickname LIKE ?';
-            params.push(`%${search}%`);
-            countParams.push(`%${search}%`);
+            const isNumeric = /^\d+$/.test(search.trim());
+            if (isNumeric) {
+                sql += ' WHERE u.id = ?';
+                countSql += ' WHERE id = ?';
+                params.push(parseInt(search));
+                countParams.push(parseInt(search));
+            } else {
+                sql += ' WHERE u.nickname LIKE ?';
+                countSql += ' WHERE nickname LIKE ?';
+                params.push(`%${search}%`);
+                countParams.push(`%${search}%`);
+            }
         }
 
         sql += ' ORDER BY u.id DESC LIMIT ? OFFSET ?';

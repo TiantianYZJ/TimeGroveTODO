@@ -5,17 +5,18 @@
   </view>
   
   <view class="search-bar">
-    <view class="search-input-wrap">
-      <t-icon name="search" size="32rpx" color="#999" />
-      <input 
-        class="search-input" 
-        placeholder="搜索用户昵称" 
-        value="{{searchText}}"
-        bindinput="onSearchInput"
-        bindconfirm="onSearch"
-      />
+    <t-icon name="search" size="28rpx" color="#999" />
+    <input
+      class="search-input"
+      placeholder="搜索昵称或ID"
+      value="{{searchText}}"
+      bindinput="onSearchInput"
+      bindconfirm="onSearch"
+      confirm-type="search"
+    />
+    <view wx:if="{{searchText}}" class="search-clear" bindtap="onClearSearch">
+      <t-icon name="close-circle-filled" size="32rpx" color="#ccc" />
     </view>
-    <button class="search-btn" bindtap="onSearch">搜索</button>
   </view>
   
   <view class="user-list">

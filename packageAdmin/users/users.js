@@ -43,6 +43,11 @@ Page({
     this.loadUsers();
   },
 
+  onClearSearch() {
+    this.setData({ searchText: '', page: 1, users: [], hasMore: true });
+    this.loadUsers();
+  },
+
   async loadUsers() {
     if (this.data.loading) return;
     

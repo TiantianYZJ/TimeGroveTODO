@@ -50,6 +50,16 @@
         bindtap="goToMyReports"
         leftIcon="flag" hover arrow
       />
+      <t-cell
+        title="社区管理"
+        url="/pages/community-home/community-home"
+        left-icon="chat" hover arrow
+      />
+      <t-cell wx:if="{{canManageAdmin}}"
+        title="管理员管理"
+        url="/packageAdmin/admin-manage/admin-manage"
+        left-icon="user-circle" hover arrow
+      />
     </t-cell-group>
   </view>
 

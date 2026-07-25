@@ -24,6 +24,7 @@ Page({
     deletedCount: 0,
     latestVersion: '',
     isAdmin: false,
+    canManageAdmin: false,
     totalPoints: -1
   },
 
@@ -118,7 +119,8 @@ Page({
         avatarUrl: app.globalData.userInfo.avatarUrl || '',
         userId: app.globalData.userInfo.id || '',
         openid: app.globalData.userInfo.openid || '',
-        isAdmin: app.globalData.userInfo.isAdmin || false
+        isAdmin: app.globalData.userInfo.isAdmin || false,
+        canManageAdmin: app.globalData.userInfo.isAdmin && app.globalData.userInfo.id == 1
       });
     } else if (loggedIn) {
       this.loadUserInfo();
@@ -144,7 +146,8 @@ Page({
           avatarUrl: result.user.avatarUrl || '',
           userId: result.user.id || '',
           openid: result.user.openid || '',
-          isAdmin: result.user.isAdmin || false
+          isAdmin: result.user.isAdmin || false,
+          canManageAdmin: result.user.isAdmin && result.user.id == 1
         });
         app.setUserInfo(result.user);
       }

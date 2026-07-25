@@ -128,12 +128,6 @@
         "selectedIconPath": "images/calendar-active.png"
       },
       {
-        "pagePath": "pages/community-home/community-home",
-        "text": "社区",
-        "iconPath": "images/community.png",
-        "selectedIconPath": "images/community-active.png"
-      },
-      {
         "pagePath": "pages/stats/stats",
         "text": "统计",
         "iconPath": "images/stats.png",

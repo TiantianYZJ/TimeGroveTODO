@@ -317,7 +317,7 @@
       <t-cell title="举报管理" url="/packageAdmin/reports/reports" hover arrow>
         <t-icon name="flag" size="40rpx" color="#00b26a" slot="left-icon" />
       </t-cell>
-      <t-cell title="管理员管理" url="/packageAdmin/admin-manage/admin-manage" hover arrow>
+      <t-cell wx:if="{{canManageAdmin}}" title="管理员管理" url="/packageAdmin/admin-manage/admin-manage" hover arrow>
         <t-icon name="user-circle" size="40rpx" color="#00b26a" slot="left-icon" />
       </t-cell>
     </t-cell-group>

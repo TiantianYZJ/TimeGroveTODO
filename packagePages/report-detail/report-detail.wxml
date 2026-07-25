@@ -84,7 +84,7 @@
 <!-- 复制内容弹窗 -->
 <t-popup
   visible="{{showCopyPopup}}"
-  placement="center"
+  placement="bottom"
   close-on-overlay-click="{{true}}"
   bind:visible-change="onCopyPopupVisibleChange"
 >
@@ -113,7 +113,7 @@
       </view>
     </scroll-view>
     <view class="copy-popup-footer">
-      <t-button theme="primary" bindtap="copyCheckedContent">复制选中内容</t-button>
+      <view class="copyButton" bindtap="copyCheckedContent">复制选中内容</view>
     </view>
   </view>
 </t-popup>
@@ -121,6 +121,6 @@
 <!-- FAB 组 -->
 <view wx:if="{{canEdit}}">
   <t-fab wx:if="{{canDelete}}" icon="delete" bind:click="deleteReport" style="right: 248rpx; bottom: 32rpx;" />
-  <t-fab icon="file-copy" bind:click="toggleCopyPopup" style="right: 144rpx; bottom: 32rpx;" />
   <t-fab icon="edit-1" text="编辑" bind:click="navigateToEdit" style="right: 32rpx; bottom: 32rpx;" />
+  <t-fab icon="file-copy" text="复制条目" bind:click="toggleCopyPopup" style="right: 32rpx; bottom: 144rpx;" />
 </view>

@@ -26,7 +26,14 @@ Page({
 
   onLoad(options) {
     const { id } = options;
-    if (id) this.loadReport(parseInt(id));
+    if (id) {
+      this._reportId = parseInt(id);
+      this.loadReport(this._reportId);
+    }
+  },
+
+  onShow() {
+    if (this._reportId) this.loadReport(this._reportId);
   },
 
   async loadReport(id) {
