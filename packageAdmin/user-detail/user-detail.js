@@ -1,4 +1,5 @@
 const { adminApi } = require('../../utils/api');
+const logger = getApp().globalData?.logger || { error: () => {}, debug: () => {}, warn: () => {} };
 
 const API_BASE_URL = 'https://api.yzjtiantian.cn';
 
@@ -38,7 +39,11 @@ Page({
     editNicknameVisible: false,
     editNicknameValue: '',
     badgeTitles: [],
-    badgeColors: []
+    badgeColors: [],
+    presetColors: ['#00B26A', '#1890FF', '#722ED1', '#FA8C16', '#C8CA4F', '#13C2C2', '#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722', '#795548', '#607d8b'],
+    badgeColorPickerVisible: false,
+    badgePickerIdx: null,
+    badgeCustomColor: ''
   },
 
   onLoad(options) {
@@ -254,6 +259,65 @@ Page({
       }
     } catch (err) {
       wx.showToast({ title: err.message || '保存失败', icon: 'none' });
+    }
+  },
+
+  selectBadgeColor(e) {
+    const idx = e.currentTarget.dataset.index;
+    const color = e.currentTarget.dataset.color;
+    const colors = [...this.data.badgeColors];
+    colors[idx] = color;
+    this.setData({ badgeColors: colors });
+  },
+
+  openColorPicker(e) {
+    const idx = e.currentTarget.dataset.index;
+    const currentColor = this.data.badgeColors[idx] || '#00B26A';
+    this.setData({
+      badgeColorPickerVisible: true,
+      badgePickerIdx: idx,
+      badgeCustomColor: currentColor
+    });
+  },
+
+  closeBadgeColorPicker() {
+    this.setData({ badgeColorPickerVisible: false });
+  },
+
+  onBadgeColorPickerClose(e) {
+    if (!e.detail.visible) {
+      this.setData({ badgeColorPickerVisible: false });
+    }
+  },
+
+  onBadgeColorChange(e) {
+    const detail = e.detail;
+    const color = typeof detail.value === 'string' ? detail.value : (detail.value?.hex || detail.value?.HEX || detail.hex || detail.HEX || detail.value);
+    if (color) {
+      this.setData({ badgeCustomColor: color.toUpperCase() });
+    }
+  },
+
+  onBadgePaletteBarChange(e) {
+    const detail = e.detail;
+    const color = typeof detail === 'string' ? detail : (detail?.hex || detail?.HEX || detail?.value);
+    if (color) {
+      this.setData({ badgeCustomColor: color.toUpperCase() });
+    }
+  },
+
+  confirmBadgeCustomColor() {
+    const { badgeCustomColor, badgePickerIdx, badgeColors } = this.data;
+    if (badgeCustomColor && badgePickerIdx !== null) {
+      const colors = [...badgeColors];
+      colors[badgePickerIdx] = badgeCustomColor;
+      this.setData({
+        badgeColors: colors,
+        badgeColorPickerVisible: false,
+        badgePickerIdx: null
+      });
+    } else {
+      this.setData({ badgeColorPickerVisible: false });
     }
   }
 });

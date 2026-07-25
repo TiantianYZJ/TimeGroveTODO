@@ -116,9 +116,23 @@
           <text>{{item}}</text>
         </view>
         <input class="badge-title-input" value="{{item}}" bindinput="onBadgeTitleInput" data-index="{{idx}}" placeholder="称号" />
-        <view class="badge-color-group">
-          <input class="badge-color-input" value="{{badgeColors[idx]}}" bindinput="onBadgeColorInput" data-index="{{idx}}" placeholder="#RRGGBB" />
-          <view class="badge-color-swatch" style="background: {{badgeColors[idx]}}"></view>
+        <view class="badge-color-wrap">
+          <view class="badge-color-group">
+            <input class="badge-color-input" value="{{badgeColors[idx]}}" bindinput="onBadgeColorInput" data-index="{{idx}}" placeholder="#RRGGBB" />
+            <view class="badge-color-swatch" style="background: {{badgeColors[idx]}}" bindtap="openColorPicker" data-index="{{idx}}"></view>
+          </view>
+          <view class="badge-color-grid">
+            <view class="bc-item {{badgeColors[idx] === c ? 'selected' : ''}}"
+              wx:for="{{presetColors}}" wx:key="*this"
+              style="background: {{c}}"
+              data-index="{{idx}}" data-color="{{c}}"
+              bindtap="selectBadgeColor">
+              <t-icon wx:if="{{badgeColors[idx] === c}}" name="check" size="20rpx" color="#fff" />
+            </view>
+            <view class="bc-item custom {{badgePickerIdx == idx ? 'selected' : ''}}" bindtap="openColorPicker" data-index="{{idx}}">
+              <text class="rainbow-text">...</text>
+            </view>
+          </view>
         </view>
         <view class="badge-remove" bindtap="removeBadge" data-index="{{idx}}">
           <t-icon name="delete" size="28rpx" color="#ff4757" />
@@ -358,9 +372,9 @@
         </view>
       </view>
       <view class="popup-body">
-        <input 
-          class="nickname-input" 
-          placeholder="请输入新昵称" 
+        <input
+          class="nickname-input"
+          placeholder="请输入新昵称"
           value="{{editNicknameValue}}"
           bindinput="onNicknameInput"
           maxlength="20"
@@ -370,6 +384,40 @@
       <view class="popup-footer">
         <button class="cancel-btn" bindtap="hideEditNickname">取消</button>
         <button class="confirm-btn" bindtap="saveNickname">保存</button>
+      </view>
+    </view>
+  </t-popup>
+
+  <t-popup
+    visible="{{badgeColorPickerVisible}}"
+    bind:visible-change="onBadgeColorPickerClose"
+    placement="bottom"
+    close-on-overlay-click="{{true}}"
+  >
+    <view class="color-picker-popup">
+      <view class="color-picker-header">
+        <text class="color-picker-title">选择颜色</text>
+        <view class="color-picker-close" bindtap="closeBadgeColorPicker">
+          <t-icon name="close" size="40rpx" color="#999" />
+        </view>
+      </view>
+      <view class="color-picker-content">
+        <t-color-picker
+          value="{{badgeCustomColor || '#00B26A'}}"
+          type="multiple"
+          format="HEX"
+          swatchColors=""
+          fixed="{{true}}"
+          bind:change="onBadgeColorChange"
+          bind:palette-bar-change="onBadgePaletteBarChange"
+        />
+      </view>
+      <view class="color-picker-footer">
+        <view class="color-preview" style="background: {{badgeCustomColor || '#00B26A'}}"></view>
+        <text class="color-value">{{badgeCustomColor || '#00B26A'}}</text>
+        <view class="color-confirm-btn" bindtap="confirmBadgeCustomColor">
+          <text>确定</text>
+        </view>
       </view>
     </view>
   </t-popup>

@@ -1,4 +1,5 @@
 const { adminApi } = require('../../utils/api');
+const logger = getApp().globalData?.logger || { error: () => {}, debug: () => {}, warn: () => {} };
 
 Page({
   data: {
@@ -33,7 +34,7 @@ Page({
       if (result.success && result.notices[index]) {
         const notice = result.notices[index];
         const noticeType = notice.version ? 'version' : 'custom';
-        this.setData({ 
+        this.setData({
           noticeType,
           form: {
             title: notice.title || '',
@@ -42,9 +43,12 @@ Page({
             version: notice.version || ''
           }
         });
+      } else {
+        wx.showToast({ title: '未找到该公告', icon: 'none' });
       }
     } catch (err) {
       logger.error('ADMIN', 'NOTICES', '加载公告失败', err);
+      wx.showToast({ title: err.message || '加载公告失败', icon: 'none' });
     }
   },
 

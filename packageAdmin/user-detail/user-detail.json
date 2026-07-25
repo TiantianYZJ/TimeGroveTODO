@@ -6,7 +6,8 @@
     "t-button": "tdesign-miniprogram/button/button",
     "t-icon": "tdesign-miniprogram/icon/icon",
     "t-tag": "tdesign-miniprogram/tag/tag",
-    "t-popup": "tdesign-miniprogram/popup/popup"
+    "t-popup": "tdesign-miniprogram/popup/popup",
+    "t-color-picker": "tdesign-miniprogram/color-picker/color-picker"
   },
   "navigationBarTitleText": "用户详情",
   "enablePullDownRefresh": true

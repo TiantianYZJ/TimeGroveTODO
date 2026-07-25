@@ -1,4 +1,5 @@
 const { adminApi } = require('../../utils/api');
+const logger = getApp().globalData?.logger || { error: () => {}, debug: () => {}, warn: () => {} };
 
 Page({
   data: {

@@ -261,24 +261,55 @@ Page({
     if (!this.data.isLoggedIn) return;
     try {
       const { checkinApi } = require('../../utils/api');
-      const now = new Date();
-      const [statusRes, monthRes] = await Promise.all([
+      const [statusRes, allCheckedDates] = await Promise.all([
         checkinApi.getStatus(),
-        checkinApi.getMonth(now.getFullYear(), now.getMonth() + 1),
+        this._fetchWeekCheckinDates(),
       ]);
       if (statusRes.success) {
         const d = statusRes.data;
-        const checkedDates = monthRes.success ? monthRes.data.dates : [];
         this.setData({
           checkinData: d,
           badgeList: this._buildBadgeList(d.streakDays, d.registeredDays),
           yearWeek: this._computeYearWeek(),
-          weekDays: this._buildWeekDays(d.checkedIn, checkedDates),
+          weekDays: this._buildWeekDays(d.checkedIn, allCheckedDates),
           checkinError: false,
         });
       }
     } catch (err) {
       this.setData({ checkinError: true });
+    }
+  },
+
+  _getWeekMonths() {
+    const { checkinApi } = require('../../utils/api');
+    const today = new Date();
+    const beijingStr = today.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
+    const beijingDate = new Date(beijingStr);
+    const dayOfWeek = beijingDate.getDay();
+    const months = new Set();
+    for (let i = 0; i <= 6; i++) {
+      const d = new Date(beijingDate);
+      d.setDate(beijingDate.getDate() - dayOfWeek + i);
+      months.add(`${d.getFullYear()}-${d.getMonth() + 1}`);
+    }
+    return Array.from(months).map(m => {
+      const [y, mo] = m.split('-').map(Number);
+      return { year: y, month: mo };
+    });
+  },
+
+  async _fetchWeekCheckinDates() {
+    try {
+      const { checkinApi } = require('../../utils/api');
+      const months = this._getWeekMonths();
+      const results = await Promise.all(
+        months.map(m => checkinApi.getMonth(m.year, m.month))
+      );
+      return results
+        .filter(r => r.success)
+        .flatMap(r => r.data.dates);
+    } catch (err) {
+      return [];
     }
   },
 
@@ -344,14 +375,12 @@ Page({
       const res = await checkinApi.checkin();
       if (res.success) {
         const d = res.data;
-        // Re-fetch month data to update week display
-        const now = new Date();
-        const monthRes = await checkinApi.getMonth(now.getFullYear(), now.getMonth() + 1);
-        const checkedDates = monthRes.success ? monthRes.data.dates : [];
+        // 重新获取多个月签到数据以刷新周视图
+        const allCheckedDates = await this._fetchWeekCheckinDates();
         this.setData({
           checkinData: d,
           badgeList: this._buildBadgeList(d.streakDays, d.registeredDays),
-          weekDays: this._buildWeekDays(true, checkedDates),
+          weekDays: this._buildWeekDays(true, allCheckedDates),
         });
         wx.showToast({ title: `签到成功 +${d.todayPoints}分`, icon: 'success' });
       }

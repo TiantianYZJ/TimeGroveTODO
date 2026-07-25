@@ -198,6 +198,41 @@ exports.checkin = async (req, res) => {
           );
         });
 
+        // 检查里程碑（防止之前漏发）
+        let milestonePoints = 0;
+        for (const day of MILESTONE_DAYS) {
+          if (recalcStreak >= day) {
+            const pts = MILESTONE_POINTS[day];
+            const msResult = await new Promise((resolve, reject) => {
+              conn.query(
+                'INSERT IGNORE INTO checkin_milestones (user_id, milestone_day, points) VALUES (?, ?, ?)',
+                [userId, day, pts],
+                (err, r) => (err ? reject(err) : resolve(r))
+              );
+            });
+            if (msResult.affectedRows === 1) {
+              milestonePoints += pts;
+              await new Promise((resolve, reject) => {
+                conn.query(
+                  'INSERT INTO points_log (user_id, type, points, note) VALUES (?, ?, ?, ?)',
+                  [userId, 'earn', pts, `里程碑${day}天`],
+                  (err) => (err ? reject(err) : resolve())
+                );
+              });
+            }
+          }
+        }
+
+        if (milestonePoints > 0) {
+          await new Promise((resolve, reject) => {
+            conn.query(
+              'UPDATE users SET total_points = total_points + ? WHERE id = ?',
+              [milestonePoints, userId],
+              (err) => (err ? reject(err) : resolve())
+            );
+          });
+        }
+
         const userRows = await new Promise((resolve, reject) => {
           conn.query(
             'SELECT total_points FROM users WHERE id = ?',
@@ -339,22 +374,21 @@ exports.getLeaderboard = async (req, res) => {
       );
       totalUsers = countRows[0]?.total || 0;
     } else {
-      // 实时从 check_ins 表计算连签天数（不依赖 current_streak 列）
-      const rawList = await query(
-        'SELECT id, nickname, avatar_url FROM users'
+      // 使用 current_streak 列查询连签排行榜（单次查询，避免 N+1）
+      list = await query(
+        `SELECT id, nickname, avatar_url, current_streak as value
+         FROM users WHERE current_streak > 0
+         ORDER BY current_streak DESC LIMIT 100`
       );
-      const userStreaks = await Promise.all(rawList.map(async (u) => {
-        const rows = await query(
-          'SELECT check_in_date FROM check_ins WHERE user_id = ? ORDER BY check_in_date DESC',
-          [u.id]
-        );
-        return { ...u, value: computeStreakFromRows(rows) };
-      }));
-      const sorted = userStreaks.filter(u => u.value > 0).sort((a, b) => b.value - a.value);
-      list = sorted.slice(0, 100);
-      const myRow = userStreaks.find(u => u.id === userId);
-      myRank = [{ rank: (userStreaks.filter(u => u.value > (myRow?.value || 0)).length) + 1, value: myRow?.value || 0 }];
-      totalUsers = userStreaks.filter(u => u.value > 0).length;
+      myRank = await query(
+        `SELECT COUNT(*) + 1 as rank, current_streak as value
+         FROM users WHERE current_streak > (SELECT current_streak FROM users WHERE id = ?)`,
+        [userId]
+      );
+      const countRows = await query(
+        'SELECT COUNT(*) as total FROM users WHERE current_streak > 0'
+      );
+      totalUsers = countRows[0]?.total || 0;
     }
 
     const enrichedList = list.map((u, i) => ({
