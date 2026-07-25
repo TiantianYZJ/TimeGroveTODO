@@ -11,6 +11,14 @@
   </view>
 </view>
 
+<!-- 章节导航 -->
+<view class="section-nav">
+  <view class="nav-chip {{_activeSection === 'overview' ? 'active' : ''}}" data-section="overview" bindtap="scrollToSection">概览</view>
+  <view class="nav-chip {{_activeSection === 'trend' ? 'active' : ''}}" data-section="trend" bindtap="scrollToSection">趋势</view>
+  <view class="nav-chip {{_activeSection === 'time' ? 'active' : ''}}" data-section="time" bindtap="scrollToSection">时间</view>
+  <view class="nav-chip {{_activeSection === 'location' ? 'active' : ''}}" data-section="location" bindtap="scrollToSection">位置</view>
+</view>
+
 <view class="container">
   <!-- 核心数据卡片 -->
   <view class="card-style stats-card">

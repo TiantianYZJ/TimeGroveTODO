@@ -240,3 +240,33 @@
     height: 500rpx;
   }
 }
+
+/* ========== 章节导航 ========== */
+.section-nav {
+  display: flex;
+  gap: 12rpx;
+  padding: 16rpx 20rpx;
+  overflow-x: auto;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1;
+}
+
+.nav-chip {
+  padding: 8rpx 24rpx;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  color: #666;
+  background: #f0f0f0;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.nav-chip:active {
+  transform: scale(0.95);
+}
+
+.nav-chip.active {
+  background: #00b26a;
+  color: #fff;
+}

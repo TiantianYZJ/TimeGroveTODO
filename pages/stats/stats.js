@@ -36,7 +36,8 @@ Page({
     completeTimeChart: {
       lazyLoad: true
     },
-    timeOfDayStats: []
+    timeOfDayStats: [],
+    _activeSection: 'overview'
   },
 
   onShareAppMessage() {
@@ -1027,5 +1028,39 @@ Page({
    */
   onAdError(err) {
     logger.error('UI', 'AD', '原生模板广告加载失败', err);
+  },
+
+  /**
+   * 滚动到指定章节
+   */
+  scrollToSection(e) {
+    const section = e.currentTarget.dataset.section;
+    this.setData({ _activeSection: section });
+
+    // Map section names to card-style elements
+    const selectors = {
+      'overview': '.stats-card',
+      'trend': '.section-title',
+      'time': '.section-title',
+      'location': '.section-title'
+    };
+
+    // Create selector query to find the appropriate element
+    // We use a scroll offset map based on approximate positions
+    const sectionOrder = ['overview', 'trend', 'time', 'location'];
+    const index = sectionOrder.indexOf(section);
+    // Each section is roughly: card margin + card height
+    // Use pageScrollTo with estimated offsets
+    const estimatedOffsets = {
+      'overview': 0,
+      'trend': 450,
+      'time': 900,
+      'location': 1350
+    };
+
+    wx.pageScrollTo({
+      scrollTop: estimatedOffsets[section] || 0,
+      duration: 300
+    });
   }
 });
