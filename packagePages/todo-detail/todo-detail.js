@@ -72,7 +72,8 @@ Page({
     editingSubtaskText: '',
     addingChildForId: null,
     childInputValue: '',
-    childInputPadding: 64
+    childInputPadding: 64,
+    _currentSection: 'detail',  // 当前活跃的 TOC 章节
   },
 
   onShareAppMessage() {
@@ -2725,6 +2726,25 @@ Page({
       wx.showToast({ title: '加载失败', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);
     }
+  },
+
+  /**
+   * 滚动到指定章节
+   */
+  scrollToSection(e) {
+    const section = e.currentTarget.dataset.section;
+    this.setData({ _currentSection: section });
+
+    const scrollPositions = {
+      'detail': 0,
+      'subtask': 600,
+      'comment': 1200
+    };
+
+    wx.pageScrollTo({
+      scrollTop: scrollPositions[section] || 0,
+      duration: 300
+    });
   },
 
   goToShareConfig() {
