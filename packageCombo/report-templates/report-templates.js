@@ -17,6 +17,8 @@ const PRESET_WEEKLY = [
   { key: 'summary', title: '总结与思考', sort_order: 5, max_lines: 20 },
 ];
 
+const app = getApp();
+
 Page({
   data: {
     comboId: 0,
@@ -24,19 +26,30 @@ Page({
     currentType: 'daily',
     dailySections: [],
     weeklySections: [],
+
+    showComboPicker: false,
+    sharedCombos: [],
   },
 
   onLoad(options) {
     const { combo_id } = options;
     const initType = (options.type === 'daily' || options.type === 'weekly') ? options.type : 'daily';
+    // Try to resolve combo name from globalData immediately
+    const initialComboName = combo_id ? this._resolveComboName(parseInt(combo_id)) || '加载中...' : '私人';
     this.setData({
       comboId: parseInt(combo_id || 0),
+      comboName: initialComboName,
       currentType: initType,
-      // Start with presets immediately so the UI is never empty
       dailySections: JSON.parse(JSON.stringify(PRESET_DAILY)),
       weeklySections: JSON.parse(JSON.stringify(PRESET_WEEKLY)),
+      sharedCombos: app.globalData.sharedCombos || [],
     });
     this.loadData();
+  },
+
+  _resolveComboName(comboId) {
+    const combo = (app.globalData.sharedCombos || []).find(c => String(c.id) === String(comboId));
+    return combo ? combo.name : null;
   },
 
   async loadData() {
@@ -53,7 +66,6 @@ Page({
         const templates = templateResult.data || [];
         const daily = templates.find(t => t.type === 'daily')?.sections;
         const weekly = templates.find(t => t.type === 'weekly')?.sections;
-        // Only override presets if saved templates exist
         if (daily && daily.length > 0) {
           this.setData({ dailySections: daily });
         }
@@ -62,6 +74,60 @@ Page({
         }
       }
     } catch (err) { logger.error('TEMPLATE', 'LOAD', '加载模板失败', err); }
+  },
+
+  async _switchTarget(comboId, comboName) {
+    const hasEdits = this._hasUnsavedChanges();
+    if (hasEdits) {
+      const proceed = await new Promise(resolve => {
+        wx.showModal({
+          title: '切换确认',
+          content: '切换目标后未保存的编辑将丢失，是否继续？',
+          confirmText: '继续',
+          cancelText: '取消',
+          success: r => resolve(r.confirm)
+        });
+      });
+      if (!proceed) { this.setData({ showComboPicker: false }); return; }
+    }
+
+    this.setData({
+      comboId,
+      comboName,
+      showComboPicker: false,
+      dailySections: JSON.parse(JSON.stringify(PRESET_DAILY)),
+      weeklySections: JSON.parse(JSON.stringify(PRESET_WEEKLY)),
+    });
+    this.loadData();
+  },
+
+  _hasUnsavedChanges() {
+    // Simplified check: if any section title differs from presets, assume unsaved
+    const { dailySections, weeklySections } = this.data;
+    const isDefaultDaily = JSON.stringify(dailySections) === JSON.stringify(PRESET_DAILY);
+    const isDefaultWeekly = JSON.stringify(weeklySections) === JSON.stringify(PRESET_WEEKLY);
+    return !isDefaultDaily || !isDefaultWeekly;
+  },
+
+  showComboPicker() {
+    this.setData({ showComboPicker: true });
+  },
+
+  hideComboPicker() {
+    this.setData({ showComboPicker: false });
+  },
+
+  onComboPickerVisibleChange(e) {
+    this.setData({ showComboPicker: e.detail.visible });
+  },
+
+  selectPrivateCombo() {
+    this._switchTarget(0, '私人');
+  },
+
+  selectCombo(e) {
+    const { id, name } = e.currentTarget.dataset;
+    this._switchTarget(Number(id), name);
   },
 
   onTypeChange(e) { this.setData({ currentType: e.detail.value }); },

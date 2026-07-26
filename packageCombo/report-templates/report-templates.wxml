@@ -2,6 +2,17 @@
 
   <view class="container">
 
+    <!-- 汇报到选择器 -->
+    <view class="form-item">
+      <text class="question-title">汇报到</text>
+      <view class="combo-selector" bindtap="showComboPicker">
+        <view class="selected-combo">
+          <text class="combo-name-text">{{comboName}}</text>
+        </view>
+        <t-icon name="chevron-down" size="32rpx" color="#ccc" />
+      </view>
+    </view>
+
     <t-tabs value="{{currentType}}" bind:change="onTypeChange">
       <t-tab-panel label="日报模板" value="daily">
         <view class="section-list">
@@ -62,5 +73,70 @@
     <view class="bottom-safe"></view>
   </view>
 </scroll-view>
+
+<!-- 组合选择 Popup -->
+<t-popup
+  visible="{{showComboPicker}}"
+  bind:visible-change="onComboPickerVisibleChange"
+  placement="bottom"
+  close-on-overlay-click="{{true}}"
+  z-index="11000"
+  overlay-props="{{ { zIndex: 10999 } }}"
+>
+  <view class="combo-picker-content">
+    <view class="popup-header">
+      <text class="popup-title">选择汇报组合</text>
+      <view class="popup-close" bindtap="hideComboPicker">
+        <t-icon name="close" size="40rpx" color="#999" />
+      </view>
+    </view>
+
+    <scroll-view class="popup-scroll" scroll-y>
+      <!-- 私人 -->
+      <view class="picker-section">
+        <text class="section-label">私人</text>
+        <view
+          class="picker-option {{comboId === 0 ? 'selected' : ''}}"
+          bindtap="selectPrivateCombo"
+        >
+          <view class="option-icon" style="background: #00b26a">
+            <t-icon name="lock-on" size="36rpx" color="#fff" />
+          </view>
+          <view class="option-info">
+            <text class="option-name">不绑定组合</text>
+            <text class="option-desc">仅自己可见，不归属任何组合</text>
+          </view>
+          <t-icon wx:if="{{comboId === 0}}" name="check" size="36rpx" color="#00b26a" />
+        </view>
+      </view>
+
+      <!-- 共享组合 -->
+      <view wx:if="{{sharedCombos.length > 0}}" class="picker-section">
+        <text class="section-label">共享组合</text>
+        <view
+          class="picker-option {{comboId === item.id ? 'selected' : ''}}"
+          wx:for="{{sharedCombos}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          data-name="{{item.name}}"
+          bindtap="selectCombo"
+        >
+          <view class="option-icon" style="background: {{item.color || '#2196F3'}}">
+            <t-icon name="{{item.icon || 'user-group'}}" size="36rpx" color="#fff" />
+          </view>
+          <view class="option-info">
+            <text class="option-name">{{item.name}}</text>
+            <text class="option-desc">{{item.todoCount || 0}}个待办 · {{item.memberCount || 1}}人</text>
+          </view>
+          <t-icon wx:if="{{comboId === item.id}}" name="check" size="36rpx" color="#00b26a" />
+        </view>
+      </view>
+
+      <view wx:if="{{sharedCombos.length === 0}}" class="empty-combos">
+        <text>暂无共享组合</text>
+      </view>
+    </scroll-view>
+  </view>
+</t-popup>
 
 <t-fab icon="check" text="完成" bind:click="saveTemplates" style="right: 32rpx; bottom: 32rpx;" />
