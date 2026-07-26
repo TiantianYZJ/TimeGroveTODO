@@ -173,7 +173,7 @@ const getPoll = async (req, res) => {
 
     // 匿名投票下，仅帖主和管理员可查看其他选项详情
     const { getAdminIds } = require('./adminController');
-    const admins = getAdminIds();
+    const admins = await getAdminIds();
     const isAdmin = admins.includes(userId);
     const isOwner = posts[0].user_id === userId;
     if (polls[0].is_anonymous && !isOwner && !isAdmin) {
@@ -350,7 +350,7 @@ const closePoll = async (req, res) => {
 
     // 帖主或管理员
     const { getAdminIds } = require('./adminController');
-    const admins = getAdminIds();
+    const admins = await getAdminIds();
     const isAdmin = admins.includes(userId);
     if (posts[0].user_id !== userId && !isAdmin) {
       return res.status(403).json({ success: false, message: '无权操作该投票' });
@@ -517,7 +517,7 @@ const getOtherDetails = async (req, res) => {
     // 权限：帖主、管理员、已投票用户可查看
     const isOwner = posts[0].user_id === userId;
     const { getAdminIds } = require('./adminController');
-    const admins = getAdminIds();
+    const admins = await getAdminIds();
     const isAdmin = admins.includes(userId);
     let canView = isOwner || isAdmin;
     if (!canView) {

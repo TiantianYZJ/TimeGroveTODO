@@ -84,7 +84,7 @@ const getById = async (req, res) => {
   const { id } = req.params;
 
   // 检测当前用户是否为管理员
-  const adminIds = getAdminIds();
+  const adminIds = await getAdminIds();
   const isAdminUser = adminIds.includes(parseInt(userId, 10));
 
   try {

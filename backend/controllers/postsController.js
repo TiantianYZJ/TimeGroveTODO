@@ -332,7 +332,7 @@ const deletePost = async (req, res) => {
     }
 
     const { getAdminIds } = require('./adminController');
-    const admins = getAdminIds();
+    const admins = await getAdminIds();
     const isAdmin = admins.includes(userId);
 
     if (posts[0].user_id !== userId && !isAdmin) {

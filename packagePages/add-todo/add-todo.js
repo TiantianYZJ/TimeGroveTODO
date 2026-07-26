@@ -554,6 +554,7 @@ Page({
         url: 'https://img.scdn.io/api/v1.php',
         filePath: compressedPath,
         name: 'image',
+        formData: { storage_destination: 'telegram' },
         timeout: 60000,
         success: (res) => {
           try {

@@ -143,7 +143,7 @@
 .file-mini-item {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: 8rpx;
   padding: 10rpx 16rpx;
   margin-bottom: 8rpx;
   border-radius: 32rpx;
@@ -153,6 +153,9 @@
 .file-mini-item:last-child {
   margin-bottom: 0;
 }
+.file-mini-item.expired {
+  opacity: 0.5;
+}
 .file-mini-name {
   flex: 1;
   font-size: 26rpx;
@@ -160,16 +163,32 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+}
+.file-mini-name.expired {
+  text-decoration: line-through;
+  color: #999;
 }
 .file-mini-size {
   font-size: 22rpx;
   color: #999;
   flex-shrink: 0;
+  white-space: nowrap;
 }
-.file-mini-expired {
-  font-size: 22rpx;
-  color: #ccc;
+.file-mini-expiry {
   flex-shrink: 0;
+}
+.expiry-badge {
+  font-size: 20rpx;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 2rpx 10rpx;
+  border-radius: 16rpx;
+  white-space: nowrap;
+}
+.expiry-badge.expired {
+  color: #999;
+  background: #f0f0f0;
 }
 .post-tags {
   display: flex;

@@ -20,6 +20,7 @@ const uploadImage = (filePath, retryCount = 0) => {
     wx.uploadFile({
       url: 'https://img.scdn.io/api/v1.php',
       filePath, name: 'image',
+      formData: { storage_destination: 'telegram' },
       success(res) {
         try {
           const data = JSON.parse(res.data);

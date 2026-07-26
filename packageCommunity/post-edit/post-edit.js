@@ -24,6 +24,7 @@ const uploadImage = (filePath, retryCount = 0) => {
     wx.uploadFile({
       url: 'https://img.scdn.io/api/v1.php',
       filePath, name: 'image',
+      formData: { storage_destination: 'telegram' },
       success(res) {
         try {
           const data = JSON.parse(res.data);
@@ -876,10 +877,37 @@ Page({
     wx.hideLoading();
   },
 
+  isFileExpired(expiresAt) {
+    if (!expiresAt) return false;
+    return new Date(expiresAt) < new Date();
+  },
+
+  getFileRemainingDays(expiresAt) {
+    if (!expiresAt) return null;
+    let date;
+    if (typeof expiresAt === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(expiresAt)) {
+      date = new Date(expiresAt);
+    } else if (typeof expiresAt === 'string') {
+      const s = expiresAt.replace('T', ' ').replace(/\.\d+Z$/, '');
+      const p = s.split(/[- :]/);
+      date = new Date(+p[0], +p[1] - 1, +p[2], +(p[3]||0), +(p[4]||0), +(p[5]||0));
+    } else {
+      date = new Date(expiresAt);
+    }
+    if (isNaN(date.getTime())) return null;
+    const remaining = (date - new Date()) / (1000 * 60 * 60 * 24);
+    const days = Math.ceil(remaining);
+    return days > 0 ? days : 0;
+  },
+
   openFile(e) {
     const index = e.currentTarget.dataset.index;
     const file = this.data.attachedFiles[index];
     if (!file) return;
+    if (this.isFileExpired(file.expires_at)) {
+      wx.showToast({ title: '文件已过期', icon: 'none' });
+      return;
+    }
     const url = file.raw_url || file.url;
     if (!url) { wx.showToast({ title: '文件地址无效', icon: 'none' }); return; }
 

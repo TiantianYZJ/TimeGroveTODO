@@ -24,6 +24,13 @@ Page({
     this.loadComboPosts();
   },
 
+  onShow() {
+    if (this.data.comboId) {
+      this.setData({ comboPosts: [], comboPostsCursor: null, comboPostsHasMore: false });
+      this.loadComboPosts();
+    }
+  },
+
   onPullDownRefresh() {
     this.setData({ comboPosts: [], comboPostsCursor: null, comboPostsHasMore: false });
     this.loadComboPosts().then(() => wx.stopPullDownRefresh());

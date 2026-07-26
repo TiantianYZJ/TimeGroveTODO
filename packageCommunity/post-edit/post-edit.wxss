@@ -505,11 +505,14 @@
 .file-mini-item {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: 8rpx;
   padding: 12rpx 0;
 }
 .file-mini-item:last-child {
   padding-bottom: 0;
+}
+.file-mini-item.expired {
+  opacity: 0.5;
 }
 .file-mini-name {
   flex: 1;
@@ -518,14 +521,46 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+}
+.file-mini-name.expired {
+  text-decoration: line-through;
+  color: #999;
 }
 .file-mini-size {
   font-size: 22rpx;
   color: #999;
   flex-shrink: 0;
+  white-space: nowrap;
+}
+.file-mini-expiry {
+  flex-shrink: 0;
+}
+.expiry-badge {
+  font-size: 20rpx;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 2rpx 10rpx;
+  border-radius: 16rpx;
+  white-space: nowrap;
+}
+.expiry-badge.expired {
+  color: #999;
+  background: #f0f0f0;
 }
 .file-mini-remove {
   padding: 8rpx;
+}
+.file-storage-hint {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 0 20rpx 16rpx;
+}
+.hint-text {
+  font-size: 22rpx;
+  color: #999;
+  line-height: 1.4;
 }
 .file-picker-row {
   display: flex;
@@ -533,8 +568,7 @@
   background: #ccebda;
   border-radius: 32rpx;
   gap: 12rpx;
-  padding: 24rpx;
-  margin-bottom: 12rpx;
+  padding: 12rpx 24rpx;
 }
 .file-picker-placeholder {
   font-size: 28rpx;

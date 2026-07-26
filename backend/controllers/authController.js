@@ -75,7 +75,7 @@ const login = async (req, res) => {
       avatarUrl = `${baseUrl}${avatarUrl}`;
     }
     
-    const adminIds = getAdminIds();
+    const adminIds = await getAdminIds();
     const isAdmin = adminIds.includes(user.id);
     
     const badgeData = await appendCheckinBadges(
@@ -157,7 +157,7 @@ const getUserInfo = async (req, res) => {
       avatarUrl = `${baseUrl}${avatarUrl}`;
     }
     
-    const adminIds = getAdminIds();
+    const adminIds = await getAdminIds();
     const isAdmin = adminIds.includes(user.id);
     
     const badgeData = await appendCheckinBadges(

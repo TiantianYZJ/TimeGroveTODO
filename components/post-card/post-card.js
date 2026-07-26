@@ -108,6 +108,13 @@ Component({
       if (!expiresAt) return false;
       return new Date(expiresAt) < new Date();
     },
+    getFileRemainingDays(expiresAt) {
+      if (!expiresAt) return '';
+      const remaining = (new Date(expiresAt) - new Date()) / (1000 * 60 * 60 * 24);
+      const days = Math.ceil(remaining);
+      if (days <= 0) return '';
+      return days;
+    },
     onTapTodo(e) {
       const { todoId, creatorName, creatorAvatar, creatorId, postId } = e.currentTarget.dataset;
       this.triggerEvent('tapTodo', { todoId, creatorName, creatorAvatar, creatorId, postId });

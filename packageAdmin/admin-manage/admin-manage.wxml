@@ -1,38 +1,68 @@
 <view class="container">
   <view class="header">
     <text class="title">管理员管理</text>
-    <text class="subtitle">共 {{adminList.length}} 位管理员</text>
+    <text class="subtitle">共 {{adminList.length}} 位</text>
   </view>
 
-  <scroll-view scroll-y refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="onRefresh" class="list-scroll">
-  <view wx:if="{{loading}}" class="loading">
-    <t-loading theme="circular" size="40rpx" />
-    <text>加载中...</text>
-  </view>
-
-  <view wx:elif="{{adminList.length === 0}}" class="empty">
-    <t-icon name="user" size="80rpx" color="#ddd" />
-    <text>暂无管理员</text>
-  </view>
-
-  <view wx:else class="admin-list">
-    <view wx:for="{{adminList}}" wx:key="user_id" class="admin-card" bindtap="goToUserDetail" data-id="{{item.user_id}}">
-      <t-avatar wx:if="{{item.avatar_url}}" image="{{item.avatar_url}}" size="80rpx" />
-      <t-avatar wx:else icon="user" size="80rpx" />
-      <view class="admin-info">
-        <text class="admin-name">{{item.nickname || '未设置昵称'}}（ID: {{item.user_id}}）</text>
-        <text class="admin-date">{{item.created_at || ''}}</text>
+  <!-- 操作栏 -->
+  <view class="action-bar">
+    <view class="search-row">
+      <t-icon name="search" size="28rpx" color="#999" />
+      <input class="search-input" placeholder="搜索昵称或ID" value="{{listSearchKeyword}}" bindinput="onListSearchInput" bindconfirm="onListSearchConfirm" confirm-type="search" />
+      <view wx:if="{{listSearchKeyword}}" class="search-clear" catchtap="onClearListSearch">
+        <t-icon name="close-circle-filled" size="28rpx" color="#ccc" />
       </view>
-      <view class="admin-remove" wx:if="{{item.user_id !== currentUserId}}" catchtap="removeAdmin" data-id="{{item.user_id}}" data-name="{{item.nickname || ''}}">
-        <t-icon name="delete" size="32rpx" color="#ff4757" />
-      </view>
+    </view>
+    <view class="batch-remove-btn" wx:if="{{selectedIds.length > 0}}" catchtap="batchRemove">
+      <t-icon name="delete" size="28rpx" color="#ff4757" />
+      <text>移除{{selectedIds.length}}人</text>
     </view>
   </view>
 
+  <!-- 批量选择提示 -->
+  <view wx:if="{{selectedIds.length > 0 && filteredList.length > 0}}" class="batch-bar">
+    <text class="batch-count">已选 {{selectedIds.length}} 位</text>
+    <view class="batch-cancel" catchtap="clearSelection">
+      <t-icon name="close" size="24rpx" color="#666" />
+      <text>取消选择</text>
+    </view>
+  </view>
+
+  <scroll-view scroll-y refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="onRefresh" class="list-scroll">
+    <view wx:if="{{loading}}" class="loading">
+      <t-loading theme="circular" size="40rpx" />
+      <text>加载中...</text>
+    </view>
+
+    <view wx:elif="{{filteredList.length === 0}}" class="empty">
+      <t-icon name="user" size="80rpx" color="#ddd" />
+      <text>{{listSearchKeyword ? '未匹配到管理员' : '暂无管理员'}}</text>
+    </view>
+
+    <view wx:else class="admin-list">
+      <view wx:for="{{filteredList}}" wx:key="user_id" class="admin-card batch-mode {{selectedIds.indexOf(item.user_id) > -1 ? 'selected' : ''}}" bindtap="toggleSelect" data-id="{{item.user_id}}">
+        <view class="sel-bar" wx:if="{{selectedIds.indexOf(item.user_id) > -1}}"></view>
+        <view class="admin-checkbox">
+          <t-icon name="{{selectedIds.indexOf(item.user_id) > -1 ? 'check-circle-filled' : 'circle'}}" size="40rpx" color="{{selectedIds.indexOf(item.user_id) > -1 ? '#00b26a' : '#ddd'}}" />
+        </view>
+        <t-avatar wx:if="{{item.avatar_url}}" image="{{item.avatar_url}}" size="72rpx" />
+        <t-avatar wx:else icon="user" size="72rpx" />
+        <view class="admin-info">
+          <text class="admin-name">{{item.nickname || '未设置昵称'}}（ID: {{item.user_id}}）</text>
+          <text class="admin-date">{{item.created_at || ''}}</text>
+        </view>
+        <view class="admin-actions">
+          <view wx:if="{{item.user_id !== currentUserId}}" class="admin-remove-btn" catchtap="removeSingle" data-id="{{item.user_id}}" data-name="{{item.nickname || ''}}">
+            <t-icon name="delete" size="32rpx" color="#ff4757" />
+          </view>
+        </view>
+      </view>
+    </view>
   </scroll-view>
 
-  <t-fab icon="add" text="添加管理员" bind:click="showAddPopup" />
+  <t-fab icon="add" text="添加管理员" bind:click="showAddPopup" style="right: 32rpx; bottom: 32rpx;" />
 
+  <!-- 添加管理员弹窗 -->
   <t-popup
     visible="{{addPopupVisible}}"
     bind:visible-change="onAddPopupClose"
@@ -42,24 +72,27 @@
     <view class="popup-content">
       <view class="popup-header">
         <text class="popup-title">添加管理员</text>
-        <view class="popup-close" bindtap="hideAddPopup">
-          <t-icon name="close" size="40rpx" color="#999" />
+        <view class="popup-close" catchtap="hideAddPopup">
+          <t-icon name="close" size="36rpx" color="#999" />
         </view>
       </view>
       <view class="popup-body">
-        <view class="search-row">
-          <input class="search-input" placeholder="输入用户ID或昵称搜索" value="{{searchKeyword}}" bindinput="onSearchInput" />
-          <button class="search-btn" bindtap="searchUser" loading="{{searchLoading}}">搜索</button>
+        <view class="popup-search-row">
+          <t-icon name="search" size="28rpx" color="#999" />
+          <input class="search-input" placeholder="搜索用户昵称或ID" value="{{searchKeyword}}" bindinput="onSearchInput" bindconfirm="searchUser" confirm-type="search" />
+          <view class="popup-search-btn" catchtap="searchUser" loading="{{searchLoading}}">搜索</view>
         </view>
         <view wx:if="{{searchResults.length > 0}}" class="search-results">
-          <view wx:for="{{searchResults}}" wx:key="id" class="user-item" bindtap="addAdmin" data-id="{{item.id}}">
+          <view wx:for="{{searchResults}}" wx:key="id" class="user-item" catchtap="addAdmin" data-id="{{item.id}}">
             <t-avatar wx:if="{{item.avatar_url}}" image="{{item.avatar_url}}" size="64rpx" />
             <t-avatar wx:else icon="user" size="64rpx" />
             <view class="user-info">
               <text class="user-name">{{item.nickname || '未设置昵称'}}</text>
               <text class="user-id">ID: {{item.id}}</text>
             </view>
-            <t-icon name="add" size="36rpx" color="#00b26a" />
+            <view class="user-add-btn">
+              <t-icon name="add" size="36rpx" color="#00b26a" />
+            </view>
           </view>
         </view>
         <view wx:elif="{{searchKeyword && !searchLoading}}" class="search-empty">

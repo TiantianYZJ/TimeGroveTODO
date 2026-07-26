@@ -119,7 +119,7 @@ module.exports = {
 
     <view class="form-item">
       <text class="question-title">附加图片</text>
-      <view class="image-upload-tip">图片由第三方图床托管，图片连续60天未访问将被自动清理</view>
+      <view class="image-upload-tip">图片托管至 img.scdn.io，存储于 Telegram，持续可用</view>
       <t-upload
         class="image-upload"
         mediaType="{{['image']}}"
