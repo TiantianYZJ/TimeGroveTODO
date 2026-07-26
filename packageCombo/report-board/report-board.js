@@ -39,7 +39,7 @@ Page({
       if (result.success) {
         const members = result.combo.members || [];
         // 判断当前用户是否为 owner/admin
-        const me = members.find(m => String(m.user_id) === String(this.data.currentUserId));
+        const me = members.find(m => String(m.id) === String(this.data.currentUserId));
         const isAdmin = me && (me.role === 'owner' || me.role === 'admin');
         this.setData({
           comboName: result.combo.name,

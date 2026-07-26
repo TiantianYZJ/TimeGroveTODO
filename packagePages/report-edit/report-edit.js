@@ -75,7 +75,9 @@ Page({
     importTargetSection: 0,
     importTodos: { completed: [], uncompleted: [] },
     selectedImportTodos: [],
-    importSearchKeyword: ''
+    importSearchKeyword: '',
+
+    canEditTemplate: false,
   },
 
   onLoad(options) {
@@ -516,20 +518,100 @@ Page({
           });
         }
       }
+      this.updateCanEditTemplate();
     } catch (err) {
       logger.error('REPORT', 'COMBOS', '加载组合失败', err);
     }
   },
 
-  selectPrivateCombo() {
+  _mergeIntoTemplate(currentSections, targetSections) {
+    const contentMap = {};
+    currentSections.forEach(s => {
+      const texts = s.lines.filter(l => l && l.text && l.text.trim()).map(l => l.text);
+      if (texts.length > 0) contentMap[s.key] = texts;
+    });
+    return (targetSections || []).map((s, i) => {
+      const existing = contentMap[s.key];
+      return {
+        ...s,
+        lines: existing && existing.length > 0 ? _makeLines(existing) : _makeLines(['']),
+        _rk: i
+      };
+    });
+  },
+
+  updateCanEditTemplate() {
+    const { selectedComboId, sharedCombos } = this.data;
+    if (!selectedComboId) {
+      this.setData({ canEditTemplate: true });
+      return;
+    }
+    const combo = (sharedCombos || []).find(c => String(c.id) === String(selectedComboId));
+    const role = combo ? combo.role : null;
+    this.setData({ canEditTemplate: role === 'owner' || role === 'admin' });
+  },
+
+  navigateToReportTemplates() {
+    const { selectedComboId, reportType } = this.data;
+    const comboId = selectedComboId || 0;
+    wx.navigateTo({
+      url: `/packageCombo/report-templates/report-templates?combo_id=${comboId}&type=${reportType}`
+    });
+  },
+
+  async _switchToCombo(newComboId, name, isShared) {
+    let targetSections;
+    try {
+      const res = await reportTemplateApi.getList({
+        combo_id: newComboId || 0,
+        type: this.data.reportType
+      });
+      const templates = res.templates || res.data || [];
+      const matched = templates.filter(t => t.type === this.data.reportType);
+      const template = matched.length > 0 ? matched[0] : (templates.length > 0 ? templates[0] : null);
+      if (template) {
+        targetSections = this.buildSectionsFromTemplate(template);
+      } else {
+        targetSections = this.copyDefaultSections();
+      }
+    } catch {
+      targetSections = this.copyDefaultSections();
+    }
+
+    const currentSections = this.data.sections;
+    const hasContent = currentSections.some(s => s.lines.some(l => l && l.text && l.text.trim()));
+    const currentKeys = this.getSectionKeys(currentSections);
+    const targetKeys = this.getSectionKeys(targetSections);
+    let mergedSections = targetSections;
+
+    if (targetKeys !== currentKeys && hasContent) {
+      const proceed = await new Promise(resolve => {
+        wx.showModal({
+          title: '切换确认',
+          content: '目标模板结构不同，切换后会自动保留相同字段的内容，无法匹配的字段将被清空。是否继续？',
+          confirmText: '继续',
+          cancelText: '取消',
+          success: r => resolve(r.confirm)
+        });
+      });
+      if (!proceed) return false;
+      mergedSections = this._mergeIntoTemplate(currentSections, targetSections);
+    }
+
     this.setData({
-      selectedComboId: null,
-      selectedComboName: '私人',
-      isSharedCombo: false,
-      showComboPicker: false
+      selectedComboId: newComboId,
+      selectedComboName: name || (newComboId ? '组合' : '私人'),
+      isSharedCombo: isShared,
+      showComboPicker: false,
+      sections: mergedSections
     });
     this.clearDraft();
-    this.loadTemplates();
+    this.updateCanEditTemplate();
+    return true;
+  },
+
+  async selectPrivateCombo() {
+    await this._switchToCombo(null, '私人', false);
   },
 
   // ========== Line Editing ==========
@@ -569,84 +651,8 @@ Page({
 
   // ========== Combo Picker ==========
 
-  async showComboPicker() {
-    const isEdit = !!this.data.reportId;
-    if (isEdit) {
-      wx.showLoading({ title: '检查兼容组合...' });
-      const { compatibleIds, privateCompatible } = await this._checkComboCompatibility();
-      wx.hideLoading();
-      this.setData({
-        _compatibleComboIds: compatibleIds,
-        _filteredComboCount: compatibleIds.length,
-        _privateCompatible: privateCompatible,
-        showComboPicker: true,
-      });
-    } else {
-      this.setData({ showComboPicker: true });
-    }
-  },
-
-  /**
-   * 编辑态下检查哪些组合的模板结构与当前报告一致（日报/周报共用）
-   */
-  async _checkComboCompatibility() {
-    const currentKeys = this.getSectionKeys(this.data.sections);
-    const reportType = this.data.reportType;
-    const combos = this.data.sharedCombos || [];
-    const compatibleIds = [];
-
-    const results = await Promise.all(combos.map(async (combo) => {
-      // 当前已选的组合始终兼容
-      if (String(combo.id) === String(this.data.selectedComboId)) {
-        return { id: combo.id, compatible: true };
-      }
-      try {
-        const res = await reportTemplateApi.getList({
-          combo_id: combo.id,
-          type: reportType
-        });
-        const templates = res.templates || res.data || [];
-        const matched = templates.filter(t => t.type === reportType);
-        const template = matched.length > 0 ? matched[0] : (templates.length > 0 ? templates[0] : null);
-        let targetKeys;
-        if (template) {
-          targetKeys = this.getSectionKeys(this.buildSectionsFromTemplate(template));
-        } else {
-          targetKeys = this.getSectionKeys(this.copyDefaultSections());
-        }
-        return { id: combo.id, compatible: targetKeys === currentKeys };
-      } catch (err) {
-        logger.warn('REPORT', 'COMBO_CHECK', `检查组合 ${combo.id} 失败`, err);
-        return { id: combo.id, compatible: false };
-      }
-    }));
-
-    results.forEach(r => { if (r.compatible) compatibleIds.push(r.id); });
-
-    // 检查私人选项 — 加载用户私人模板对比
-    let privateCompatible = false;
-    try {
-      const res = await reportTemplateApi.getList({
-        combo_id: 0,
-        type: reportType
-      });
-      const templates = res.templates || res.data || [];
-      const matched = templates.filter(t => t.type === reportType);
-      const template = matched.length > 0 ? matched[0] : (templates.length > 0 ? templates[0] : null);
-      let privateKeys;
-      if (template) {
-        privateKeys = this.getSectionKeys(this.buildSectionsFromTemplate(template));
-      } else {
-        privateKeys = this.getSectionKeys(this.copyDefaultSections());
-      }
-      privateCompatible = privateKeys === currentKeys;
-    } catch (err) {
-      logger.warn('REPORT', 'COMBO_CHECK', '检查私人模板失败', err);
-      const defaultKeys = this.getSectionKeys(this.copyDefaultSections());
-      privateCompatible = defaultKeys === currentKeys;
-    }
-
-    return { compatibleIds, privateCompatible };
+  showComboPicker() {
+    this.setData({ showComboPicker: true });
   },
 
   getSectionKeys(sections) {
@@ -664,49 +670,7 @@ Page({
   async selectCombo(e) {
     const { id, name, shared } = e.currentTarget.dataset;
     const newComboId = id !== undefined ? Number(id) : null;
-
-    // 编辑态下检查目标组合模板是否兼容
-    if (this.data.reportId) {
-      const currentKeys = this.getSectionKeys(this.data.sections);
-      let targetKeys;
-
-      try {
-        const res = await reportTemplateApi.getList({
-          combo_id: newComboId || 0,
-          type: this.data.reportType
-        });
-        const templates = res.templates || res.data || [];
-        const matched = templates.filter(t => t.type === this.data.reportType);
-        const template = matched.length > 0 ? matched[0] : (templates.length > 0 ? templates[0] : null);
-        targetKeys = template
-          ? this.getSectionKeys(this.buildSectionsFromTemplate(template))
-          : this.getSectionKeys(this.copyDefaultSections());
-      } catch {
-        targetKeys = this.getSectionKeys(this.copyDefaultSections());
-      }
-
-      if (targetKeys !== currentKeys) {
-        const proceed = await new Promise(resolve => {
-          wx.showModal({
-            title: '切换确认',
-            content: '目标组合的模板结构与当前内容不一致，切换后将重置区块布局，已填写内容可能丢失。是否继续？',
-            confirmText: '继续切换',
-            cancelText: '取消',
-            success: r => resolve(r.confirm)
-          });
-        });
-        if (!proceed) return;
-      }
-    }
-
-    this.setData({
-      selectedComboId: newComboId,
-      selectedComboName: name,
-      isSharedCombo: shared === '1',
-      showComboPicker: false
-    });
-    this.clearDraft();
-    await this.loadTemplates();
+    await this._switchToCombo(newComboId, name, shared === '1');
   },
 
 

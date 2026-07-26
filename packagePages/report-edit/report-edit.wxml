@@ -60,6 +60,10 @@ module.exports = {
       </view>
       <t-icon name="chevron-down" size="32rpx" color="#ccc" />
     </view>
+    <view wx:if="{{canEditTemplate}}" class="template-edit-link" bindtap="navigateToReportTemplates">
+      <t-icon name="edit-2" size="28rpx" color="#00b26a" />
+      <text class="template-edit-link-text">编辑报告模板</text>
+    </view>
   </view>
 
   <!-- 区块列表 -->
@@ -137,7 +141,7 @@ module.exports = {
 
     <scroll-view class="popup-scroll" scroll-y>
       <!-- 私人 -->
-      <view wx:if="{{_privateCompatible !== false}}" class="picker-section">
+      <view class="picker-section">
         <text class="section-label">私人</text>
         <view
           class="picker-option {{!selectedComboId && !isSharedCombo ? 'selected' : ''}}"
@@ -162,7 +166,6 @@ module.exports = {
           class="picker-option {{selectedComboId === item.id && isSharedCombo ? 'selected' : ''}}"
           wx:for="{{sharedCombos}}"
           wx:key="id"
-          wx:if="{{!_compatibleComboIds || utils.includes(_compatibleComboIds, item.id)}}"
           data-id="{{item.id}}"
           data-name="{{item.name}}"
           data-shared="1"
@@ -179,8 +182,8 @@ module.exports = {
         </view>
       </view>
 
-      <view wx:if="{{sharedCombos.length === 0 && _privateCompatible === false}}" class="empty-combos">
-        <text>{{_filteredComboCount === 0 ? '没有兼容的组合模板' : '暂无共享组合'}}</text>
+      <view wx:if="{{sharedCombos.length === 0}}" class="empty-combos">
+        <text>暂无共享组合</text>
       </view>
     </scroll-view>
   </view>
