@@ -256,6 +256,22 @@ module.exports = {
     </view>
 
     <view class="form-item">
+      <text class="question-title">子待办</text>
+      <view class="subtask-list">
+        <view class="subtask-item" wx:for="{{subtasks}}" wx:key="index" data-index="{{index}}" style="margin-left: {{item.depth * 12}}rpx">
+          <text class="subtask-label" style="min-width: {{48 + item.depth * 12}}rpx">{{_subtaskLabels[index]}}.</text>
+          <input class="subtask-input" value="{{item.text}}" placeholder="输入子待办内容" data-index="{{index}}" bindinput="onSubtaskInput" />
+          <t-icon name="add-circle" size="36rpx" color="#00b26a" bindtap="addChildSubtask" data-index="{{index}}" />
+          <t-icon name="close-circle" size="36rpx" color="#ccc" bindtap="removeSubtask" data-index="{{index}}" />
+        </view>
+      </view>
+      <view class="add-subtask" bindtap="addSubtask">
+        <t-icon name="add" size="28rpx" color="#00b26a" />
+        <text>添加子待办</text>
+      </view>
+    </view>
+
+    <view class="form-item">
       <text class="question-title">备注</text>
       <t-textarea
         placeholder="可在此添加备注信息"

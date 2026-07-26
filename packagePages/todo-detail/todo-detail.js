@@ -1238,13 +1238,18 @@ Page({
     }
 
     const todos = getLocalTodos()
+    const todoId = this.data.todoId || this.data.todo?.id
 
-    if (!todos[this.data.currentIndex]) {
+    if (!todoId) {
       wx.navigateBack()
       return
     }
 
-    const todo = todos[this.data.currentIndex]
+    const todo = todos.find(t => t.id === todoId) || todos.find(t => t.todo_id === todoId)
+    if (!todo) {
+      wx.navigateBack()
+      return
+    }
     if (!todo.priority) todo.priority = 'p2';
     let setDate;
     if (todo.setDate) {
@@ -2726,25 +2731,6 @@ Page({
       wx.showToast({ title: '加载失败', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);
     }
-  },
-
-  /**
-   * 滚动到指定章节
-   */
-  scrollToSection(e) {
-    const section = e.currentTarget.dataset.section;
-    this.setData({ _currentSection: section });
-
-    const scrollPositions = {
-      'detail': 0,
-      'subtask': 600,
-      'comment': 1200
-    };
-
-    wx.pageScrollTo({
-      scrollTop: scrollPositions[section] || 0,
-      duration: 300
-    });
   },
 
   goToShareConfig() {

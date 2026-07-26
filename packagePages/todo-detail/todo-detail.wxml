@@ -1,10 +1,4 @@
 <view class="container">
-  <!-- 章节导航 -->
-  <view wx:if="{{subtaskList.length > 0 || comments.length > 0}}" class="page-toc">
-    <view class="toc-item {{_currentSection === 'detail' ? 'active' : ''}}" data-section="detail" bindtap="scrollToSection">详情</view>
-    <view wx:if="{{subtaskList.length > 0}}" class="toc-item {{_currentSection === 'subtask' ? 'active' : ''}}" data-section="subtask" bindtap="scrollToSection">子任务</view>
-    <view wx:if="{{comments.length > 0}}" class="toc-item {{_currentSection === 'comment' ? 'active' : ''}}" data-section="comment" bindtap="scrollToSection">评论</view>
-  </view>
   <view class="form-item">
     <!-- 标题部分 -->
     <text class="todo-title" bindlongpress="copyTitle" style="{{todo.completed ? 'color: #33ae7d;' : ''}}">{{todo.text}}</text>

@@ -555,6 +555,33 @@ Page({
   },
 
   async _switchToCombo(newComboId, name, isShared) {
+    const { reportType, reportDate } = this.data;
+    // 检测目标组合在该时段是否已有自己的报告
+    try {
+      const params = { type: reportType, period_date: reportDate };
+      if (newComboId) params.combo_id = newComboId;
+      const res = await workReportApi.getList(params);
+      const list = (res.data && res.data.list) || res.list || [];
+      const mine = list.find(r => String(r.userId || r.user_id) === String(app.globalData.userInfo?.id));
+      if (mine) {
+        const label = reportType === 'daily' ? '日报' : '周报';
+        const result = await new Promise(resolve => {
+          wx.showModal({
+            title: `${label}已存在`,
+            content: `该目标在该时段已有${label}，是否前往编辑？切换目标将不会保存当前页面。`,
+            confirmText: '去编辑',
+            cancelText: '取消',
+            success: r => resolve(r.confirm)
+          });
+        });
+        if (result) {
+          wx.redirectTo({
+            url: `/packagePages/report-edit/report-edit?id=${mine.id}`
+          });
+        }
+        return false;
+      }
+    } catch { /* ignore */ }
     let targetSections;
     try {
       const res = await reportTemplateApi.getList({

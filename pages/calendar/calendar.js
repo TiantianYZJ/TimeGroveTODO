@@ -546,7 +546,7 @@ Page({
     return `${this.getReportDateTitle(dateStr)} · 第${weekNum}周`;
   },
 
-  onFabTap() {
+  async onFabTap() {
     const tab = this.data.currentTab;
     const selectedDateStr = this.data.selectedDate;
 
@@ -554,16 +554,40 @@ Page({
       wx.navigateTo({
         url: `/packagePages/add-todo/add-todo?setDate=${selectedDateStr}`
       });
-    } else if (tab === 'daily') {
-      wx.navigateTo({
-        url: `/packagePages/report-edit/report-edit?type=daily&date=${selectedDateStr}`
-      });
-    } else if (tab === 'weekly') {
-      const weekStart = this.getWeekStart(selectedDateStr);
-      wx.navigateTo({
-        url: `/packagePages/report-edit/report-edit?type=weekly&date=${weekStart}`
-      });
+      return;
     }
+
+    const label = tab === 'daily' ? '日报' : '周报';
+    const periodDate = tab === 'daily' ? selectedDateStr : this.getWeekStart(selectedDateStr);
+    const existing = await this._checkExistingReport(tab, periodDate);
+    if (existing) {
+      wx.showModal({
+        title: `${label}已存在`,
+        content: `该日期已有${label}，是否前往编辑？`,
+        confirmText: '去编辑',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: `/packagePages/report-edit/report-edit?id=${existing.id}`
+            });
+          }
+        }
+      });
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/packagePages/report-edit/report-edit?type=${tab}&date=${periodDate}`
+    });
+  },
+
+  async _checkExistingReport(type, periodDate) {
+    try {
+      const res = await workReportApi.getList({ type, period_date: periodDate, page_size: 1 });
+      const list = (res.data && res.data.list) || res.list || [];
+      return list.find(r => !r.comboId) || null;
+    } catch { return null; }
   },
 
   navigateToPrivateTemplates() {

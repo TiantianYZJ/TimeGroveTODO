@@ -261,9 +261,9 @@ module.exports = {
         >
           <view class="import-todo-text">{{item.text}}</view>
           <view wx:if="{{sections[importTargetSection].mode === 'date'}}" class="import-date-opts" catchtap="stopPropagation">
-            <view class="import-date-opt {{utils.dateOpt(importDateOpts, item._key) === 'create' ? 'active' : ''}}" data-key="{{item._key}}" data-opt="create" bindtap="onImportDateOption"><text class="opt-label">创建</text><text class="opt-val">{{utils.fmtTs(item.time)}}</text></view>
-            <view class="import-date-opt {{item.completedAt && utils.dateOpt(importDateOpts, item._key) === 'complete' ? 'active' : ''}} {{!item.completedAt ? 'disabled' : ''}}" data-key="{{item._key}}" data-opt="complete" bindtap="onImportDateOption"><text class="opt-label">完成</text><text class="opt-val">{{item.completedAt ? utils.fmtTs(item.completedAt) : '-'}}</text></view>
-            <view class="import-date-opt {{item.setDate && utils.dateOpt(importDateOpts, item._key) === 'due' ? 'active' : ''}} {{!item.setDate ? 'disabled' : ''}}" data-key="{{item._key}}" data-opt="due" bindtap="onImportDateOption"><text class="opt-label">截止</text><text class="opt-val">{{item.setDate ? utils.fmtDate(item.setDate) : '-'}}</text></view>
+            <view class="import-date-opt {{utils.dateOpt(importDateOpts, item._key) === 'create' ? 'active' : ''}}" data-key="{{item._key}}" data-opt="create" bindtap="onImportDateOption"><text class="opt-label">用创建日期</text><text class="opt-val">{{utils.fmtTs(item.time)}}</text></view>
+            <view class="import-date-opt {{item.completedAt && utils.dateOpt(importDateOpts, item._key) === 'complete' ? 'active' : ''}} {{!item.completedAt ? 'disabled' : ''}}" data-key="{{item._key}}" data-opt="complete" bindtap="onImportDateOption"><text class="opt-label">用完成日期</text><text class="opt-val">{{item.completedAt ? utils.fmtTs(item.completedAt) : '-'}}</text></view>
+            <view class="import-date-opt {{item.setDate && utils.dateOpt(importDateOpts, item._key) === 'due' ? 'active' : ''}} {{!item.setDate ? 'disabled' : ''}}" data-key="{{item._key}}" data-opt="due" bindtap="onImportDateOption"><text class="opt-label">用截止日期</text><text class="opt-val">{{item.setDate ? utils.fmtDate(item.setDate) : '-'}}</text></view>
           </view>
           <t-icon wx:if="{{utils.includes(selectedImportTodos, item._key)}}" name="check-circle-filled" size="36rpx" color="#00b26a" />
           <t-icon wx:else name="circle" size="36rpx" color="#ccc" />

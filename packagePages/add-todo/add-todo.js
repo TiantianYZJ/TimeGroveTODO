@@ -1,5 +1,5 @@
 const app = getApp();
-const { getLocalTodos, saveTodo, getTodoById } = require('../../utils/sync.js');
+const { getLocalTodos, saveTodo, getTodoById, deleteTodoById } = require('../../utils/sync.js');
 const { todosApi, collabApi, combosApi, isLoggedIn } = require('../../utils/api.js');
 
 function generateTodoId() {
@@ -68,7 +68,10 @@ Page({
       sourceType: ['album', 'camera']
     },
     images: [],
-    imageSource: 'media'
+    imageSource: 'media',
+    subtasks: [],
+    _subtaskLabels: [],
+    _justCreated: false
   },
 
   onShareAppMessage() {
@@ -207,6 +210,29 @@ Page({
         status: 'done'
       }));
       
+      // 加载子待办（递归构建 depth 平面列表）
+      const editTodoId = options.todoId || null;
+      let loadedSubtasks = [];
+      if (editTodoId) {
+        const allTodos = getLocalTodos();
+        const walk = (parentId, depth) => {
+          return allTodos
+            .filter(t => t.parent_id === parentId && !t.isDeleted)
+            .flatMap(t => [
+              { text: t.text, id: t.id, depth, indent: depth * 12 },
+              ...walk(t.id, depth + 1)
+            ]);
+        };
+        loadedSubtasks = walk(editTodoId, 0);
+      }
+      // 预计算层级标签
+      const counters = [];
+      const loadedLabels = loadedSubtasks.map(item => {
+        counters[item.depth] = (counters[item.depth] || 0) + 1;
+        counters.length = item.depth + 1;
+        return counters.join('.');
+      });
+
       this.setData({
         inputValue: decodeURIComponent(options.text || ''),
         setDate: formattedSetDate,
@@ -217,7 +243,7 @@ Page({
         isEdit: true,
         isEditMode: true,
         editIndex: options.index,
-        editTodoId: options.todoId || null,
+        editTodoId: editTodoId,
         selectedTags: parsedTags,
         comboId: options.comboId || '',
         todoTime: options.time,
@@ -228,7 +254,9 @@ Page({
         excludeType: options.excludeType || '',
         images: parsedImages,
         fileList: fileList,
-        value: new Date(formattedSetDate).getTime()
+        value: new Date(formattedSetDate).getTime(),
+        subtasks: loadedSubtasks,
+        _subtaskLabels: loadedLabels
       });
     }
   },
@@ -609,6 +637,133 @@ Page({
     this.setData({ imageSource: newSource });
   },
 
+  // ========== 子待办（支持嵌套） ==========
+
+  /** 添加同级子待办（depth=0） */
+  addSubtask() {
+    const subtasks = [...this.data.subtasks];
+    subtasks.push({ text: '', depth: 0, indent: 0 });
+    this.setData({ subtasks });
+    this._rebuildSubtaskLabels();
+  },
+
+  /** 在指定子待办下添加次级子待办 */
+  addChildSubtask(e) {
+    const index = e.currentTarget.dataset.index;
+    const subtasks = [...this.data.subtasks];
+    const parentDepth = subtasks[index].depth;
+    const childDepth = parentDepth + 1;
+    // 找到插入点：跳过当前项及其所有后代
+    let insertAt = index + 1;
+    for (let i = insertAt; i < subtasks.length; i++) {
+      if (subtasks[i].depth > parentDepth) insertAt++;
+      else break;
+    }
+    subtasks.splice(insertAt, 0, { text: '', depth: childDepth, indent: childDepth * 12 });
+    this.setData({ subtasks });
+    this._rebuildSubtaskLabels();
+  },
+
+  /** 删除子待办（级联删除其后代） */
+  removeSubtask(e) {
+    const index = e.currentTarget.dataset.index;
+    const subtasks = [...this.data.subtasks];
+    const depth = subtasks[index].depth;
+    let removeCount = 1;
+    for (let i = index + 1; i < subtasks.length; i++) {
+      if (subtasks[i].depth > depth) removeCount++;
+      else break;
+    }
+    subtasks.splice(index, removeCount);
+    this.setData({ subtasks });
+    this._rebuildSubtaskLabels();
+  },
+
+  onSubtaskInput(e) {
+    const index = e.currentTarget.dataset.index;
+    const value = e.detail.value;
+    const subtasks = [...this.data.subtasks];
+    if (subtasks[index]) {
+      subtasks[index].text = value;
+      this.setData({ subtasks });
+    }
+  },
+
+  /** 根据 depth 重新计算层级编号（1, 1.1, 1.2, 2, ...） */
+  _rebuildSubtaskLabels() {
+    const subtasks = this.data.subtasks;
+    const counters = [];
+    const labels = subtasks.map(item => {
+      counters[item.depth] = (counters[item.depth] || 0) + 1;
+      counters.length = item.depth + 1;
+      return counters.join('.');
+    });
+    this.setData({ _subtaskLabels: labels });
+  },
+
+  /** 将平面 depth 数组转换为 API 嵌套树 */
+  _flatToTree(flat) {
+    const root = [];
+    const stack = [{ children: root, depth: -1 }];
+    for (const item of flat) {
+      if (!item.text || !item.text.trim()) continue;
+      while (stack.length > 1 && stack[stack.length - 1].depth >= item.depth) stack.pop();
+      const node = { text: item.text.trim() };
+      if (item.id) node.id = item.id;
+      node.subtasks = [];
+      stack[stack.length - 1].children.push(node);
+      stack.push({ children: node.subtasks, depth: item.depth });
+    }
+    // 清理空的 subtasks 数组
+    function clean(nodes) {
+      for (const n of nodes) {
+        if (n.subtasks.length === 0) delete n.subtasks;
+        else clean(n.subtasks);
+      }
+    }
+    clean(root);
+    return root;
+  },
+
+  /** 递归保存子待办树到本地存储 */
+  _saveSubtaskTree(nodes, parentId, inheritedFields, baseTime) {
+    nodes.forEach((node, i) => {
+      const subId = generateTodoId();
+      node.id = subId;
+      saveTodo({
+        id: subId,
+        text: node.text,
+        parent_id: parentId,
+        setDate: inheritedFields.setDate || null,
+        setTime: inheritedFields.setTime || null,
+        priority: inheritedFields.priority || 'p2',
+        comboId: inheritedFields.comboId || '',
+        completed: false,
+        time: baseTime + i + 1,
+        isStar: false,
+        tags: [],
+        images: [],
+        version: 1,
+        isDeleted: false,
+        deletedAt: null,
+        updatedAt: baseTime
+      });
+      if (node.subtasks && node.subtasks.length > 0) {
+        this._saveSubtaskTree(node.subtasks, subId, inheritedFields, baseTime);
+      }
+    });
+  },
+
+  /** 递归删除父待办的所有后代（本地存储） */
+  _deleteSubtaskTree(parentId) {
+    const allTodos = getLocalTodos();
+    const children = allTodos.filter(t => t.parent_id === parentId);
+    children.forEach(t => {
+      this._deleteSubtaskTree(t.id);
+      deleteTodoById(t.id, Date.now());
+    });
+  },
+
   async handleImageAdd(e) {
     const { files } = e.detail;
     const currentCount = this.data.fileList.length;
@@ -754,14 +909,14 @@ Page({
 
   async createSharedTodo() {
     const { inputValue, setDate, setTime, remarks, comboId, assignType, selectedMembers, selectedTags, excludeType, images, location } = this.data;
-    
+
     if (assignType === 'specific' && selectedMembers.length === 0) {
       wx.showToast({ title: '请选择完成人', icon: 'none' });
       return;
     }
-    
+
     wx.showLoading({ title: '创建中...' });
-    
+
     try {
       await collabApi.createSharedTodo(comboId, {
         text: inputValue.trim(),
@@ -774,12 +929,13 @@ Page({
         assignType,
         assigneeIds: assignType === 'specific' ? selectedMembers : [],
         excludeType: (assignType === 'all' || assignType === 'any') ? excludeType : '',
-        images: images
+        images: images,
+        subtasks: this._flatToTree(this.data.subtasks)
       });
-      
+
       wx.hideLoading();
       wx.showToast({ title: '创建成功', icon: 'success' });
-      
+
       setTimeout(() => wx.navigateBack(), 1500);
     } catch (err) {
       wx.hideLoading();
@@ -789,15 +945,16 @@ Page({
 
   createLocalTodo() {
     const pages = getCurrentPages();
-    const prevPage = pages.find(page => 
-      page.route === 'pages/todo/todo' || 
+    const prevPage = pages.find(page =>
+      page.route === 'pages/todo/todo' ||
       page.route === 'pages/calendar/calendar' ||
       page.route === 'pages/combo-detail/combo-detail'
     );
-    
+
     const now = Date.now();
+    const parentId = generateTodoId();
     const newTodo = {
-      id: generateTodoId(),
+      id: parentId,
       text: this.data.inputValue.trim(),
       setDate: this.data.setDate,
       setTime: this.data.setTime,
@@ -815,13 +972,19 @@ Page({
       deletedAt: null,
       updatedAt: now
     };
-    
-    if (prevPage && prevPage.addTodoFromChild) {
+
+    // 递归保存子待办树
+    const tree = this._flatToTree(this.data.subtasks);
+    let hasSubtasks = false;
+    this._saveSubtaskTree(tree, parentId, newTodo, now);
+    if (tree.length > 0) hasSubtasks = true;
+
+    if (prevPage && prevPage.addTodoFromChild && !hasSubtasks) {
       prevPage.addTodoFromChild(
-        newTodo.text, 
+        newTodo.text,
         newTodo.setDate,
         newTodo.setTime,
-        newTodo.remarks, 
+        newTodo.remarks,
         newTodo.location,
         newTodo.tags,
         newTodo.comboId,
@@ -831,17 +994,17 @@ Page({
     } else {
       saveTodo(newTodo);
       app.updateCalendarCache(getLocalTodos());
-      
+
       if (isLoggedIn()) {
         const { syncWithCloud } = require('../../utils/sync.js');
         syncWithCloud('local').catch(err => logger.error('SYNC', 'SYNC', '同步失败', err));
       }
     }
-    
+
     if (newTodo.comboId) {
       this.updateComboTodoCount(newTodo.comboId);
     }
-    
+
     wx.navigateBack();
   },
 
@@ -880,7 +1043,8 @@ Page({
       originalTodo = todos[this.data.editIndex] || {};
     }
     const now = Date.now();
-    
+    const parentId = originalTodo.id;
+
     const updatedTodo = {
       ...originalTodo,
       text: this.data.inputValue,
@@ -896,45 +1060,130 @@ Page({
       version: (originalTodo.version || 1) + 1,
       updatedAt: now
     };
-    
+
     saveTodo(updatedTodo);
-    const allTodos = getLocalTodos();
-    app.updateCalendarCache(allTodos);
-    
+
+    // ========== 同步嵌套子待办树 ==========
+    const tree = this._flatToTree(this.data.subtasks);
+
+    // 收集所有现有后代 ID（递归）
+    const collectDescendantIds = (pid) => {
+      const all = getLocalTodos();
+      const children = all.filter(t => t.parent_id === pid && !t.isDeleted);
+      const ids = [];
+      for (const c of children) {
+        ids.push(c.id, ...collectDescendantIds(c.id));
+      }
+      return ids;
+    };
+
+    // 收集传入 tree 中的所有 ID（用于判断哪些被删除了）
+    const collectIncomingIds = (nodes) => {
+      const ids = [];
+      for (const n of nodes) {
+        if (n.id) ids.push(n.id);
+        if (n.subtasks) ids.push(...collectIncomingIds(n.subtasks));
+      }
+      return ids;
+    };
+
+    const existingDescendantIds = collectDescendantIds(parentId);
+    const incomingIds = collectIncomingIds(tree);
+    const toDelete = existingDescendantIds.filter(id => !incomingIds.includes(id));
+
+    // 删除已移除的子待办（递归清理后代）
+    toDelete.forEach(id => {
+      this._deleteSubtaskTree(id);
+      deleteTodoById(id, now);
+    });
+
+    // 遍历 flat 列表，维护 parent 栈，新增/更新
+    const parentStack = [{ id: parentId, depth: -1 }];
+    const flatItems = this.data.subtasks.filter(s => s.text && s.text.trim());
+
+    flatItems.forEach((s, i) => {
+      // 弹出栈中 depth >= 当前项 depth 的条目
+      while (parentStack.length > 1 && parentStack[parentStack.length - 1].depth >= s.depth) {
+        parentStack.pop();
+      }
+      const currentParentId = parentStack[parentStack.length - 1].id;
+
+      if (s.id) {
+        // 更新已有子待办
+        const existing = getLocalTodos().find(t => t.id === s.id);
+        if (existing && (existing.text !== s.text.trim() || String(existing.parent_id) !== String(currentParentId))) {
+          saveTodo({
+            ...existing,
+            text: s.text.trim(),
+            parent_id: currentParentId,
+            version: (existing.version || 1) + 1,
+            updatedAt: now
+          });
+        }
+      } else {
+        // 新增子待办
+        const subId = generateTodoId();
+        s.id = subId; // 用于后续子项的 parent 栈引用
+        saveTodo({
+          id: subId,
+          text: s.text.trim(),
+          parent_id: currentParentId,
+          setDate: updatedTodo.setDate,
+          setTime: updatedTodo.setTime,
+          priority: updatedTodo.priority,
+          comboId: updatedTodo.comboId || '',
+          completed: false,
+          time: now + i + 1,
+          isStar: false,
+          tags: [],
+          images: [],
+          version: 1,
+          isDeleted: false,
+          deletedAt: null,
+          updatedAt: now
+        });
+      }
+
+      parentStack.push({ id: s.id, depth: s.depth });
+    });
+
+    const allTodosAfter = getLocalTodos();
+    app.updateCalendarCache(allTodosAfter);
+
     const pages = getCurrentPages();
     const todoPage = pages.find(page => page.route === 'pages/todo/todo');
     const calendarPage = pages.find(page => page.route === 'pages/calendar/calendar');
     const comboDetailPage = pages.find(page => page.route === 'pages/combo-detail/combo-detail');
-    
-    if (todoPage) todoPage.setData({ todos: allTodos });
-    if (calendarPage) calendarPage.setData({ todos: allTodos });
+
+    if (todoPage) todoPage.setData({ todos: allTodosAfter });
+    if (calendarPage) calendarPage.setData({ todos: allTodosAfter });
     if (comboDetailPage && comboDetailPage.data.comboId) {
       comboDetailPage.loadComboData(comboDetailPage.data.comboId);
     }
-    
+
     if (isLoggedIn()) {
       const { syncWithCloud } = require('../../utils/sync.js');
       syncWithCloud('local').catch(err => logger.error('SYNC', 'SYNC', '同步失败', err));
     }
-    
+
     wx.navigateBack();
   },
 
   async updateSharedTodo() {
     const { sharedTodoId, comboId, inputValue, setDate, setTime, remarks, selectedTags, assignType, selectedMembers, excludeType, images, location } = this.data;
-    
+
     if (!inputValue.trim()) {
       wx.showToast({ title: '请填写事项内容', icon: 'none' });
       return;
     }
-    
+
     if (assignType === 'specific' && selectedMembers.length === 0) {
       wx.showToast({ title: '请选择完成人', icon: 'none' });
       return;
     }
-    
+
     wx.showLoading({ title: '保存中...' });
-    
+
     try {
       await collabApi.updateSharedTodo(comboId, sharedTodoId, {
         text: inputValue.trim(),
@@ -947,7 +1196,8 @@ Page({
         assignType,
         assigneeIds: assignType === 'specific' ? selectedMembers : [],
         excludeType: (assignType === 'all' || assignType === 'any') ? excludeType : '',
-        images: images
+        images: images,
+        subtasks: this._flatToTree(this.data.subtasks)
       });
       
       wx.hideLoading();

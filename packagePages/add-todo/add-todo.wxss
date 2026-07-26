@@ -481,3 +481,62 @@
 .quadrant.active .qd {
   color: #00b26a;
 }
+
+/* ========== 子待办 ========== */
+.subtask-list {
+  margin-left: 24rpx;
+}
+
+.subtask-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx 20rpx;
+  background: #f8f8f8;
+  border-radius: 32rpx;
+  margin-bottom: 12rpx;
+  transition: all 0.2s ease;
+}
+
+.subtask-label {
+  font-size: 28rpx;
+  color: #999;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.subtask-input {
+  flex: 1;
+  font-size: 30rpx;
+  color: #333;
+  background: transparent;
+  border: none;
+  outline: none;
+  min-height: 48rpx;
+  padding: 0;
+}
+
+.subtask-input::placeholder {
+  color: #ccc;
+}
+
+.subtask-item .t-icon {
+  flex-shrink: 0;
+}
+
+.add-subtask {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-left: 24rpx;
+  padding: 20rpx 0;
+}
+
+.add-subtask text {
+  font-size: 28rpx;
+  color: #00b26a;
+}
+
+.add-subtask:active {
+  opacity: 0.6;
+}

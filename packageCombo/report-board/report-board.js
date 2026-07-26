@@ -248,10 +248,35 @@ Page({
   onFilterPopupVisibleChange(e) { if (!e.detail.visible) this.setData({ showFilterPopup: false }); },
   onMemberFilterChange(e) { this.setData({ selectedMemberId: e.detail.value, showFilterPopup: false }); this.loadReports(); },
 
-  onFabTap() {
-    const { comboId, currentTab, selectedDate } = this.data;
+  async onFabTap() {
+    const { comboId, currentTab, selectedDate, currentUserId } = this.data;
     const date = selectedDate || this.formatDate(new Date());
     const target = currentTab === 'daily' ? date : this.getWeekStart(date);
+    const label = currentTab === 'daily' ? '日报' : '周报';
+
+    // 检测当前用户在此时段是否已有报告
+    try {
+      const res = await workReportApi.getList({ type: currentTab, period_date: target, combo_id: comboId, page_size: 1 });
+      const list = (res.data && res.data.list) || res.list || [];
+      const mine = list.find(r => String(r.userId || r.user_id) === String(currentUserId));
+      if (mine) {
+        wx.showModal({
+          title: `${label}已存在`,
+          content: `你在该时段已有${label}，是否前往编辑？`,
+          confirmText: '去编辑',
+          cancelText: '取消',
+          success: (r) => {
+            if (r.confirm) {
+              wx.navigateTo({
+                url: `/packagePages/report-edit/report-edit?id=${mine.id}`
+              });
+            }
+          }
+        });
+        return;
+      }
+    } catch { /* 失败则继续进入创建页 */ }
+
     wx.navigateTo({ url: `/packagePages/report-edit/report-edit?type=${currentTab}&date=${target}&combo_id=${comboId}` });
   },
 

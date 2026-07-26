@@ -34,7 +34,7 @@
             <view class="mode-toggle-row">
               <text class="mode-toggle-label">条目需记录日期</text>
               <t-switch
-                checked="{{item.mode === 'date'}}"
+                value="{{item.mode === 'date'}}"
                 data-type="daily"
                 data-index="{{index}}"
                 bind:change="onModeToggle"
@@ -71,7 +71,7 @@
             <view class="mode-toggle-row">
               <text class="mode-toggle-label">条目需记录日期</text>
               <t-switch
-                checked="{{item.mode === 'date'}}"
+                value="{{item.mode === 'date'}}"
                 data-type="weekly"
                 data-index="{{index}}"
                 bind:change="onModeToggle"

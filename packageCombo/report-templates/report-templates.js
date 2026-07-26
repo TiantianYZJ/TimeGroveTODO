@@ -37,6 +37,8 @@ Page({
     const initType = (options.type === 'daily' || options.type === 'weekly') ? options.type : 'daily';
     const cid = parseInt(combo_id || 0);
     const initialComboName = cid > 0 ? (this._resolveComboName(cid) || `组合 #${cid}`) : '私人';
+    this._snapshotDaily = JSON.parse(JSON.stringify(PRESET_DAILY));
+    this._snapshotWeekly = JSON.parse(JSON.stringify(PRESET_WEEKLY));
     this.setData({
       comboId: cid,
       comboName: initialComboName,
@@ -87,10 +89,12 @@ Page({
         const daily = templates.find(t => t.type === 'daily')?.sections;
         const weekly = templates.find(t => t.type === 'weekly')?.sections;
         if (daily && daily.length > 0) {
-          this.setData({ dailySections: this._normalizeSections(daily) });
+          this._snapshotDaily = JSON.parse(JSON.stringify(this._normalizeSections(daily)));
+          this.setData({ dailySections: JSON.parse(JSON.stringify(this._snapshotDaily)) });
         }
         if (weekly && weekly.length > 0) {
-          this.setData({ weeklySections: this._normalizeSections(weekly) });
+          this._snapshotWeekly = JSON.parse(JSON.stringify(this._normalizeSections(weekly)));
+          this.setData({ weeklySections: JSON.parse(JSON.stringify(this._snapshotWeekly)) });
         }
       }
     } catch (err) { logger.error('TEMPLATE', 'LOAD', '加载模板失败', err); }
@@ -118,14 +122,15 @@ Page({
       dailySections: JSON.parse(JSON.stringify(PRESET_DAILY)),
       weeklySections: JSON.parse(JSON.stringify(PRESET_WEEKLY)),
     });
+    this._snapshotDaily = JSON.parse(JSON.stringify(PRESET_DAILY));
+    this._snapshotWeekly = JSON.parse(JSON.stringify(PRESET_WEEKLY));
     this.loadData();
   },
 
   _hasUnsavedChanges() {
     const { dailySections, weeklySections } = this.data;
-    const isDefaultDaily = JSON.stringify(dailySections) === JSON.stringify(PRESET_DAILY);
-    const isDefaultWeekly = JSON.stringify(weeklySections) === JSON.stringify(PRESET_WEEKLY);
-    return !isDefaultDaily || !isDefaultWeekly;
+    return JSON.stringify(dailySections) !== JSON.stringify(this._snapshotDaily)
+        || JSON.stringify(weeklySections) !== JSON.stringify(this._snapshotWeekly);
   },
 
   showComboPicker() {
@@ -149,7 +154,46 @@ Page({
     this._switchTarget(Number(id), name);
   },
 
-  onTypeChange(e) { this.setData({ currentType: e.detail.value }); },
+  onTypeChange(e) {
+    const newType = e.detail.value;
+    if (newType === this.data.currentType) return;
+    const key = this.data.currentType === 'daily' ? 'dailySections' : 'weeklySections';
+    const snapshotKey = this.data.currentType === 'daily' ? '_snapshotDaily' : '_snapshotWeekly';
+    const current = this.data[key];
+    const snapshot = this[snapshotKey];
+    const hasChanges = JSON.stringify(current) !== JSON.stringify(snapshot);
+    if (!hasChanges) {
+      this.setData({ currentType: newType });
+      return;
+    }
+    wx.showModal({
+      title: '未保存的变更',
+      content: `"${this.data.currentType === 'daily' ? '日报模板' : '周报模板'}"有未保存的修改，是否保存？`,
+      confirmText: '保存',
+      cancelText: '不保存',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '保存中...' });
+          try {
+            const comboId = this.data.comboId;
+            const type = this.data.currentType;
+            const secKey = type === 'daily' ? 'dailySections' : 'weeklySections';
+            await reportTemplateApi.upsert({ combo_id: comboId, type, sections: this.data[secKey] });
+            this[snapshotKey] = JSON.parse(JSON.stringify(this.data[secKey]));
+            wx.hideLoading();
+            wx.showToast({ title: '已保存', icon: 'success' });
+          } catch (err) {
+            wx.hideLoading();
+            wx.showToast({ title: '保存失败', icon: 'none' });
+            return;
+          }
+          this.setData({ currentType: newType });
+        } else {
+          this.setData({ [key]: JSON.parse(JSON.stringify(snapshot)), currentType: newType });
+        }
+      }
+    });
+  },
 
   onSectionTitleInput(e) {
     const { type, index } = e.currentTarget.dataset;
@@ -167,7 +211,7 @@ Page({
     const key = type === 'daily' ? 'dailySections' : 'weeklySections';
     const sections = [...this.data[key]];
     if (sections[index]) {
-      sections[index] = { ...sections[index], mode: sections[index].mode === 'date' ? 'text' : 'date' };
+      sections[index] = { ...sections[index], mode: e.detail.value ? 'date' : 'text' };
       this.setData({ [key]: sections });
     }
   },
@@ -204,6 +248,8 @@ Page({
         reportTemplateApi.upsert({ combo_id: comboId, type: 'daily', sections: dailySections }),
         reportTemplateApi.upsert({ combo_id: comboId, type: 'weekly', sections: weeklySections }),
       ]);
+      this._snapshotDaily = JSON.parse(JSON.stringify(dailySections));
+      this._snapshotWeekly = JSON.parse(JSON.stringify(weeklySections));
       wx.showToast({ title: '保存成功', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 1500);
     } catch (err) {
