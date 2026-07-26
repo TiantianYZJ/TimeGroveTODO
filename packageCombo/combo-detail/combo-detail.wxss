@@ -203,6 +203,12 @@
   font-weight: 500;
   color: #0d5e4a;
 }
+.section-sub {
+  font-size: 22rpx;
+  font-weight: 400;
+  color: #999;
+  margin-left: 8rpx;
+}
 
 .view-toggle {
   display: flex;

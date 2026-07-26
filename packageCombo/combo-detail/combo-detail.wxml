@@ -1,3 +1,18 @@
+<wxs module="timeUtil">
+var relativeTime = function(dateStr) {
+  if (!dateStr) return '';
+  var date = getDate(dateStr);
+  var now = getDate();
+  var diff = Math.floor((now - date) / 1000);
+  if (diff < 60) return ' · 刚刚';
+  if (diff < 3600) return ' · ' + Math.floor(diff / 60) + '分钟前';
+  if (diff < 86400) return ' · ' + Math.floor(diff / 3600) + '小时前';
+  if (diff < 2592000) return ' · ' + Math.floor(diff / 86400) + '天前';
+  if (diff < 31104000) return ' · ' + Math.floor(diff / 2592000) + '个月前';
+  return ' · ' + Math.floor(diff / 31104000) + '年前';
+};
+module.exports = { relativeTime: relativeTime };
+</wxs>
 <view class="container">
   <view class="fixed-header" id="fixedHeader">
     <view class="combo-header">
@@ -122,7 +137,7 @@
       </view>
       <view class="info-block posts-block" bindtap="navigateToComboPosts">
         <view class="section-header">
-          <text class="section-title">动态</text>
+          <text class="section-title">动态<text wx:if="{{combo.latestPostAt}}" class="section-sub">{{timeUtil.relativeTime(combo.latestPostAt)}}</text></text>
           <t-icon name="chevron-right" size="32rpx" color="#999" />
         </view>
       </view>
