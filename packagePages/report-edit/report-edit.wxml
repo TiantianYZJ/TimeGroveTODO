@@ -8,6 +8,20 @@ module.exports = {
       if (arr[i] == val) return true;
     }
     return false;
+  },
+  fmtDate: function(d) {
+    if (!d || d.length < 10) return '';
+    return d.slice(5);
+  },
+  fmtTs: function(ts) {
+    if (!ts) return '';
+    var d = getDate(ts);
+    var m = (d.getMonth() + 1).toString();
+    var day = d.getDate().toString();
+    return (m.length < 2 ? '0' : '') + m + '-' + (day.length < 2 ? '0' : '') + day;
+  },
+  dateOpt: function(opts, key) {
+    return opts ? opts[key] : '';
   }
 }
 </wxs>
@@ -34,17 +48,6 @@ module.exports = {
       </view>
     </picker>
   </view>
-
-  <t-calendar
-    id="dateCalendar"
-    value="{{calendarValue}}"
-    visible="{{showCalendar}}"
-    min-date="{{minDate}}"
-    max-date="{{maxDate}}"
-    confirm-btn="确定"
-    bind:confirm="handleCalendarConfirm"
-    bind:close="handleCalendarClose"
-  />
 
   <view wx:if="{{reportType === 'weekly' && !reportId}}" class="weekly-hint">
     <t-icon name="info-circle" color="#00b26a" size="32rpx"/>
@@ -75,10 +78,15 @@ module.exports = {
 
       <!-- 行列表 -->
       <view class="lines-container">
-        <view class="line-item" wx:for="{{item.lines}}" wx:key="id" wx:for-index="lineIndex" data-section-index="{{sectionIndex}}" data-line-index="{{lineIndex}}">
+        <view class="line-item {{sections[sectionIndex].mode === 'date' ? 'date-mode' : ''}}" wx:for="{{item.lines}}" wx:for-item="line" wx:key="id" wx:for-index="lineIndex" data-section-index="{{sectionIndex}}" data-line-index="{{lineIndex}}">
+          <view wx:if="{{sections[sectionIndex].mode === 'date'}}" class="date-picker-field" bindtap="showLineDateCalendar" data-section="{{sectionIndex}}" data-line="{{lineIndex}}">
+            <t-icon name="calendar" size="28rpx" color="#999" />
+            <text wx:if="{{line.date}}" class="date-picker-text">{{utils.fmtDate(line.date)}}</text>
+            <text wx:else class="date-picker-placeholder">选择日期</text>
+          </view>
           <textarea
             class="line-textarea"
-            value="{{item.text}}"
+            value="{{line.text}}"
             auto-height
             placeholder="输入内容..."
             maxlength="500"
@@ -104,7 +112,7 @@ module.exports = {
           <t-icon name="add" size="28rpx" color="#00b26a" />
           <text class="action-text">添加新条目</text>
         </view>
-        <view wx:if="{{!isPlanSection(item.key)}}" class="section-action-btn" bindtap="importFromTodos" data-section="{{sectionIndex}}">
+        <view class="section-action-btn" bindtap="importFromTodos" data-section="{{sectionIndex}}">
           <t-icon name="download" size="28rpx" color="#00b26a" />
           <text class="action-text">从待办导入</text>
         </view>
@@ -118,6 +126,28 @@ module.exports = {
 
   </view>
 </scroll-view>
+
+<t-calendar
+  id="dateCalendar"
+  value="{{calendarValue}}"
+  visible="{{showCalendar}}"
+  min-date="{{minDate}}"
+  max-date="{{maxDate}}"
+  confirm-btn="确定"
+  bind:confirm="handleCalendarConfirm"
+  bind:close="handleCalendarClose"
+/>
+
+<t-calendar
+  id="lineCalendar"
+  value="{{lineCalendarValue}}"
+  visible="{{showLineCalendar}}"
+  min-date="{{minDate}}"
+  max-date="{{maxDate}}"
+  confirm-btn="确定"
+  bind:confirm="handleLineCalendarConfirm"
+  bind:close="handleLineCalendarClose"
+/>
 
 <!-- 保存 FAB -->
 <t-fab icon="check" text="完成" bind:click="saveReport" style="right: 32rpx; bottom: 32rpx;" />
@@ -230,6 +260,11 @@ module.exports = {
           bindtap="toggleImportTodo"
         >
           <view class="import-todo-text">{{item.text}}</view>
+          <view wx:if="{{sections[importTargetSection].mode === 'date'}}" class="import-date-opts" catchtap="stopPropagation">
+            <view class="import-date-opt {{utils.dateOpt(importDateOpts, item._key) === 'create' ? 'active' : ''}}" data-key="{{item._key}}" data-opt="create" bindtap="onImportDateOption"><text class="opt-label">创建</text><text class="opt-val">{{utils.fmtTs(item.time)}}</text></view>
+            <view class="import-date-opt {{item.completedAt && utils.dateOpt(importDateOpts, item._key) === 'complete' ? 'active' : ''}} {{!item.completedAt ? 'disabled' : ''}}" data-key="{{item._key}}" data-opt="complete" bindtap="onImportDateOption"><text class="opt-label">完成</text><text class="opt-val">{{item.completedAt ? utils.fmtTs(item.completedAt) : '-'}}</text></view>
+            <view class="import-date-opt {{item.setDate && utils.dateOpt(importDateOpts, item._key) === 'due' ? 'active' : ''}} {{!item.setDate ? 'disabled' : ''}}" data-key="{{item._key}}" data-opt="due" bindtap="onImportDateOption"><text class="opt-label">截止</text><text class="opt-val">{{item.setDate ? utils.fmtDate(item.setDate) : '-'}}</text></view>
+          </view>
           <t-icon wx:if="{{utils.includes(selectedImportTodos, item._key)}}" name="check-circle-filled" size="36rpx" color="#00b26a" />
           <t-icon wx:else name="circle" size="36rpx" color="#ccc" />
         </view>
@@ -246,6 +281,11 @@ module.exports = {
           bindtap="toggleImportTodo"
         >
           <view class="import-todo-text">{{item.text}}</view>
+          <view wx:if="{{sections[importTargetSection].mode === 'date'}}" class="import-date-opts" catchtap="stopPropagation">
+            <view class="import-date-opt {{utils.dateOpt(importDateOpts, item._key) === 'create' ? 'active' : ''}}" data-key="{{item._key}}" data-opt="create" bindtap="onImportDateOption"><text class="opt-label">创建</text><text class="opt-val">{{utils.fmtTs(item.time)}}</text></view>
+            <view class="import-date-opt {{item.completedAt && utils.dateOpt(importDateOpts, item._key) === 'complete' ? 'active' : ''}} {{!item.completedAt ? 'disabled' : ''}}" data-key="{{item._key}}" data-opt="complete" bindtap="onImportDateOption"><text class="opt-label">完成</text><text class="opt-val">{{item.completedAt ? utils.fmtTs(item.completedAt) : '-'}}</text></view>
+            <view class="import-date-opt {{item.setDate && utils.dateOpt(importDateOpts, item._key) === 'due' ? 'active' : ''}} {{!item.setDate ? 'disabled' : ''}}" data-key="{{item._key}}" data-opt="due" bindtap="onImportDateOption"><text class="opt-label">截止</text><text class="opt-val">{{item.setDate ? utils.fmtDate(item.setDate) : '-'}}</text></view>
+          </view>
           <t-icon wx:if="{{utils.includes(selectedImportTodos, item._key)}}" name="check-circle-filled" size="36rpx" color="#00b26a" />
           <t-icon wx:else name="circle" size="36rpx" color="#ccc" />
         </view>

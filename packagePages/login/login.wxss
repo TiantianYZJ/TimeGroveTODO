@@ -425,7 +425,8 @@
 
 .popup-body {
   padding: 24rpx;
-  height: calc(80vh - 160rpx);
+  height: 68vh;
+  overflow: hidden;
 }
 
 /* ===== Animations ===== */

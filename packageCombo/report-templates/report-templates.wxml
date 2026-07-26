@@ -16,7 +16,7 @@
     <t-tabs value="{{currentType}}" bind:change="onTypeChange">
       <t-tab-panel label="日报模板" value="daily">
         <view class="section-list">
-          <view class="template-item" wx:for="{{dailySections}}" wx:key="key" data-index="{{index}}">
+          <view class="template-item" wx:for="{{dailySections}}" wx:key="index" data-index="{{index}}">
             <view class="template-item-header">
               <text class="item-title">段落名称</text>
               <view class="delete-icon" data-type="daily" data-index="{{index}}" bindtap="deleteSection">
@@ -31,6 +31,16 @@
               data-index="{{index}}"
               bind:change="onSectionTitleInput"
             />
+            <view class="mode-toggle-row">
+              <text class="mode-toggle-label">条目需记录日期</text>
+              <t-switch
+                checked="{{item.mode === 'date'}}"
+                data-type="daily"
+                data-index="{{index}}"
+                bind:change="onModeToggle"
+                size="small"
+              />
+            </view>
           </view>
           <view wx:if="{{dailySections.length === 0}}" class="empty-hint">
             <text>暂无日报段落，点击下方添加</text>
@@ -43,7 +53,7 @@
       </t-tab-panel>
       <t-tab-panel label="周报模板" value="weekly">
         <view class="section-list">
-          <view class="template-item" wx:for="{{weeklySections}}" wx:key="key" data-index="{{index}}">
+          <view class="template-item" wx:for="{{weeklySections}}" wx:key="index" data-index="{{index}}">
             <view class="template-item-header">
               <text class="item-title">段落名称</text>
               <view class="delete-icon" data-type="weekly" data-index="{{index}}" bindtap="deleteSection">
@@ -58,6 +68,16 @@
               data-index="{{index}}"
               bind:change="onSectionTitleInput"
             />
+            <view class="mode-toggle-row">
+              <text class="mode-toggle-label">条目需记录日期</text>
+              <t-switch
+                checked="{{item.mode === 'date'}}"
+                data-type="weekly"
+                data-index="{{index}}"
+                bind:change="onModeToggle"
+                size="small"
+              />
+            </view>
           </view>
           <view wx:if="{{weeklySections.length === 0}}" class="empty-hint">
             <text>暂无周报段落，点击下方添加</text>

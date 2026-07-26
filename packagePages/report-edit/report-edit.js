@@ -2,44 +2,35 @@ const { workReportApi, reportTemplateApi, combosApi } = require('../../utils/api
 const { getLocalTodos } = require('../../utils/sync.js');
 const logger = require('../../utils/logger.js');
 
-const DEFAULT_SECTIONS = [
-  { key: 'completed', title: '今日完成', color: '#00b26a', lines: [''] },
-  { key: 'in_progress', title: '进行中', color: '#2196F3', lines: [''] },
-  { key: 'blocked', title: '遇到的问题', color: '#ff9800', lines: [''] },
-  { key: 'tomorrow_plan', title: '明日计划', color: '#7c4dff', lines: [''] },
-  { key: 'summary', title: '总结与思考', color: '#e91e63', lines: [''] }
+const COLORS = ['#00b26a', '#2196F3', '#ff9800', '#7c4dff', '#e91e63', '#1abc9c'];
+
+const DEFAULT_DAILY_SECTIONS = [
+  { mode: 'text', title: '今日完成' },
+  { mode: 'text', title: '进行中' },
+  { mode: 'text', title: '遇到的问题' },
+  { mode: 'text', title: '明日计划' },
+  { mode: 'text', title: '总结与思考' },
 ];
 
-const SECTION_LABELS = {
-  daily: {
-    completed: '今日完成',
-    in_progress: '进行中',
-    blocked: '遇到的问题',
-    tomorrow_plan: '明日计划',
-    summary: '总结与思考'
-  },
-  weekly: {
-    completed: '本周完成',
-    in_progress: '进行中',
-    blocked: '遇到的问题',
-    next_plan: '下周计划',
-    summary: '总结与思考'
-  }
-};
+const DEFAULT_WEEKLY_SECTIONS = [
+  { mode: 'text', title: '本周完成' },
+  { mode: 'text', title: '进行中' },
+  { mode: 'text', title: '遇到的问题' },
+  { mode: 'text', title: '下周计划' },
+  { mode: 'text', title: '总结与思考' },
+];
 
-const SECTION_COLORS = {
-  completed: '#00b26a',
-  in_progress: '#2196F3',
-  blocked: '#ff9800',
-  tomorrow_plan: '#7c4dff',
-  next_plan: '#7c4dff',
-  summary: '#e91e63'
+// Key→title mapping for old-format content normalization only
+const OLD_LABELS = {
+  completed: '今日完成', in_progress: '进行中', blocked: '遇到的问题',
+  tomorrow_plan: '明日计划', summary: '总结与思考',
+  next_plan: '下周计划', work_done: '工作完成', weekly_summary: '本周总结',
 };
 
 // 行对象生成器（稳定 ID 用于 wx:key）
 let _lineSeq = Date.now();
-function _makeLine(text) {
-  return { id: _lineSeq++, text: String(text || '') };
+function _makeLine(text, date) {
+  return { id: _lineSeq++, text: String(text || ''), date: String(date || '') };
 }
 function _makeLines(texts) {
   return (texts || ['']).map(t => _makeLine(t));
@@ -63,6 +54,11 @@ Page({
     weekOptions: [],
     weekIndex: 0,
 
+    showLineCalendar: false,
+    lineCalendarValue: new Date().getTime(),
+    _lineCdSection: 0,
+    _lineCdLine: 0,
+
     sections: [],
     sharedCombos: [],
     selectedComboId: null,
@@ -76,6 +72,7 @@ Page({
     importTodos: { completed: [], uncompleted: [] },
     selectedImportTodos: [],
     importSearchKeyword: '',
+    importDateOpts: {},
 
     canEditTemplate: false,
   },
@@ -94,14 +91,7 @@ Page({
     const reportWeek = this.getWeekNumber(reportDate);
     const dateLabels = {
       daily: '日报 · ' + fullDateLabel,
-      weekly: reportDate ? (() => {
-        const endDate = this.addDays(reportDate, 6);
-        const sm = reportDate.substring(5, 7);
-        const sd = reportDate.substring(8, 10);
-        const em = endDate.substring(5, 7);
-        const ed = endDate.substring(8, 10);
-        return `周报 · 第${reportWeek}周`;
-      })() : ''
+      weekly: reportDate ? `周报 · 第${reportWeek}周` : ''
     };
 
     const isEdit = !!reportId;
@@ -121,7 +111,7 @@ Page({
       selectedComboName: comboId ? '加载中...' : '私人'
     });
 
-    // 初始化周数选择器选项 & 日历预设值；reportWeek 优先级：buildWeekOptions 返回值 > 默认
+    // 初始化周数选择器选项 & 日历预设值
     let computedWeek = reportWeek;
     if (reportType === 'weekly') {
       computedWeek = this.buildWeekOptions(reportDate);
@@ -133,7 +123,7 @@ Page({
       this.setData({ reportWeek: computedWeek });
     }
 
-    // 关键：先加载模板/报告，再检查草稿，避免草稿覆盖模板的时序问题
+    // 关键：先加载模板/报告，再检查草稿
     if (isEdit) {
       this.loadReport(reportId);
     } else {
@@ -141,11 +131,26 @@ Page({
     }
 
     this.loadCombos();
-    if (isEdit) this.checkDraft(); // 编辑态不需要等 loadReport（不涉及模板覆盖）
+    if (isEdit) this.checkDraft();
   },
 
   onUnload() {
     this.saveDraft();
+  },
+
+  // ========== 旧内容格式归一化 (object → array) ==========
+
+  _normalizeContent(content, type) {
+    if (!content) return null;
+    if (Array.isArray(content)) return content;
+    if (typeof content === 'object') {
+      return Object.keys(content).map((key, i) => ({
+        title: OLD_LABELS[key] || key,
+        mode: 'text',
+        lines: Array.isArray(content[key]) ? content[key] : []
+      }));
+    }
+    return null;
   },
 
   // ========== Draft System ==========
@@ -173,7 +178,7 @@ Page({
   },
 
   checkDraft() {
-    if (this.data.reportId) return; // 编辑态不恢复草稿
+    if (this.data.reportId) return;
     try {
       const draftKey = this.getDraftKey();
       const draft = wx.getStorageSync(draftKey);
@@ -216,7 +221,6 @@ Page({
     const d = dateStr ? new Date(dateStr.replace(/-/g, '/')) : new Date();
     const year = d.getFullYear();
     const options = [];
-    // 从年首找第一个周日（可能在上一年）
     const cursor = new Date(year, 0, 1);
     cursor.setDate(cursor.getDate() - cursor.getDay());
     const yearEnd = new Date(year, 11, 31);
@@ -237,7 +241,6 @@ Page({
       weekNum++;
       if (weekNum > 54) break;
     }
-    // 再补一周：上一周年末周日后的第一周，属于下一年的第一周
     if (options.length > 0) {
       const last = options[options.length - 1];
       const lastDate = new Date(last.date);
@@ -257,7 +260,6 @@ Page({
       }
     }
 
-    // 找到当前日期对应的周索引
     let weekIndex = 0;
     const targetStr = dateStr || this.getTodayStr();
     const targetDate = new Date(targetStr.replace(/-/g, '/'));
@@ -278,7 +280,6 @@ Page({
       _weekData: options,
       weekIndex
     });
-    // 返回当前选中周的周数，供 onLoad 使用（避免 getWeekNumber 跨年错误）
     return options[weekIndex] ? options[weekIndex].weekNum : 1;
   },
 
@@ -287,11 +288,6 @@ Page({
     const weekData = this.data._weekData || [];
     if (!weekData[idx]) return;
     const { date, weekNum } = weekData[idx];
-    const endDate = this.addDays(date, 6);
-    const sm = date.substring(5, 7);
-    const sd = date.substring(8, 10);
-    const em = endDate.substring(5, 7);
-    const ed = endDate.substring(8, 10);
     this.setData({
       reportDate: date,
       reportWeek: weekNum,
@@ -325,6 +321,36 @@ Page({
     this.setData({ showCalendar: false });
   },
 
+  // ========== Line Date Calendar ==========
+
+  showLineDateCalendar(e) {
+    const sectionIdx = Number(e.currentTarget.dataset.section);
+    const lineIdx = Number(e.currentTarget.dataset.line);
+    const line = this.data.sections[sectionIdx]?.lines[lineIdx];
+    this.setData({
+      showLineCalendar: true,
+      lineCalendarValue: line?.date ? new Date(line.date.replace(/-/g, '/')).getTime() : new Date().getTime(),
+      _lineCdSection: sectionIdx,
+      _lineCdLine: lineIdx,
+    });
+  },
+
+  handleLineCalendarConfirm(e) {
+    const date = new Date(e.detail.value);
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    const d = date.getDate().toString().padStart(2, '0');
+    const dateStr = `${date.getFullYear()}-${m}-${d}`;
+    const s = this.data._lineCdSection;
+    const l = this.data._lineCdLine;
+    this.setData({
+      [`sections[${s}].lines[${l}].date`]: dateStr,
+    });
+  },
+
+  handleLineCalendarClose() {
+    this.setData({ showLineCalendar: false });
+  },
+
   // ========== Data Loading ==========
 
   async loadReport(id) {
@@ -334,31 +360,27 @@ Page({
       const report = res.data || res;
       if (report && report.id) {
         const sections = this.buildSectionsFromReport(report);
-        const actualDate = report.periodDate || this.data.reportDate;
+        const actualDate = (report.periodDate || this.data.reportDate).substring(0, 10);
         const actualType = report.type || this.data.reportType;
         const reportWeek = this.getWeekNumber(actualDate);
         const fullDateLabel = this.formatDateWithWeekday(actualDate);
+        const weeklyEnd = (() => { const d = new Date(actualDate.replace(/-/g, '/')); d.setDate(d.getDate() + 6); return (d.getMonth() + 1) + '月' + d.getDate() + '日'; })();
         const dateLabels = {
           daily: '日报 · ' + fullDateLabel,
-          weekly: actualDate ? (() => {
-            const endDate = this.addDays(actualDate, 6);
-            const sm = actualDate.substring(5, 7);
-            const sd = actualDate.substring(8, 10);
-            const em = endDate.substring(5, 7);
-            const ed = endDate.substring(8, 10);
-            return `周报 · 第${reportWeek}周 · ${parseInt(sm)}月${parseInt(sd)}日-${parseInt(em)}月${parseInt(ed)}日`;
-          })() : ''
+          weekly: actualDate ? `周报 · 第${reportWeek}周 · ${parseInt(actualDate.substring(5, 7))}月${parseInt(actualDate.substring(8, 10))}日-${weeklyEnd}` : ''
         };
+        const editTitle = actualType === 'weekly' ? '编辑周报' : '编辑报告';
+        wx.setNavigationBarTitle({ title: editTitle });
         this.setData({
           sections,
           reportType: actualType,
           reportDate: actualDate,
           reportWeek,
+          navTitle: editTitle,
           targetDateHint: dateLabels[actualType] || dateLabels.daily,
           selectedComboId: report.comboId || null,
           isSharedCombo: !!report.comboId
         });
-        // Look up combo name from already-loaded shared combos
         if (report.comboId) {
           const combos = this.data.sharedCombos.length > 0
             ? this.data.sharedCombos
@@ -380,14 +402,12 @@ Page({
   async loadTemplates(comboIdOverride) {
     const comboId = comboIdOverride !== undefined ? comboIdOverride : this.data.selectedComboId;
     if (!comboId) {
-      // For private (no combo), still try to load from API for per-user templates
       try {
         const res = await reportTemplateApi.getList({
           combo_id: 0,
           type: this.data.reportType
         });
         const templates = res.templates || res.data || [];
-        // 客户端按 type 过滤作为兜底
         const matched = templates.filter(t => t.type === this.data.reportType);
         const template = matched.length > 0 ? matched[0] : (templates.length > 0 ? templates[0] : null);
         if (template) {
@@ -395,7 +415,6 @@ Page({
           this.setData({ sections });
           return;
         }
-        // API 返回了空数组 — 没有模板，静默使用默认（用户可能在模板页看到预设但没有保存）
       } catch (err) {
         logger.warn('REPORT', 'TEMPLATE', '加载私人模板失败，使用默认', err);
       }
@@ -410,7 +429,6 @@ Page({
         type: this.data.reportType
       });
       const templates = res.templates || res.data || [];
-      // Filter by type on client side for safety
       const matched = templates.filter(t => t.type === this.data.reportType);
       const template = matched.length > 0 ? matched[0] : (templates.length > 0 ? templates[0] : null);
       if (template) {
@@ -428,76 +446,46 @@ Page({
   },
 
   buildSectionsFromReport(report) {
-    const type = this.data.reportType;
     const content = report.content || {};
-    const labels = SECTION_LABELS[type] || SECTION_LABELS.daily;
-    const colors = SECTION_COLORS;
+    const type = this.data.reportType || 'daily';
 
-    // Use the report's actual content keys to preserve custom template sections,
-    // fall back to default labels only if content is empty
-    const keys = Object.keys(content).length > 0
-      ? Object.keys(content)
-      : Object.keys(labels);
+    const normalized = this._normalizeContent(content, type);
+    if (!normalized) return this.copyDefaultSections();
 
-    return keys.map((key, i) => ({
-      key,
-      title: labels[key] || key,
-      color: colors[key] || '#00b26a',
-      lines: content[key] && Array.isArray(content[key]) ? _makeLines(content[key]) : _makeLines(['']),
+    return normalized.map((s, i) => ({
+      mode: s.mode || 'text',
+      title: s.title || '',
+      color: COLORS[i % COLORS.length],
+      lines: Array.isArray(s.lines) ? s.lines.map(l => {
+        if (typeof l === 'object' && l !== null) return _makeLine(l.text, l.date);
+        return _makeLine(l);
+      }) : _makeLines(['']),
       _rk: i
     }));
   },
 
   buildSectionsFromTemplate(template) {
-    const type = this.data.reportType;
-    const labels = SECTION_LABELS[type] || SECTION_LABELS.daily;
+    if (!template) return this.copyDefaultSections();
+    const sections = Array.isArray(template.sections) ? template.sections : [];
+    if (sections.length === 0) return this.copyDefaultSections();
 
-    // 从模板提取 sections（支持数组对象、字符串数组、对象三种格式）
-    // 保留模板中的 title，使自定义段落显示正确的标题而非 key 原名
-    if (template.sections) {
-      if (Array.isArray(template.sections) && template.sections.length > 0) {
-        return template.sections.map((s, i) => {
-          const key = typeof s === 'string' ? s : s.key;
-          return {
-            key,
-            title: typeof s === 'object' && s.title ? s.title : (labels[key] || key),
-            color: SECTION_COLORS[key] || '#00b26a',
-            lines: _makeLines(['']),
-            _rk: i
-          };
-        });
-      }
-      if (typeof template.sections === 'object') {
-        const keys = Object.keys(template.sections);
-        if (keys.length > 0) {
-          return keys.map((key, i) => ({
-            key,
-            title: template.sections[key]?.title || labels[key] || key,
-            color: SECTION_COLORS[key] || '#00b26a',
-            lines: _makeLines(['']),
-            _rk: i
-          }));
-        }
-      }
-    }
-
-    // 无模板时使用默认 labels
-    return Object.keys(labels).map((key, i) => ({
-      key,
-      title: labels[key],
-      color: SECTION_COLORS[key] || '#00b26a',
+    // Normalize old format sections that still have key instead of mode
+    return sections.map((s, i) => ({
+      mode: s.mode || 'text',
+      title: s.title || '',
+      color: COLORS[i % COLORS.length],
       lines: _makeLines(['']),
       _rk: i
     }));
   },
 
   copyDefaultSections() {
-    const type = this.data.reportType;
-    const keys = Object.keys(SECTION_LABELS[type] || SECTION_LABELS.daily);
-    return keys.map((key, i) => ({
-      key,
-      title: (SECTION_LABELS[type] || SECTION_LABELS.daily)[key],
-      color: SECTION_COLORS[key],
+    const type = this.data.reportType || 'daily';
+    const presets = type === 'weekly' ? DEFAULT_WEEKLY_SECTIONS : DEFAULT_DAILY_SECTIONS;
+    return presets.map((s, i) => ({
+      mode: s.mode,
+      title: s.title,
+      color: COLORS[i % COLORS.length],
       lines: _makeLines(['']),
       _rk: i
     }));
@@ -508,7 +496,6 @@ Page({
       const sharedCombos = app.globalData.sharedCombos || [];
       this.setData({ sharedCombos });
 
-      // If combo_id was passed from URL, find its name
       if (this.data.selectedComboId) {
         const selected = sharedCombos.find(c => String(c.id) === String(this.data.selectedComboId));
         if (selected) {
@@ -525,18 +512,26 @@ Page({
   },
 
   _mergeIntoTemplate(currentSections, targetSections) {
-    const contentMap = {};
-    currentSections.forEach(s => {
-      const texts = s.lines.filter(l => l && l.text && l.text.trim()).map(l => l.text);
-      if (texts.length > 0) contentMap[s.key] = texts;
-    });
-    return (targetSections || []).map((s, i) => {
-      const existing = contentMap[s.key];
-      return {
-        ...s,
-        lines: existing && existing.length > 0 ? _makeLines(existing) : _makeLines(['']),
-        _rk: i
-      };
+    return targetSections.map((ts, i) => {
+      const cs = currentSections[i];
+      if (cs) {
+        const entries = cs.lines.filter(l => l && l.text && l.text.trim());
+        if (entries.length > 0) {
+          if (ts.mode === 'date') {
+            return {
+              ...ts,
+              lines: entries.map(e => _makeLine(e.text, e.date)),
+              _rk: i
+            };
+          }
+          return {
+            ...ts,
+            lines: entries.map(e => _makeLine(e.text)),
+            _rk: i
+          };
+        }
+      }
+      return { ...ts, lines: _makeLines(['']), _rk: i };
     });
   },
 
@@ -568,27 +563,23 @@ Page({
       });
       const templates = res.templates || res.data || [];
       const matched = templates.filter(t => t.type === this.data.reportType);
-      const template = matched.length > 0 ? matched[0] : (templates.length > 0 ? templates[0] : null);
-      if (template) {
-        targetSections = this.buildSectionsFromTemplate(template);
-      } else {
-        targetSections = this.copyDefaultSections();
-      }
+      const template = matched.length > 0 ? matched[0] : null;
+      targetSections = template ? this.buildSectionsFromTemplate(template) : this.copyDefaultSections();
     } catch {
       targetSections = this.copyDefaultSections();
     }
 
     const currentSections = this.data.sections;
     const hasContent = currentSections.some(s => s.lines.some(l => l && l.text && l.text.trim()));
-    const currentKeys = this.getSectionKeys(currentSections);
-    const targetKeys = this.getSectionKeys(targetSections);
+    const structureDiffers = targetSections.length !== currentSections.length ||
+      targetSections.some((ts, i) => ts.mode !== (currentSections[i]?.mode || 'text'));
     let mergedSections = targetSections;
 
-    if (targetKeys !== currentKeys && hasContent) {
+    if (structureDiffers && hasContent) {
       const proceed = await new Promise(resolve => {
         wx.showModal({
           title: '切换确认',
-          content: '目标模板结构不同，切换后会自动保留相同字段的内容，无法匹配的字段将被清空。是否继续？',
+          content: '目标模板结构不同，切换后会自动保留相同位置字段的内容，无法匹配的字段将被清空。是否继续？',
           confirmText: '继续',
           cancelText: '取消',
           success: r => resolve(r.confirm)
@@ -645,18 +636,10 @@ Page({
     this.setData({ sections });
   },
 
-  isPlanSection(key) {
-    return key === 'tomorrow_plan' || key === 'next_plan';
-  },
-
   // ========== Combo Picker ==========
 
   showComboPicker() {
     this.setData({ showComboPicker: true });
-  },
-
-  getSectionKeys(sections) {
-    return sections.map(s => s.key).sort().join(',');
   },
 
   hideComboPicker() {
@@ -672,7 +655,6 @@ Page({
     const newComboId = id !== undefined ? Number(id) : null;
     await this._switchToCombo(newComboId, name, shared === '1');
   },
-
 
   // ========== Todo Import ==========
 
@@ -695,7 +677,6 @@ Page({
       _key: 'uncompleted_' + (t.id || t.time)
     }));
 
-    // Build lookup map for confirmImport
     this._importKeyMap = {};
     [...completed, ...uncompleted].forEach(t => { this._importKeyMap[t._key] = t; });
 
@@ -704,7 +685,8 @@ Page({
       importTargetSection: sectionIdx,
       importTodos: { completed, uncompleted },
       selectedImportTodos: [],
-      importSearchKeyword: ''
+      importSearchKeyword: '',
+      importDateOpts: {},
     });
   },
 
@@ -727,11 +709,9 @@ Page({
       _key: 'uncompleted_' + (t.id || t.time)
     }));
 
-    // Keep _importKeyMap in sync with current filtered results
     this._importKeyMap = {};
     [...completed, ...uncompleted].forEach(t => { this._importKeyMap[t._key] = t; });
 
-    // Preserve selections that still exist in filtered results
     const validKeys = new Set(Object.keys(this._importKeyMap));
     const preserved = this.data.selectedImportTodos.filter(key => validKeys.has(key));
 
@@ -763,6 +743,17 @@ Page({
     this.setData({ selectedImportTodos: selected });
   },
 
+  onImportDateOption(e) {
+    const { key, opt } = e.currentTarget.dataset;
+    const opts = { ...this.data.importDateOpts };
+    if (opts[key] === opt) {
+      delete opts[key];
+    } else {
+      opts[key] = opt;
+    }
+    this.setData({ importDateOpts: opts });
+  },
+
   confirmImport() {
     const { selectedImportTodos, importTargetSection } = this.data;
     if (selectedImportTodos.length === 0) {
@@ -774,15 +765,30 @@ Page({
     const todoMap = this._importKeyMap || {};
     let importedCount = 0;
 
+    const isDateMode = sections[importTargetSection]?.mode === 'date';
+    const dateOpts = this.data.importDateOpts || {};
+
     selectedImportTodos.forEach(key => {
       const todo = todoMap[key];
       if (todo && todo.text && todo.text.trim()) {
-        sections[importTargetSection].lines.push(_makeLine(todo.text.trim()));
+        let dateStr = '';
+        if (isDateMode) {
+          const opt = dateOpts[key];
+          if (opt === 'create' && todo.time) {
+            const d = new Date(todo.time);
+            dateStr = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+          } else if (opt === 'complete' && todo.completedAt) {
+            const d = new Date(todo.completedAt);
+            dateStr = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+          } else if (opt === 'due' && todo.setDate) {
+            dateStr = todo.setDate;
+          }
+        }
+        sections[importTargetSection].lines.push(_makeLine(todo.text.trim(), dateStr));
         importedCount++;
       }
     });
 
-    // 导入后移除开头的空占位行，避免第一个条目留空
     const targetLines = sections[importTargetSection].lines;
     while (targetLines.length > 0 && (!targetLines[0].text || !targetLines[0].text.trim())) {
       targetLines.shift();
@@ -824,14 +830,24 @@ Page({
   // ========== Save ==========
 
   saveReport() {
-    // Build clean sections: filter trailing empty lines, extract text
-    const cleanSections = this.data.sections.map(s => ({
-      key: s.key,
-      lines: this.trimTrailingEmpty(s.lines.filter(l => l !== null).map(l => l.text))
-    }));
+    const content = this.data.sections.map(s => {
+      const entries = s.lines.filter(l => l && l.text && l.text.trim());
+      if (entries.length === 0) return null;
+      if (s.mode === 'date') {
+        return {
+          title: s.title,
+          mode: 'date',
+          lines: entries.map(l => ({ text: l.text, date: l.date || '' }))
+        };
+      }
+      return {
+        title: s.title,
+        mode: 'text',
+        lines: this.trimTrailingEmpty(entries.map(l => l.text))
+      };
+    }).filter(Boolean);
 
-    // Check if report has any content
-    const hasContent = cleanSections.some(s => s.lines.length > 0);
+    const hasContent = content.length > 0;
     if (!hasContent) {
       wx.showToast({ title: '请填写报告内容', icon: 'none' });
       return;
@@ -844,12 +860,8 @@ Page({
       period_date: this.data.reportDate,
       combo_id: this.data.selectedComboId || null,
       period_label: this.data.reportType === 'weekly' ? '第' + this.data.reportWeek + '周' : undefined,
-      content: {}
+      content
     };
-
-    cleanSections.forEach(s => {
-      reportData.content[s.key] = s.lines;
-    });
 
     const apiCall = this.data.reportId
       ? workReportApi.update(this.data.reportId, reportData)
@@ -933,7 +945,6 @@ Page({
     if (!dateStr) return '';
     const d = new Date(dateStr.replace(/-/g, '/'));
     if (isNaN(d.getTime())) return '';
-    // 以周日为周起始
     const startOfYear = new Date(d.getFullYear(), 0, 1);
     const firstSunday = new Date(startOfYear);
     firstSunday.setDate(1 - startOfYear.getDay());

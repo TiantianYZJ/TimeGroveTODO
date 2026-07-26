@@ -1,6 +1,23 @@
 const { workReportApi, combosApi } = require('../../utils/api.js');
 const logger = require('../../utils/logger.js');
 
+function contentLineInfo(raw) {
+  let firstLine = '';
+  let lineCount = 0;
+  if (!raw) return { firstLine, lineCount };
+  const content = typeof raw === 'string' ? (() => { try { return JSON.parse(raw); } catch { return {}; } })() : raw;
+  function countLine(text) {
+    const t = typeof text === 'object' && text !== null ? text.text : text;
+    if (t && String(t).trim()) { lineCount++; if (!firstLine) firstLine = String(t).trim(); }
+  }
+  if (Array.isArray(content)) {
+    content.forEach(s => { if (s && Array.isArray(s.lines)) s.lines.forEach(countLine); });
+  } else if (content && typeof content === 'object') {
+    Object.values(content).forEach(lines => { if (Array.isArray(lines)) lines.forEach(countLine); });
+  }
+  return { firstLine, lineCount };
+}
+
 Page({
   data: {
     comboId: 0,
@@ -172,13 +189,8 @@ Page({
         const reports = [];
         members.forEach(m => {
           (m.reports || []).forEach(r => {
-            const content = r.content || {};
-            const firstKey = Object.keys(content)[0];
-            const firstLines = firstKey ? content[firstKey] : [];
-            const firstLine = Array.isArray(firstLines) ? firstLines.find(l => l && l.trim()) : '';
-            const lineCount = Object.values(content).reduce((c, lines) =>
-              c + (Array.isArray(lines) ? lines.filter(l => l && l.trim()).length : 0), 0);
-            reports.push({ ...r, userId: m.userId, nickname: m.nickname, avatarUrl: m.avatarUrl, summary: firstLine || '暂无记录', lineCount, isOwnReport: String(m.userId) === String(this.data.currentUserId) });
+            const lineInfo = contentLineInfo(r.content);
+            reports.push({ ...r, userId: m.userId, nickname: m.nickname, avatarUrl: m.avatarUrl, summary: lineInfo.firstLine || '暂无记录', lineCount: lineInfo.lineCount, isOwnReport: String(m.userId) === String(this.data.currentUserId) });
           });
         });
         this.setData({ reports });

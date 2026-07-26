@@ -60,6 +60,7 @@
   background: #f8f8f8 !important;
   border-radius: 32rpx !important;
   padding: 24rpx !important;
+  margin-left: 24rpx !important;
   font-size: 28rpx !important;
   color: #333 !important;
 }
@@ -255,4 +256,17 @@
   padding: 60rpx 0;
   color: #999;
   font-size: 28rpx;
+}
+
+/* ========== Mode Toggle ========== */
+.mode-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 8rpx 32rpx;
+}
+
+.mode-toggle-label {
+  font-size: 26rpx;
+  color: #666;
 }

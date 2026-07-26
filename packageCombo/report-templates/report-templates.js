@@ -2,19 +2,19 @@ const { reportTemplateApi, combosApi } = require('../../utils/api.js');
 const logger = require('../../utils/logger.js');
 
 const PRESET_DAILY = [
-  { key: 'completed', title: '今日完成', sort_order: 1, max_lines: 20 },
-  { key: 'in_progress', title: '进行中', sort_order: 2, max_lines: 20 },
-  { key: 'blocked', title: '遇到的问题', sort_order: 3, max_lines: 20 },
-  { key: 'tomorrow_plan', title: '明日计划', sort_order: 4, max_lines: 20 },
-  { key: 'summary', title: '总结与思考', sort_order: 5, max_lines: 20 },
+  { mode: 'text', title: '今日完成', sort_order: 1, max_lines: 20 },
+  { mode: 'text', title: '进行中', sort_order: 2, max_lines: 20 },
+  { mode: 'text', title: '遇到的问题', sort_order: 3, max_lines: 20 },
+  { mode: 'text', title: '明日计划', sort_order: 4, max_lines: 20 },
+  { mode: 'text', title: '总结与思考', sort_order: 5, max_lines: 20 },
 ];
 
 const PRESET_WEEKLY = [
-  { key: 'completed', title: '本周完成', sort_order: 1, max_lines: 20 },
-  { key: 'in_progress', title: '进行中', sort_order: 2, max_lines: 20 },
-  { key: 'blocked', title: '遇到的问题', sort_order: 3, max_lines: 20 },
-  { key: 'next_plan', title: '下周计划', sort_order: 4, max_lines: 20 },
-  { key: 'summary', title: '总结与思考', sort_order: 5, max_lines: 20 },
+  { mode: 'text', title: '本周完成', sort_order: 1, max_lines: 20 },
+  { mode: 'text', title: '进行中', sort_order: 2, max_lines: 20 },
+  { mode: 'text', title: '遇到的问题', sort_order: 3, max_lines: 20 },
+  { mode: 'text', title: '下周计划', sort_order: 4, max_lines: 20 },
+  { mode: 'text', title: '总结与思考', sort_order: 5, max_lines: 20 },
 ];
 
 const app = getApp();
@@ -58,6 +58,20 @@ Page({
     return (app.globalData.sharedCombos || []).filter(c => c.role === 'owner' || c.role === 'admin');
   },
 
+  _normalizeSections(sections) {
+    if (!Array.isArray(sections)) return [];
+    return sections.map((s, i) => {
+      if (typeof s === 'string') {
+        return { mode: 'text', title: s, sort_order: i + 1, max_lines: 20 };
+      }
+      // Old format: has key but no mode
+      if (!s.mode && s.key) {
+        return { ...s, mode: 'text', title: s.title || s.key };
+      }
+      return { ...s, mode: s.mode || 'text', title: s.title || '' };
+    });
+  },
+
   async loadData() {
     const { comboId } = this.data;
     try {
@@ -73,10 +87,10 @@ Page({
         const daily = templates.find(t => t.type === 'daily')?.sections;
         const weekly = templates.find(t => t.type === 'weekly')?.sections;
         if (daily && daily.length > 0) {
-          this.setData({ dailySections: daily });
+          this.setData({ dailySections: this._normalizeSections(daily) });
         }
         if (weekly && weekly.length > 0) {
-          this.setData({ weeklySections: weekly });
+          this.setData({ weeklySections: this._normalizeSections(weekly) });
         }
       }
     } catch (err) { logger.error('TEMPLATE', 'LOAD', '加载模板失败', err); }
@@ -108,7 +122,6 @@ Page({
   },
 
   _hasUnsavedChanges() {
-    // Simplified check: if any section title differs from presets, assume unsaved
     const { dailySections, weeklySections } = this.data;
     const isDefaultDaily = JSON.stringify(dailySections) === JSON.stringify(PRESET_DAILY);
     const isDefaultWeekly = JSON.stringify(weeklySections) === JSON.stringify(PRESET_WEEKLY);
@@ -149,13 +162,21 @@ Page({
     }
   },
 
+  onModeToggle(e) {
+    const { type, index } = e.currentTarget.dataset;
+    const key = type === 'daily' ? 'dailySections' : 'weeklySections';
+    const sections = [...this.data[key]];
+    if (sections[index]) {
+      sections[index] = { ...sections[index], mode: sections[index].mode === 'date' ? 'text' : 'date' };
+      this.setData({ [key]: sections });
+    }
+  },
+
   addSection(e) {
     const type = e.currentTarget.dataset.type;
     const key = type === 'daily' ? 'dailySections' : 'weeklySections';
     const sections = [...this.data[key]];
-    let counter = 1;
-    while (sections.some(s => s.key === `custom_${counter}`)) counter++;
-    sections.push({ key: `custom_${counter}`, title: '新段落', sort_order: sections.length + 1, max_lines: 20 });
+    sections.push({ mode: 'text', title: '新段落', sort_order: sections.length + 1, max_lines: 20 });
     this.setData({ [key]: sections });
   },
 
@@ -165,7 +186,7 @@ Page({
     let sections = [...this.data[key]];
     wx.showModal({
       title: '删除确认',
-      content: `确定删除"${sections[index]?.title || '此 section'}"吗？`,
+      content: `确定删除"${sections[index]?.title || '此段落'}"吗？`,
       success: (res) => {
         if (res.confirm) {
           sections.splice(index, 1);

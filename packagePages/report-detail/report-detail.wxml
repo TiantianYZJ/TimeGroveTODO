@@ -1,3 +1,10 @@
+<wxs module="utils">
+function fmtDate(d) {
+  if (!d || d.length < 10) return '';
+  return d.slice(5);
+}
+module.exports = { fmtDate: fmtDate };
+</wxs>
 <view class="container">
   <view class="form-item">
     <!-- 加载态 -->
@@ -61,14 +68,15 @@
 
       <!-- 报告内容区块 -->
       <view class="sections-area">
-        <view class="section-card" wx:for="{{sections}}" wx:key="key" wx:for-index="idx">
+        <view class="section-card" wx:for="{{sections}}" wx:key="*this" wx:for-index="idx">
           <view class="section-color-tag" style="background: {{sectionColors[idx % sectionColors.length]}}" />
           <view class="section-body">
             <text class="section-title">{{item.title || '未命名区块'}}</text>
             <view wx:if="{{item.lines && item.lines.length > 0}}" class="section-lines">
-              <view class="section-line" wx:for="{{item.lines}}" wx:key="*this">
+              <view class="section-line" wx:for="{{item.lines}}" wx:for-item="line" wx:key="*this">
                 <view class="bullet-dot" style="background: {{sectionColors[idx % sectionColors.length]}}" />
-                <text class="line-text">{{item}}</text>
+                <text wx:if="{{line.date}}" class="line-date-label" style="background: {{sectionColors[idx % sectionColors.length]}}">{{utils.fmtDate(line.date)}}</text>
+                <text class="line-text">{{line.text || line}}</text>
               </view>
             </view>
             <view wx:else class="section-empty">
@@ -97,16 +105,16 @@
     </view>
     <scroll-view scroll-y class="copy-popup-scroll">
       <view
-        class="copy-popup-item {{checkedSections[item.key] ? 'checked' : ''}}"
+        class="copy-popup-item {{checkedSections[index] ? 'checked' : ''}}"
         wx:for="{{sections}}"
-        wx:key="key"
-        data-key="{{item.key}}"
+        wx:key="*this"
+        data-idx="{{index}}"
         bindtap="onCheckboxChange"
       >
         <t-icon
-          name="{{checkedSections[item.key] ? 'check-circle-filled' : 'circle'}}"
+          name="{{checkedSections[index] ? 'check-circle-filled' : 'circle'}}"
           size="36rpx"
-          color="{{checkedSections[item.key] ? '#00b26a' : '#ccc'}}"
+          color="{{checkedSections[index] ? '#00b26a' : '#ccc'}}"
         />
         <text class="copy-popup-item-text">{{item.title}}</text>
         <text class="copy-popup-item-count">{{item.lines.length}}项</text>

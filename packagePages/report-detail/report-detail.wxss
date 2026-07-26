@@ -293,3 +293,15 @@
   background: #00b26a;
   padding: 18rpx 24rpx;
 }
+
+/* ===== 行日期标签 ===== */
+.line-date-label {
+  font-size: 22rpx;
+  color: #fff;
+  font-weight: 600;
+  padding: 4rpx 16rpx;
+  border-radius: 32rpx;
+  flex-shrink: 0;
+  margin-right: 8rpx;
+  line-height: 1.4;
+}

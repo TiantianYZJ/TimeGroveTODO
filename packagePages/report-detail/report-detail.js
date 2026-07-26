@@ -2,10 +2,37 @@ const { workReportApi } = require('../../utils/api.js');
 const { formatFriendlyDate, formatDateTime } = require('../../utils/util.js');
 
 const SECTION_COLORS = ['#00b26a', '#3498db', '#e67e22', '#9b59b6', '#e74c3c', '#1abc9c'];
-const SECTION_LABELS = {
-  daily: { completed: '今日完成', in_progress: '进行中', blocked: '遇到的问题', tomorrow_plan: '明日计划', summary: '总结与思考' },
-  weekly: { completed: '本周完成', in_progress: '进行中', blocked: '遇到的问题', next_plan: '下周计划', summary: '总结与思考' }
-};
+
+// 归一化新旧 content 格式
+function normalizeContent(content, type) {
+  if (!content) return [];
+  // 新格式: [{title, mode, lines}]
+  if (Array.isArray(content)) {
+    return content.filter(s => s && Array.isArray(s.lines)).map(s => ({
+      title: s.title || '',
+      mode: s.mode || 'text',
+      lines: s.lines.map(l => {
+        if (typeof l === 'object' && l !== null) return { text: String(l.text || ''), date: String(l.date || '') };
+        return { text: String(l || ''), date: '' };
+      }).filter(l => l.text)
+    }));
+  }
+  // 旧格式: {key: ["line"]}
+  if (typeof content === 'object') {
+    const labels = {
+      completed: type === 'weekly' ? '本周完成' : '今日完成',
+      in_progress: '进行中', blocked: '遇到的问题',
+      tomorrow_plan: '明日计划', summary: '总结与思考',
+      next_plan: '下周计划', work_done: '工作完成', weekly_summary: '本周总结',
+    };
+    return Object.keys(content).filter(k => Array.isArray(content[k])).map(key => ({
+      title: labels[key] || key,
+      mode: 'text',
+      lines: content[key].filter(l => l && l.trim()).map(l => ({ text: l, date: '' }))
+    }));
+  }
+  return [];
+}
 
 Page({
   data: {
@@ -18,7 +45,7 @@ Page({
     canDelete: false,
     loaded: false,
     refreshing: false,
-    sectionLabels: SECTION_LABELS,
+    sectionLabels: { daily: {}, weekly: {} },
     creator: null,
     showCopyPopup: false,
     checkedSections: {},
@@ -45,12 +72,7 @@ Page({
         const type = report.type || 'daily';
         wx.setNavigationBarTitle({ title: type === 'weekly' ? '周报' : '日报' });
         const content = report.content || {};
-        const labels = SECTION_LABELS[type] || SECTION_LABELS.daily;
-        const sections = Object.keys(content).filter(k => Array.isArray(content[k])).map(key => ({
-          key,
-          title: labels[key] || key,
-          lines: content[key].filter(l => l && l.trim())
-        }));
+        const sections = normalizeContent(content, type);
         this.setData({
           report,
           reportType: type,
@@ -148,9 +170,8 @@ Page({
 
   // ===== Copy FAB =====
   toggleCopyPopup() {
-    // 每次打开时重置所有选项为选中
     const checked = {};
-    this.data.sections.forEach(s => { checked[s.key] = true; });
+    this.data.sections.forEach((s, i) => { checked[i] = true; });
     this.setData({
       showCopyPopup: !this.data.showCopyPopup,
       checkedSections: checked,
@@ -163,14 +184,14 @@ Page({
     if (!e.detail.visible) this.setData({ showCopyPopup: false });
   },
   onCheckboxChange(e) {
-    const { key } = e.currentTarget.dataset;
+    const idx = Number(e.currentTarget.dataset.idx);
     const checked = { ...this.data.checkedSections };
-    checked[key] = !checked[key];
+    checked[idx] = !checked[idx];
     this.setData({ checkedSections: checked });
   },
   copyCheckedContent() {
     const { sections, checkedSections, report } = this.data;
-    const checked = sections.filter(s => checkedSections[s.key]);
+    const checked = sections.filter((s, i) => checkedSections[i]);
     if (!checked.length) {
       wx.showToast({ title: '请至少选择一项', icon: 'none' });
       return;
@@ -178,7 +199,11 @@ Page({
     const parts = [];
     checked.forEach(s => {
       const lines = s.lines && s.lines.length
-        ? s.lines.map((l, i) => `${i + 1}、${l}`).join('\n')
+        ? s.lines.map((l, i) => {
+            const txt = l.text || l;
+            const prefix = l.date ? `[${l.date}] ` : '';
+            return `${i + 1}、${prefix}${txt}`;
+          }).join('\n')
         : '';
       parts.push(`${s.title}：\n${lines}`);
     });

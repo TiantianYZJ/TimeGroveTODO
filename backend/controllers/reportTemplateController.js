@@ -153,11 +153,17 @@ const createDefaults = async (req, res) => {
     const defaults = [
       {
         type: 'daily',
-        sections: JSON.stringify(['work_done', 'tomorrow_plan'])
+        sections: JSON.stringify([
+          { mode: 'text', title: '工作完成', sort_order: 1, max_lines: 20 },
+          { mode: 'text', title: '明日计划', sort_order: 2, max_lines: 20 }
+        ])
       },
       {
         type: 'weekly',
-        sections: JSON.stringify(['weekly_summary', 'next_plan'])
+        sections: JSON.stringify([
+          { mode: 'text', title: '本周总结', sort_order: 1, max_lines: 20 },
+          { mode: 'text', title: '下周计划', sort_order: 2, max_lines: 20 }
+        ])
       }
     ];
 

@@ -342,12 +342,12 @@ const create = async (req, res) => {
 
       // Auto-create default report templates for shared combos
       const dailySections = JSON.stringify([
-        { key: 'work_done', title: '今日工作', sort_order: 1, max_lines: 20 },
-        { key: 'tomorrow_plan', title: '明日计划', sort_order: 2, max_lines: 10 }
+        { mode: 'text', title: '今日工作', sort_order: 1, max_lines: 20 },
+        { mode: 'text', title: '明日计划', sort_order: 2, max_lines: 10 }
       ]);
       const weeklySections = JSON.stringify([
-        { key: 'weekly_summary', title: '本周总结', sort_order: 1, max_lines: 20 },
-        { key: 'next_plan', title: '下周计划', sort_order: 2, max_lines: 10 }
+        { mode: 'text', title: '本周总结', sort_order: 1, max_lines: 20 },
+        { mode: 'text', title: '下周计划', sort_order: 2, max_lines: 10 }
       ]);
       await query(
         'INSERT INTO report_templates (combo_id, type, sections, created_at, updated_at) VALUES (?, "daily", ?, NOW(), NOW()), (?, "weekly", ?, NOW(), NOW())',

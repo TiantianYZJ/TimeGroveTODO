@@ -101,10 +101,7 @@
   align-items: center;
   gap: 8rpx;
   margin-left: 24rpx;
-  margin-top: 16rpx;
-  padding: 12rpx 20rpx;
-  background: #f0faf5;
-  border-radius: 24rpx;
+  padding: 8rpx 20rpx;
   align-self: flex-start;
   transition: all 0.2s ease;
 }
@@ -141,15 +138,41 @@
   gap: 12rpx;
 }
 
+.line-item.date-mode {
+  gap: 16rpx;
+}
+
+/* ========== 日期模式日期选择器 ========== */
+.date-picker-field {
+  padding: 16rpx 20rpx;
+  font-size: 28rpx;
+  background: #f8f8f8;
+  border-radius: 32rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  min-width: 150rpx;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.date-picker-text {
+  font-size: 26rpx;
+  color: #333;
+}
+
+.date-picker-placeholder {
+  font-size: 26rpx;
+  color: #bbb;
+}
+
 .line-textarea {
   flex: 1;
   font-size: 28rpx;
   color: #333;
-  line-height: 1.6;
   background: #f8f8f8;
   border-radius: 32rpx;
   padding: 16rpx 20rpx;
-  min-height: 60rpx;
   box-sizing: border-box;
   word-break: break-all;
 }
@@ -239,6 +262,8 @@
 .bottom-safe {
   height: 160rpx;
 }
+
+/* ========== 日期模式 ========== */
 
 /* ========== 周报提示（像 add-todo voice-tip 一样） ========== */
 .weekly-hint {
@@ -415,7 +440,8 @@
 
 .import-todo-item {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-start;
   padding: 22rpx 20rpx;
   background: #f8f8f8;
   border-radius: 32rpx;
@@ -426,6 +452,58 @@
 
 .import-todo-item:active {
   transform: scale(0.98);
+}
+
+.import-todo-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.import-date-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  flex-basis: 100%;
+  margin-top: 8rpx;
+  order: 2;
+}
+
+.import-date-opt {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 14rpx;
+  background: #e3f5eb;
+  border-radius: 16rpx;
+  transition: all 0.2s ease;
+}
+
+.import-date-opt:active {
+  transform: scale(0.95);
+}
+
+.import-date-opt.active {
+  background: #00b26a;
+}
+
+.import-date-opt.active .opt-label,
+.import-date-opt.active .opt-val {
+  color: #fff;
+}
+
+.import-date-opt.disabled {
+  opacity: 0.4;
+}
+
+.opt-label {
+  font-size: 22rpx;
+  color: #00b26a;
+  font-weight: 500;
+}
+
+.opt-val {
+  font-size: 22rpx;
+  color: #666;
 }
 
 .import-todo-item.selected {

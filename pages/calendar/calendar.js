@@ -442,20 +442,22 @@ Page({
   },
 
   formatReportItem(item) {
-    const content = item.content || {};
+    const raw = item.content || {};
     const type = item.type || 'daily';
     const fallback = type === 'weekly' ? '周报' : '日报';
+    const content = typeof raw === 'string' ? (() => { try { return JSON.parse(raw); } catch { return {}; } })() : raw;
 
-    // Extract first non-empty line from first section
-    const firstKey = Object.keys(content)[0];
-    const firstLines = firstKey ? content[firstKey] : [];
-    const firstLine = Array.isArray(firstLines) ? firstLines.find(l => l && l.trim()) : '';
-
-    // Count total non-empty lines
-    const lineCount = Object.values(content).reduce((count, lines) => {
-      if (Array.isArray(lines)) return count + lines.filter(l => l && l.trim()).length;
-      return count;
-    }, 0);
+    let firstLine = '';
+    let lineCount = 0;
+    function countLine(l) {
+      const t = typeof l === 'object' && l !== null ? l.text : l;
+      if (t && String(t).trim()) { lineCount++; if (!firstLine) firstLine = String(t).trim(); }
+    }
+    if (Array.isArray(content)) {
+      content.forEach(s => { if (s && Array.isArray(s.lines)) s.lines.forEach(countLine); });
+    } else if (content && typeof content === 'object') {
+      Object.values(content).forEach(lines => { if (Array.isArray(lines)) lines.forEach(countLine); });
+    }
 
     const isPrivate = !item.comboId || item.comboId === 0;
 
