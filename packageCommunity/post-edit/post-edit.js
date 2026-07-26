@@ -93,6 +93,7 @@ Page({
     pollEndTimeStr: '',
     pollExists: false,
     pollHasVotes: false,
+    pollEnded: false,
   },
 
   onLoad(options) {
@@ -612,7 +613,14 @@ Page({
   toggleAllowOther(e) {
     const draft = this.data.pollDraft;
     draft.allowOther = e.detail.value;
-    this.setData({ pollDraft: { ...draft } });
+    if (e.detail.value) {
+      if (!draft.options.some(o => o.isOther)) {
+        draft.options.push({ text: '其他', isOther: true });
+      }
+    } else {
+      draft.options = draft.options.filter(o => !o.isOther);
+    }
+    this.setData({ pollDraft: { ...draft, options: [...draft.options] } });
   },
 
   toggleAnonymous(e) {
@@ -633,7 +641,28 @@ Page({
       title: '确认清除', content: '确定要清除投票设置吗？',
       success: (res) => {
         if (res.confirm) {
-          this.setData({ pollDraft: null, showPollEditor: false, pollEndTimeStr: '', pollExists: false, pollHasVotes: false });
+          this.setData({ pollDraft: null, showPollEditor: false, pollEndTimeStr: '', pollExists: false, pollHasVotes: false, pollEnded: false });
+        }
+      }
+    });
+  },
+
+  async closePollInEdit() {
+    const postId = this.data.editPostId;
+    if (!postId) return;
+    wx.showModal({
+      title: '确认关闭', content: '确定要关闭投票吗？关闭后不可重新开启。',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            const result = await communityApi.closePoll(postId);
+            if (result.success) {
+              wx.showToast({ title: '已关闭', icon: 'success' });
+              this.loadPollForEdit(postId);
+            }
+          } catch (err) {
+            wx.showToast({ title: err.message || '操作失败', icon: 'none' });
+          }
         }
       }
     });
@@ -658,6 +687,7 @@ Page({
           pollDraft: draft,
           pollExists: true,
           pollHasVotes: hasVotes,
+          pollEnded: p.isEnded,
           showPollEditor: true,
           pollEndTimeStr: et,
           canPublish: true,
@@ -1030,8 +1060,10 @@ Page({
   },
 
   async handlePollSubmit(postId) {
-    const { pollDraft, editMode, pollExists } = this.data;
+    const { pollDraft, editMode, pollExists, pollHasVotes } = this.data;
     if (!pollDraft || !pollDraft.title || !pollDraft.options || pollDraft.options.length < 2) return;
+    // 已有投票时不允许修改投票数据
+    if (editMode && pollExists && pollHasVotes) return;
     // 验证选项
     const validOptions = pollDraft.options.filter(o => o.text.trim());
     if (validOptions.length < 2) { wx.showToast({ title: '请至少填写2个选项', icon: 'none' }); return; }

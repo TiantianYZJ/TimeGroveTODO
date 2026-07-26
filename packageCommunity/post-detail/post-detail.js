@@ -699,11 +699,25 @@ Page({
 
   onTapPollOption(e) {
     const { poll, changingVote, selectedOptionIds, otherTexts, isOwner } = this.data;
-    if (!poll || poll.isEnded || isOwner) return;
+    if (!poll || poll.isEnded) return;
     if (poll.isVoted && !changingVote) return;
 
     const optionId = Number(e.currentTarget.dataset.id);
     const isOther = e.currentTarget.dataset.other === 'true';
+
+    // Owner: allow tap for visual feedback but don't show "其他" input popup
+    if (isOwner) {
+      if (isOther) return;
+      if (poll.type === 0) {
+        this.setData({ selectedOptionIds: [optionId] });
+      } else {
+        const next = [...selectedOptionIds];
+        const idx = next.indexOf(optionId);
+        if (idx > -1) next.splice(idx, 1); else next.push(optionId);
+        this.setData({ selectedOptionIds: next });
+      }
+      return;
+    }
 
     if (poll.type === 0) {
       this.setData({ selectedOptionIds: [optionId], showPollOtherModal: isOther, currentOtherOptionId: isOther ? optionId : null });

@@ -171,14 +171,23 @@
 
     <view class="poll-switch-row">
       <text class="poll-switch-label">匿名投票</text>
-      <t-switch value="{{pollDraft.isAnonymous}}" bind:change="toggleAnonymous" size="small" />
+      <t-switch value="{{pollDraft.isAnonymous}}" bind:change="toggleAnonymous" size="small" disabled="{{pollHasVotes}}" />
     </view>
 
     <view class="poll-field">
       <text class="poll-field-label">截止时间</text>
-      <picker mode="date" value="{{pollEndTimeStr}}" bind:change="onPollEndTimeChange">
+      <picker wx:if="{{!pollHasVotes}}" mode="date" value="{{pollEndTimeStr}}" bind:change="onPollEndTimeChange">
         <text class="poll-field-value {{pollEndTimeStr ? '' : 'placeholder'}}">{{pollEndTimeStr || '永不过期'}}</text>
       </picker>
+      <text wx:else class="poll-field-value disabled">{{pollEndTimeStr || '永不过期'}}</text>
+    </view>
+
+    <view wx:if="{{pollHasVotes && !pollEnded}}" class="poll-close-row">
+      <button class="poll-close-btn" bindtap="closePollInEdit">关闭投票</button>
+      <text class="poll-close-hint">已有投票记录，不可修改投票内容</text>
+    </view>
+    <view wx:elif="{{pollEnded}}" class="poll-close-row">
+      <text class="poll-ended-label">投票已结束</text>
     </view>
   </view>
 
