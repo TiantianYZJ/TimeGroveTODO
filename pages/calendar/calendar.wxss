@@ -125,6 +125,14 @@
   transition: all 0.3s ease;
 }
 
+.t-tabs {
+  --td-tab-nav-bg-color: #e3f5eb;
+  --td-tab-item-height: 64rpx;
+}
+
+.tab-content {
+}
+
 /* ========== Todo 卡片样式（从 todo.wxss inline，因去除 @import 后丢失） ========== */
 .todo-item {
   margin: 12rpx 20rpx;
