@@ -108,6 +108,7 @@
     close-on-overlay-click="{{true}}"
     bind:visible-change="onFilterPopupVisibleChange"
     z-index="99999"
+    custom-style="border-radius: 32rpx; overflow: hidden;"
   >
     <view class="filter-popup">
       <view class="filter-popup-header">
