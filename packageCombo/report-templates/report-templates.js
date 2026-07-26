@@ -29,6 +29,7 @@ Page({
 
     showComboPicker: false,
     sharedCombos: [],
+    manageableCombos: [],
   },
 
   onLoad(options) {
@@ -43,6 +44,7 @@ Page({
       dailySections: JSON.parse(JSON.stringify(PRESET_DAILY)),
       weeklySections: JSON.parse(JSON.stringify(PRESET_WEEKLY)),
       sharedCombos: app.globalData.sharedCombos || [],
+      manageableCombos: this._getManageableCombos(),
     });
     this.loadData();
   },
@@ -50,6 +52,10 @@ Page({
   _resolveComboName(comboId) {
     const combo = (app.globalData.sharedCombos || []).find(c => String(c.id) === String(comboId));
     return combo ? combo.name : null;
+  },
+
+  _getManageableCombos() {
+    return (app.globalData.sharedCombos || []).filter(c => c.role === 'owner' || c.role === 'admin');
   },
 
   async loadData() {

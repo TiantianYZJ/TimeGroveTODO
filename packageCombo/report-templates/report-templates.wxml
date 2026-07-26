@@ -111,11 +111,11 @@
       </view>
 
       <!-- 共享组合 -->
-      <view wx:if="{{sharedCombos.length > 0}}" class="picker-section">
+      <view wx:if="{{manageableCombos.length > 0}}" class="picker-section">
         <text class="section-label">共享组合</text>
         <view
           class="picker-option {{comboId === item.id ? 'selected' : ''}}"
-          wx:for="{{sharedCombos}}"
+          wx:for="{{manageableCombos}}"
           wx:key="id"
           data-id="{{item.id}}"
           data-name="{{item.name}}"
@@ -132,7 +132,7 @@
         </view>
       </view>
 
-      <view wx:if="{{sharedCombos.length === 0}}" class="empty-combos">
+      <view wx:if="{{manageableCombos.length === 0 && sharedCombos.length === 0}}" class="empty-combos">
         <text>暂无共享组合</text>
       </view>
     </scroll-view>
