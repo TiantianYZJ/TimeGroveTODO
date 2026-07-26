@@ -2,9 +2,9 @@
 
   <view class="container">
 
-    <!-- 汇报到选择器 -->
+    <!-- 修改目标选择器 -->
     <view class="form-item">
-      <text class="question-title">汇报到</text>
+      <text class="question-title">修改目标</text>
       <view class="combo-selector" bindtap="showComboPicker">
         <view class="selected-combo">
           <text class="combo-name-text">{{comboName}}</text>
@@ -85,7 +85,7 @@
 >
   <view class="combo-picker-content">
     <view class="popup-header">
-      <text class="popup-title">选择汇报组合</text>
+      <text class="popup-title">选择修改目标</text>
       <view class="popup-close" bindtap="hideComboPicker">
         <t-icon name="close" size="40rpx" color="#999" />
       </view>

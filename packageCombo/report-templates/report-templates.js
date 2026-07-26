@@ -34,10 +34,10 @@ Page({
   onLoad(options) {
     const { combo_id } = options;
     const initType = (options.type === 'daily' || options.type === 'weekly') ? options.type : 'daily';
-    // Try to resolve combo name from globalData immediately
-    const initialComboName = combo_id ? this._resolveComboName(parseInt(combo_id)) || '加载中...' : '私人';
+    const cid = parseInt(combo_id || 0);
+    const initialComboName = cid > 0 ? (this._resolveComboName(cid) || `组合 #${cid}`) : '私人';
     this.setData({
-      comboId: parseInt(combo_id || 0),
+      comboId: cid,
       comboName: initialComboName,
       currentType: initType,
       dailySections: JSON.parse(JSON.stringify(PRESET_DAILY)),
