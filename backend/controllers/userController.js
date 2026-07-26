@@ -1,6 +1,7 @@
 const { query } = require('../config/database');
 const logger = require('../utils/logger');
 const { appendCheckinBadges } = require('../utils/checkinBadgeHelper');
+const { escapeLike, sanitizeString } = require('../utils/sanitize');
 
 const USER_LOG = 'USER';
 
@@ -70,7 +71,7 @@ const search = async (req, res) => {
       `SELECT id, nickname, avatar_url FROM users
        WHERE nickname LIKE ?
        ORDER BY nickname ASC LIMIT ?`,
-      [`%${q.trim()}%`, pageSize]
+      [`%${escapeLike(q.trim())}%`, pageSize]
     );
     res.json({
       success: true,

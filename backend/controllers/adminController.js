@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { clearCache: clearConfigCache } = require('./configController');
 const logger = require('../utils/logger');
+const { escapeLike } = require('../utils/sanitize');
 
 const dataDir = path.join(__dirname, '../data');
 const noticesPath = path.join(dataDir, 'notices.json');
@@ -725,8 +726,8 @@ const getUsers = async (req, res) => {
             } else {
                 sql += ' WHERE u.nickname LIKE ?';
                 countSql += ' WHERE nickname LIKE ?';
-                params.push(`%${search}%`);
-                countParams.push(`%${search}%`);
+                params.push(`%${escapeLike(search)}%`);
+                countParams.push(`%${escapeLike(search)}%`);
             }
         }
 

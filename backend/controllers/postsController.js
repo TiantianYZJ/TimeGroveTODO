@@ -2,6 +2,7 @@ const { query } = require('../config/database');
 const logger = require('../utils/logger');
 const { getProvince } = require('../utils/ipLocator');
 const { appendCheckinBadges } = require('../utils/checkinBadgeHelper');
+const { sanitizeArray, serializeArray } = require('../utils/sanitize');
 
 const POST_LOG = 'POST';
 
@@ -157,6 +158,12 @@ const create = async (req, res) => {
 
   const clientIp = req.headers['x-forwarded-for'] || req.ip;
 
+  // Ensure array fields are actually arrays before serialization
+  const safeImages = Array.isArray(images) && images.length > 0 ? JSON.stringify(images) : null;
+  const safeTodoIds = Array.isArray(todoIds) && todoIds.length > 0 ? JSON.stringify(todoIds) : null;
+  const safeFiles = Array.isArray(files) && files.length > 0 ? JSON.stringify(files) : null;
+  const safeLocation = location && typeof location === 'object' ? JSON.stringify(location) : null;
+
   try {
     const ipProvince = getProvince(clientIp);
 
@@ -165,13 +172,13 @@ const create = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         postId, userId, comboId || null, title.trim(), body || null,
-        images && images.length ? JSON.stringify(images) : null,
-        todoIds && todoIds.length ? JSON.stringify(todoIds) : null,
+        safeImages,
+        safeTodoIds,
         comboId ? null : (shareCode || null),
-        files && files.length ? JSON.stringify(files) : null,
+        safeFiles,
         clientIp,
         ipProvince,
-        location ? JSON.stringify(location) : null
+        safeLocation
       ]
     );
 
@@ -305,11 +312,11 @@ const update = async (req, res) => {
       [
         title || posts[0].title,
         body || null,
-        images && images.length > 0 ? JSON.stringify(images) : null,
-        todoIds && todoIds.length > 0 ? JSON.stringify(todoIds) : null,
+        Array.isArray(images) && images.length > 0 ? JSON.stringify(images) : null,
+        Array.isArray(todoIds) && todoIds.length > 0 ? JSON.stringify(todoIds) : null,
         shareCode || null,
-        files && files.length > 0 ? JSON.stringify(files) : null,
-        location ? JSON.stringify(location) : null,
+        Array.isArray(files) && files.length > 0 ? JSON.stringify(files) : null,
+        location && typeof location === 'object' ? JSON.stringify(location) : null,
         postId
       ]
     );

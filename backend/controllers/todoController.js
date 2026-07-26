@@ -1,5 +1,6 @@
 const { query, transaction } = require('../config/database');
 const logger = require('../utils/logger');
+const { escapeLike, sanitizeArray, serializeArray, sanitizeString } = require('../utils/sanitize');
 
 const getList = async (req, res) => {
   const userId = req.user.id;
@@ -50,7 +51,7 @@ const getList = async (req, res) => {
           conditions.push(`(${likeClauses})`);
           countConditions.push(`(${likeClauses})`);
           kw.forEach(k => {
-            const pattern = `%${k}%`;
+            const pattern = `%${escapeLike(k)}%`;
             params.push(pattern, pattern);
             countParams.push(pattern, pattern);
           });
@@ -192,7 +193,7 @@ const create = async (req, res) => {
     }
 
     const finalTodoId = todoId || generateTodoId();
-    const imagesJson = images && images.length > 0 ? JSON.stringify(images) : null;
+    const imagesJson = Array.isArray(images) && images.length > 0 ? JSON.stringify(images) : null;
 
     if (subtasks && subtasks.length > 0) {
       // 有子待办：事务中批量创建父待办 + 所有子待办
@@ -219,7 +220,7 @@ const create = async (req, res) => {
             setDate || null,
             setTime || null,
             remarks || null,
-            location ? JSON.stringify(location) : null,
+            location && typeof location === 'object' ? JSON.stringify(location) : null,
             isStar ? 1 : 0,
             comboId || null,
             imagesJson,
@@ -265,7 +266,7 @@ const create = async (req, res) => {
           setDate || null,
           setTime || null,
           remarks || null,
-          location ? JSON.stringify(location) : null,
+          location && typeof location === 'object' ? JSON.stringify(location) : null,
           isStar ? 1 : 0,
           comboId || null,
           imagesJson,
@@ -350,7 +351,7 @@ const update = async (req, res) => {
     }
     if (location !== undefined) {
       updateFields.push('location_text = ?');
-      updateValues.push(location ? JSON.stringify(location) : null);
+      updateValues.push(location && typeof location === 'object' ? JSON.stringify(location) : null);
     }
     if (isStar !== undefined) {
       updateFields.push('is_star = ?');
@@ -370,7 +371,7 @@ const update = async (req, res) => {
     }
     if (images !== undefined) {
       updateFields.push('images = ?');
-      updateValues.push(images && images.length > 0 ? JSON.stringify(images) : null);
+      updateValues.push(Array.isArray(images) && images.length > 0 ? JSON.stringify(images) : null);
     }
     if (parent_id !== undefined) {
       updateFields.push('parent_id = ?');
@@ -798,8 +799,8 @@ const sync = async (req, res) => {
           for (const { localTodo, todoId } of toInsertItems) {
             const createdAt = localTodo.time ? new Date(localTodo.time) : new Date();
             const updatedAt = localTodo.updatedAt ? new Date(localTodo.updatedAt) : createdAt;
-            const tagsJson = localTodo.tags && localTodo.tags.length > 0 ? JSON.stringify(localTodo.tags) : null;
-            const imagesJson = localTodo.images && localTodo.images.length > 0 ? JSON.stringify(localTodo.images) : null;
+            const tagsJson = Array.isArray(localTodo.tags) && localTodo.tags.length > 0 ? JSON.stringify(localTodo.tags) : null;
+            const imagesJson = Array.isArray(localTodo.images) && localTodo.images.length > 0 ? JSON.stringify(localTodo.images) : null;
 
             insertValues.push(
               userId, todoId,
@@ -808,7 +809,7 @@ const sync = async (req, res) => {
               localTodo.setDate || null,
               localTodo.setTime || null,
               localTodo.remarks || null,
-              localTodo.location ? JSON.stringify(localTodo.location) : null,
+              localTodo.location && typeof localTodo.location === 'object' ? JSON.stringify(localTodo.location) : null,
               localTodo.completed || 0,
               localTodo.isStar ? 1 : 0,
               tagsJson,
@@ -833,8 +834,8 @@ const sync = async (req, res) => {
           // Fallback: individual simplified INSERTs for each item
           for (const { localTodo, todoId } of toInsertItems) {
             try {
-              const tagsJson = localTodo.tags && localTodo.tags.length > 0 ? JSON.stringify(localTodo.tags) : null;
-              const imagesJson = localTodo.images && localTodo.images.length > 0 ? JSON.stringify(localTodo.images) : null;
+              const tagsJson = Array.isArray(localTodo.tags) && localTodo.tags.length > 0 ? JSON.stringify(localTodo.tags) : null;
+              const imagesJson = Array.isArray(localTodo.images) && localTodo.images.length > 0 ? JSON.stringify(localTodo.images) : null;
 
               await query(
                 `INSERT INTO todos (user_id, text, set_date, set_time, remarks, completed, is_star, tags, images, parent_id, priority, created_at)
@@ -864,8 +865,8 @@ const sync = async (req, res) => {
       for (const { localTodo, serverTodo } of toUpdateItems) {
         try {
           const resolved = resolveConflict(localTodo, formatTodo(serverTodo));
-          const resolvedTagsJson = resolved.tags && resolved.tags.length > 0 ? JSON.stringify(resolved.tags) : null;
-          const resolvedImagesJson = resolved.images && resolved.images.length > 0 ? JSON.stringify(resolved.images) : null;
+          const resolvedTagsJson = Array.isArray(resolved.tags) && resolved.tags.length > 0 ? JSON.stringify(resolved.tags) : null;
+          const resolvedImagesJson = Array.isArray(resolved.images) && resolved.images.length > 0 ? JSON.stringify(resolved.images) : null;
 
           await query(
             `UPDATE todos SET
@@ -877,7 +878,7 @@ const sync = async (req, res) => {
               resolved.setDate || null,
               resolved.setTime || null,
               resolved.remarks || null,
-              resolved.location ? JSON.stringify(resolved.location) : null,
+              resolved.location && typeof resolved.location === 'object' ? JSON.stringify(resolved.location) : null,
               resolved.completed || 0,
               resolved.isStar ? 1 : 0,
               resolvedTagsJson,

@@ -478,9 +478,9 @@ const createSharedTodo = async (req, res) => {
       });
     }
     
-    const tagsJson = tags && tags.length > 0 ? JSON.stringify(tags) : null;
-    const imagesJson = images && images.length > 0 ? JSON.stringify(images) : null;
-    const locationJson = location ? JSON.stringify(location) : null;
+    const tagsJson = Array.isArray(tags) && tags.length > 0 ? JSON.stringify(tags) : null;
+    const imagesJson = Array.isArray(images) && images.length > 0 ? JSON.stringify(images) : null;
+    const locationJson = location && typeof location === 'object' ? JSON.stringify(location) : null;
     const effectiveExcludeType = (assignType === 'all' || assignType === 'any') ? (excludeType || '') : '';
     
     const result = await query(
@@ -825,9 +825,9 @@ const updateSharedTodo = async (req, res) => {
       });
     }
     
-    const tagsJson = tags && tags.length > 0 ? JSON.stringify(tags) : null;
-    const imagesJson = images && images.length > 0 ? JSON.stringify(images) : null;
-    const locationJson = location ? JSON.stringify(location) : null;
+    const tagsJson = Array.isArray(tags) && tags.length > 0 ? JSON.stringify(tags) : null;
+    const imagesJson = Array.isArray(images) && images.length > 0 ? JSON.stringify(images) : null;
+    const locationJson = location && typeof location === 'object' ? JSON.stringify(location) : null;
     const effectiveExcludeType = (assignType === 'all' || assignType === 'any') ? (excludeType || '') : '';
     
     await query(

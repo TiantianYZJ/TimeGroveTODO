@@ -177,7 +177,7 @@ const create = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         postDbId, userId, (content || '').trim(),
-        images && images.length ? JSON.stringify(images) : null,
+        Array.isArray(images) && images.length > 0 ? JSON.stringify(images) : null,
         parentId || null, replyToUserId || null, replyToContent || null
       ]
     );
