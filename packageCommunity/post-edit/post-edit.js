@@ -3,7 +3,7 @@ const { communityApi, combosApi, isLoggedIn } = require('../../utils/api');
 const { getLocalTodos } = require('../../utils/sync');
 
 const { formatFriendlyDate } = require('../../utils/util');
-const { uploadFile } = require('../../utils/fileUpload');
+const { uploadFile } = require('./fileUpload');
 
 const compressImage = (filePath) => {
   return new Promise((resolve) => {
