@@ -84,13 +84,6 @@
   font-size: 24rpx;
 }
 
-.post-card-shadow-wrapper {
-  border-radius: 32rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-  margin-bottom: 20rpx;
-}
-
 .empty-state {
   display: flex;
   flex-direction: column;
