@@ -1,6 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const axios = require('axios');
 const { query } = require('../config/database');
 const logger = require('../utils/logger');
@@ -141,6 +142,15 @@ const uploadTodoImage = async (req, res) => {
   }
 };
 
+function humanSize(bytes) {
+  if (!bytes) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let i = 0;
+  let size = bytes;
+  while (size >= 1024 && i < units.length - 1) { size /= 1024; i++; }
+  return size.toFixed(i > 0 ? 1 : 0) + ' ' + units[i];
+}
+
 // 通用文件代理上传（中转至 storage.to R2）
 const proxyStorage = multer.memoryStorage();
 const proxyUploader = multer({
@@ -165,6 +175,68 @@ const proxyUpload = async (req, res) => {
   }
 };
 
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../uploads/files', String(req.user.id));
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '';
+    const uuid = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
+    cb(null, uuid + ext);
+  }
+});
+
+const fileUploader = multer({
+  storage: fileStorage,
+  limits: { fileSize: 100 * 1024 * 1024 } // 100MB
+});
+
+const uploadFile = async (req, res) => {
+  const userId = req.user.id;
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: '请选择要上传的文件' });
+  }
+
+  try {
+    const filename = req.body.filename || req.file.originalname;
+    const expiresInDays = req.body.expires_in_days ? parseInt(req.body.expires_in_days) : 7;
+    let expiresAt = null;
+    if (expiresInDays > 0) {
+      expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000);
+      expiresAt = expiresAt.getFullYear() + '-' +
+        String(expiresAt.getMonth() + 1).padStart(2, '0') + '-' +
+        String(expiresAt.getDate()).padStart(2, '0') + ' ' +
+        String(expiresAt.getHours()).padStart(2, '0') + ':' +
+        String(expiresAt.getMinutes()).padStart(2, '0') + ':' +
+        String(expiresAt.getSeconds()).padStart(2, '0');
+    }
+
+    const result = await query(
+      'INSERT INTO files (user_id, filename, stored_filename, file_size, mime_type, expires_at) VALUES (?, ?, ?, ?, ?, ?)',
+      [userId, filename, req.file.filename, req.file.size, req.file.mimetype, expiresAt]
+    );
+
+    const fileId = result.insertId;
+
+    res.json({
+      success: true,
+      data: {
+        fileId,
+        filename,
+        file_size: req.file.size,
+        human_size: humanSize(req.file.size),
+        mime_type: req.file.mimetype,
+        expires_at: expiresAt
+      }
+    });
+  } catch (err) {
+    logger.uploadError('上传文件', '文件上传失败', { userId, error: err.message });
+    res.status(500).json({ success: false, message: '上传失败' });
+  }
+};
+
 module.exports = {
   upload,
   imageUpload,
@@ -172,4 +244,6 @@ module.exports = {
   uploadTodoImage,
   proxyUploader,
   proxyUpload,
+  fileUploader,
+  uploadFile,
 };

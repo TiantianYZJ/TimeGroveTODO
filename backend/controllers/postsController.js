@@ -349,16 +349,17 @@ const deletePost = async (req, res) => {
     if (posts[0].files) {
       try {
         const fileList = JSON.parse(posts[0].files);
-        const https = require('https');
+        const path = require('path');
         for (const f of fileList) {
-          if (f.owner_token && f.id) {
-            const req = https.request(
-              `https://storage.to/api/file/${f.id}`,
-              { method: 'DELETE', headers: { 'Authorization': `Owner ${f.owner_token}` } },
-              () => {}
-            );
-            req.on('error', () => {});
-            req.end();
+          if (f.fileId) {
+            const fileRows = await query('SELECT * FROM files WHERE id = ?', [f.fileId]);
+            if (fileRows.length > 0) {
+              const file = fileRows[0];
+              const filePath = path.join(__dirname, '../uploads/files', String(file.user_id), file.stored_filename);
+              const fs = require('fs');
+              try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch (e) {}
+              await query('DELETE FROM files WHERE id = ?', [f.fileId]);
+            }
           }
         }
       } catch (e) {}

@@ -28,8 +28,8 @@ Component({
       if (post && post.files && post.files.length > 0) {
         const iconMap = {};
         post.files.forEach((f, i) => {
-          const icon = this.getFileIcon(f.content_type, f.filename);
-          console.log('[post-card] file['+i+']:', f.filename, 'type:', f.content_type, '→ icon:', icon);
+          const icon = this.getFileIcon(f.mime_type || f.content_type, f.filename);
+          console.log('[post-card] file['+i+']:', f.filename, 'icon:', icon);
           iconMap['post.files['+i+']._icon'] = icon;
         });
         this.setData(iconMap);
@@ -67,7 +67,6 @@ Component({
       if (!contentType && !filename) return 'file-unknown';
       const ct = (contentType || '').toLowerCase();
       const ext = filename ? filename.split('.').pop().toLowerCase() : '';
-      console.log('[post-card getFileIcon] contentType:', contentType, 'ct:', ct, 'ext:', ext, 'filename:', filename);
       const FILE_ICONS = {
         'application/pdf': 'file-pdf', 'pdf': 'file-pdf',
         'application/msword': 'file-word', 'doc': 'file-word', 'docx': 'file-word',
@@ -91,26 +90,28 @@ Component({
       };
       const key = Object.keys(FILE_ICONS).find(k => ct.startsWith(k));
       if (key) {
-        console.log('[post-card getFileIcon] matched MIME key:', key, '→', FILE_ICONS[key]);
         return FILE_ICONS[key];
       }
       if (ext) {
         const extKey = Object.keys(FILE_ICONS).find(k => ext === k);
         if (extKey) {
-          console.log('[post-card getFileIcon] matched EXT key:', extKey, '→', FILE_ICONS[extKey]);
           return FILE_ICONS[extKey];
         }
       }
-      console.log('[post-card getFileIcon] NO MATCH, returning file-unknown');
       return 'file-unknown';
     },
     isFileExpired(expiresAt) {
-      if (!expiresAt) return false;
-      return new Date(expiresAt) < new Date();
+      if (!expiresAt) { console.log('[pc] isFileExpired: no expiresAt'); return false; }
+      const date = new Date(expiresAt.replace(/-/g, '/'));
+      if (isNaN(date.getTime())) return false;
+      console.log('[pc] isFileExpired:', expiresAt, '→', date);
+      return date < new Date();
     },
     getFileRemainingDays(expiresAt) {
-      if (!expiresAt) return '';
-      const remaining = (new Date(expiresAt) - new Date()) / (1000 * 60 * 60 * 24);
+      if (!expiresAt) { console.log('[pc] getRemainingDays: no expiresAt'); return ''; }
+      const date = new Date(expiresAt.replace(/-/g, '/'));
+      if (!date) return '';
+      const remaining = (date - new Date()) / (1000 * 60 * 60 * 24);
       const days = Math.ceil(remaining);
       if (days <= 0) return '';
       return days;

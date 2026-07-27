@@ -67,7 +67,7 @@
         <t-icon name="{{fileExpanded ? 'chevron-up' : 'chevron-down'}}" size="28rpx" color="#999" />
       </view>
       <view wx:if="{{fileExpanded}}" class="tag-card-body">
-        <view class="file-mini-item {{isFileExpired(item.expires_at) ? 'expired' : ''}}" wx:for="{{post.files}}" wx:key="id" data-index="{{index}}" catch:tap="onTapFile">
+        <view class="file-mini-item {{isFileExpired(item.expires_at) ? 'expired' : ''}}" wx:for="{{post.files}}" wx:key="fileId" data-index="{{index}}" catch:tap="onTapFile">
           <t-icon name="{{item._icon}}" size="28rpx" color="#666" />
           <text class="file-mini-name {{isFileExpired(item.expires_at) ? 'expired' : ''}}">{{item.filename}}</text>
           <text class="file-mini-size">{{item.human_size}}</text>

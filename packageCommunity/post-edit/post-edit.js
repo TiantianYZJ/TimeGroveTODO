@@ -3,7 +3,7 @@ const { communityApi, combosApi, isLoggedIn } = require('../../utils/api');
 const { getLocalTodos } = require('../../utils/sync');
 
 const { formatFriendlyDate } = require('../../utils/util');
-const { initUpload, uploadToR2, confirmUpload, deleteFile } = require('../../utils/fileUpload');
+const { uploadFile } = require('../../utils/fileUpload');
 
 const compressImage = (filePath) => {
   return new Promise((resolve) => {
@@ -84,7 +84,6 @@ Page({
     currentMentions: [],
     showMentionListPopup: false,
     mentionIdCounter: 0,
-    visitorToken: '',
     attachedFiles: [],
     comboId: null,
     // poll editor
@@ -166,8 +165,6 @@ Page({
       });
     }
 
-    const visitorToken = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
-    this.setData({ visitorToken });
   },
 
   loadTodos() {
@@ -192,17 +189,6 @@ Page({
   },
 
   onUnload() {
-    // 编辑模式下保留现有文件（属于帖子），仅清理新上传的未保存文件
-    if (!this.data.editMode) {
-      const { attachedFiles: unloadFiles } = this.data;
-      if (unloadFiles && unloadFiles.length > 0) {
-        for (const f of unloadFiles) {
-          if (f.id && f.owner_token) {
-            deleteFile({ fileId: f.id, ownerToken: f.owner_token }).catch(() => {});
-          }
-        }
-      }
-    }
     if (!this.data.editMode && (this.data.title || this.data.body)) {
       wx.setStorageSync('communityDraft', {
         title: this.data.title, body: this.data.body, fileList: this.data.fileList, imageUrls: this.data.imageUrls,
@@ -848,7 +834,7 @@ Page({
   },
 
   async handleFileSelect() {
-    const { attachedFiles, visitorToken } = this.data;
+    const { attachedFiles } = this.data;
     const remaining = 9 - attachedFiles.length;
     if (remaining <= 0) {
       wx.showToast({ title: '最多上传 9 个文件', icon: 'none' });
@@ -864,34 +850,15 @@ Page({
         wx.showLoading({ title: `上传文件 ${i + 1}/${files.length}`, mask: true });
 
         try {
-          const initResult = await initUpload({
-            filename: file.name,
-            contentType: file.type || 'application/octet-stream',
-            size: file.size,
-            visitorToken
-          });
-
-          await uploadToR2(initResult.upload_url, file.path);
-
-          const confirmResult = await confirmUpload({
-            filename: file.name,
-            size: file.size,
-            contentType: file.type || 'application/octet-stream',
-            r2Key: initResult.r2_key,
-            visitorToken
-          });
-
+          const result = await uploadFile(file.path, file.name);
           const fileInfo = {
-            id: confirmResult.file.id,
-            url: confirmResult.file.url,
-            raw_url: confirmResult.file.raw_url,
-            filename: file.name,
-            size: file.size,
-            human_size: confirmResult.file.human_size,
-            content_type: file.type || 'application/octet-stream',
-            expires_at: confirmResult.file.expires_at,
-            owner_token: confirmResult.owner_token,
-            _icon: this.getFileIcon(file.type || 'application/octet-stream', file.name)
+            fileId: result.fileId,
+            filename: result.filename,
+            file_size: result.file_size,
+            human_size: result.human_size,
+            mime_type: result.mime_type,
+            expires_at: result.expires_at,
+            _icon: this.getFileIcon(result.mime_type, result.filename)
           };
 
           this.setData({
@@ -909,21 +876,14 @@ Page({
 
   isFileExpired(expiresAt) {
     if (!expiresAt) return false;
-    return new Date(expiresAt) < new Date();
+    const date = new Date(expiresAt.replace(/-/g, '/'));
+    if (isNaN(date.getTime())) return false;
+    return date < new Date();
   },
 
   getFileRemainingDays(expiresAt) {
     if (!expiresAt) return null;
-    let date;
-    if (typeof expiresAt === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(expiresAt)) {
-      date = new Date(expiresAt);
-    } else if (typeof expiresAt === 'string') {
-      const s = expiresAt.replace('T', ' ').replace(/\.\d+Z$/, '');
-      const p = s.split(/[- :]/);
-      date = new Date(+p[0], +p[1] - 1, +p[2], +(p[3]||0), +(p[4]||0), +(p[5]||0));
-    } else {
-      date = new Date(expiresAt);
-    }
+    const date = new Date(expiresAt.replace(/-/g, '/'));
     if (isNaN(date.getTime())) return null;
     const remaining = (date - new Date()) / (1000 * 60 * 60 * 24);
     const days = Math.ceil(remaining);
@@ -938,44 +898,115 @@ Page({
       wx.showToast({ title: '文件已过期', icon: 'none' });
       return;
     }
-    const url = file.raw_url || file.url;
-    if (!url) { wx.showToast({ title: '文件地址无效', icon: 'none' }); return; }
+    const fileId = file.fileId;
+    if (!fileId) { wx.showToast({ title: '文件ID无效', icon: 'none' }); return; }
 
     const ext = file.filename ? file.filename.split('.').pop().toLowerCase() : '';
-    const ct = (file.content_type || '').toLowerCase();
-
-    if (ct.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes(ext)) {
-      wx.previewImage({ urls: [url] });
-      return;
-    }
+    const token = wx.getStorageSync('authToken');
 
     wx.showLoading({ title: '下载中...' });
-    wx.downloadFile({
-      url,
-      success(res) {
+    wx.request({
+      url: 'https://api.yzjtiantian.cn/files/' + fileId,
+      method: 'GET',
+      header: { 'Authorization': 'Bearer ' + token },
+      responseType: 'arraybuffer',
+      success: (res) => {
         wx.hideLoading();
-        if (res.statusCode === 200) {
-          wx.openDocument({
-            filePath: res.tempFilePath,
-            fileType: getDocFileType(ct, ext),
-            showMenu: true,
-            success: () => {},
-            fail: () => { wx.showToast({ title: '打开文件失败', icon: 'none' }); }
-          });
+        if (res.statusCode === 410) {
+          wx.showToast({ title: '文件已过期', icon: 'none' });
+          return;
         }
+        if (res.statusCode !== 200 || !res.data) {
+          wx.showToast({ title: '下载失败', icon: 'none' });
+          return;
+        }
+        const fs = wx.getFileSystemManager();
+        const safeName = (file.filename || fileId).replace(/[<>:"/\\|?*]/g, '_');
+        const tmpPath = wx.env.USER_DATA_PATH + '/' + safeName;
+        fs.writeFile({
+          filePath: tmpPath, data: res.data,
+          success: () => {
+            wx.openDocument({
+              filePath: tmpPath, fileType: getDocFileType(file.mime_type || '', ext),
+              showMenu: true,
+              success: () => {},
+              fail: () => { wx.showToast({ title: '打开文件失败', icon: 'none' }); }
+            });
+          },
+          fail: () => { wx.showToast({ title: '保存文件失败', icon: 'none' }); }
+        });
       },
-      fail() {
-        wx.hideLoading();
-        wx.showToast({ title: '下载文件失败', icon: 'none' });
-      }
+      fail: () => { wx.hideLoading(); wx.showToast({ title: '下载失败', icon: 'none' }); }
     });
   },
 
   handleFileRemove(e) {
     const index = e.currentTarget.dataset.index;
+    const file = this.data.attachedFiles[index];
     const files = [...this.data.attachedFiles];
     files.splice(index, 1);
     this.setData({ attachedFiles: files });
+
+    if (file && file.fileId) {
+      const token = wx.getStorageSync('authToken');
+      wx.request({
+        url: 'https://api.yzjtiantian.cn/files/' + file.fileId,
+        method: 'DELETE',
+        header: { 'Authorization': 'Bearer ' + token },
+        fail: () => {}
+      });
+    }
+  },
+
+  handleFileRename(e) {
+    const index = e.currentTarget.dataset.index;
+    const file = this.data.attachedFiles[index];
+    if (!file) return;
+
+    const nameParts = file.filename.split('.');
+    const ext = nameParts.length > 1 ? nameParts.pop() : '';
+    const baseName = nameParts.join('.');
+
+    wx.showModal({
+      title: '重命名文件',
+      editable: true,
+      content: baseName,
+      placeholderText: '请输入新文件名',
+      success: async (res) => {
+        if (!res.confirm) return;
+        const newBase = (res.content || '').trim();
+        if (!newBase) {
+          wx.showToast({ title: '文件名不能为空', icon: 'none' });
+          return;
+        }
+        const newFilename = ext ? newBase + '.' + ext : newBase;
+
+        try {
+          const token = wx.getStorageSync('authToken');
+          const apiRes = await new Promise((resolve, reject) => {
+            wx.request({
+              url: 'https://api.yzjtiantian.cn/files/' + file.fileId,
+              method: 'PUT',
+              header: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+              data: { filename: newFilename },
+              success: r => resolve(r),
+              fail: reject
+            });
+          });
+
+          if (apiRes.data && apiRes.data.success) {
+            const files = [...this.data.attachedFiles];
+            files[index] = { ...files[index], filename: newFilename };
+            this.setData({ attachedFiles: files });
+            wx.showToast({ title: '重命名成功', icon: 'success' });
+          } else {
+            wx.showToast({ title: apiRes.data.message || '重命名失败', icon: 'none' });
+          }
+        } catch (err) {
+          wx.showToast({ title: '重命名失败', icon: 'none' });
+        }
+      }
+    });
   },
 
   getFileIcon(contentType, filename) {
@@ -1034,10 +1065,12 @@ Page({
         shareCode: this.data.selectedComboCode || null, location: this.data.location || null,
         comboId: this.data.comboId || null,
         files: this.data.attachedFiles.length > 0 ? this.data.attachedFiles.map(f => ({
-          id: f.id, url: f.url, raw_url: f.raw_url,
-          filename: f.filename, size: f.size, human_size: f.human_size,
-          content_type: f.content_type, expires_at: f.expires_at,
-          owner_token: f.owner_token
+          fileId: f.fileId,
+          filename: f.filename,
+          file_size: f.file_size,
+          human_size: f.human_size,
+          mime_type: f.mime_type,
+          expires_at: f.expires_at
         })) : null,
       };
       if (this.data.editMode) {
@@ -1088,13 +1121,18 @@ Page({
   },
 
   goBack() {
-    // 编辑模式下保留现有文件（属于帖子），仅清理新上传的未保存文件
     if (!this.data.editMode) {
       const { attachedFiles: goBackFiles } = this.data;
       if (goBackFiles && goBackFiles.length > 0) {
         for (const f of goBackFiles) {
-          if (f.id && f.owner_token) {
-            deleteFile({ fileId: f.id, ownerToken: f.owner_token }).catch(() => {});
+          if (f.fileId) {
+            const token = wx.getStorageSync('authToken');
+            wx.request({
+              url: 'https://api.yzjtiantian.cn/files/' + f.fileId,
+              method: 'DELETE',
+              header: { 'Authorization': 'Bearer ' + token },
+              fail: () => {}
+            });
           }
         }
       }

@@ -136,7 +136,7 @@ Page({
       if (res.success && res.data) {
         const post = res.data;
         if (post.files) {
-          post.files = post.files.map(f => ({ ...f, _icon: this.getFileIcon(f.content_type, f.filename) }));
+          post.files = post.files.map(f => ({ ...f, _icon: this.getFileIcon(f.mime_type || f.content_type, f.filename) }));
         }
         post._createdAtDisplay = this.formatTime(post.createdAt);
         post.createdAtDisplay = post._createdAtDisplay; // post-card component compatibility
@@ -607,12 +607,16 @@ Page({
 
   isFileExpired(expiresAt) {
     if (!expiresAt) return false;
-    return new Date(expiresAt) < new Date();
+    const date = new Date(expiresAt.replace(/-/g, '/'));
+    if (isNaN(date.getTime())) return false;
+    return date < new Date();
   },
 
   getFileRemainingDays(expiresAt) {
     if (!expiresAt) return null;
-    const remaining = (new Date(expiresAt) - new Date()) / (1000 * 60 * 60 * 24);
+    const date = new Date(expiresAt.replace(/-/g, '/'));
+    if (isNaN(date.getTime())) return null;
+    const remaining = (date - new Date()) / (1000 * 60 * 60 * 24);
     return Math.ceil(remaining);
   },
 
@@ -627,36 +631,45 @@ Page({
   },
 
   _openFile(file) {
-    const url = file.raw_url || file.url;
-    if (!url) { wx.showToast({ title: '文件地址无效', icon: 'none' }); return; }
-
     const ext = file.filename ? file.filename.split('.').pop().toLowerCase() : '';
-    const ct = (file.content_type || '').toLowerCase();
+    const fileId = file.fileId;
+    if (!fileId) { wx.showToast({ title: '文件ID无效', icon: 'none' }); return; }
 
-    if (ct.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes(ext)) {
-      wx.previewImage({ urls: [url] });
-      return;
-    }
+    const token = wx.getStorageSync('authToken');
 
     wx.showLoading({ title: '下载中...' });
-    wx.downloadFile({
-      url,
-      success(res) {
+    wx.request({
+      url: 'https://api.yzjtiantian.cn/files/' + fileId,
+      method: 'GET',
+      header: { 'Authorization': 'Bearer ' + token },
+      responseType: 'arraybuffer',
+      success: (res) => {
         wx.hideLoading();
-        if (res.statusCode === 200) {
-          wx.openDocument({
-            filePath: res.tempFilePath,
-            fileType: getDocFileType(ct, ext),
-            showMenu: true,
-            success: () => {},
-            fail: () => { wx.showToast({ title: '打开文件失败', icon: 'none' }); }
-          });
+        if (res.statusCode === 410) {
+          wx.showToast({ title: '文件已过期', icon: 'none' });
+          return;
         }
+        if (res.statusCode !== 200 || !res.data) {
+          wx.showToast({ title: '下载失败', icon: 'none' });
+          return;
+        }
+        var fs = wx.getFileSystemManager();
+        var safeName = (file.filename || String(fileId)).replace(/[<>:"/\\|?*]/g, '_');
+        var tmpPath = wx.env.USER_DATA_PATH + '/' + safeName;
+        fs.writeFile({
+          filePath: tmpPath, data: res.data,
+          success: () => {
+            wx.openDocument({
+              filePath: tmpPath, fileType: getDocFileType(file.mime_type || '', ext),
+              showMenu: true,
+              success: () => {},
+              fail: () => { wx.showToast({ title: '打开文件失败', icon: 'none' }); }
+            });
+          },
+          fail: () => { wx.showToast({ title: '保存文件失败', icon: 'none' }); }
+        });
       },
-      fail() {
-        wx.hideLoading();
-        wx.showToast({ title: '下载文件失败', icon: 'none' });
-      }
+      fail: () => { wx.hideLoading(); wx.showToast({ title: '下载失败', icon: 'none' }); }
     });
   },
 

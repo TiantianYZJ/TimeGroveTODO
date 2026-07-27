@@ -548,6 +548,9 @@
   color: #999;
   background: #f0f0f0;
 }
+.file-mini-rename {
+  padding: 8rpx;
+}
 .file-mini-remove {
   padding: 8rpx;
 }
