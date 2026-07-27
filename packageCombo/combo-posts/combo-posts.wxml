@@ -17,7 +17,7 @@
       bind:tapCard="navigateToPostDetail"
       bind:tapFileExpand="toggleFileExpand"
       bind:tapFile="openFile"
-    />
+    ></post-card>
     </view>
     </block>
 
