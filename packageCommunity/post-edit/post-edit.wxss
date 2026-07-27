@@ -535,6 +535,8 @@
 }
 .file-mini-expiry {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 .expiry-badge {
   font-size: 20rpx;
