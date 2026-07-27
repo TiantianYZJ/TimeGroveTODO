@@ -1,5 +1,5 @@
 const app = getApp();
-const { combosApi, collabApi, isLoggedIn, notifyApi, adminApi, confirmRevokeIfShared } = require('../../utils/api.js');
+const { combosApi, collabApi, isLoggedIn, notifyApi, adminApi, communityApi, workReportApi, confirmRevokeIfShared } = require('../../utils/api.js');
 const { getLocalTodos, saveTodo, getTodoById, deleteTodoById, syncWithCloud, addDeletedTodo } = require('../../utils/sync.js');
 const { formatDateTime } = require('../../utils/util.js');
 
@@ -64,6 +64,8 @@ Page({
     myAssignedCount: 0,
     _togglingIds: {},
     fixedHeaderHeight: 0,
+    recentPosts: [],
+    reportPreviewText: '',
     showBackTop: false,
     recordState: false,
     content: '',
@@ -347,12 +349,14 @@ Page({
         });
         
         this.checkDefaultNickname();
-        
+
         this.loadFilterPreference();
         this.loadShowOverallPreference();
         this.applyFilter();
         this.updateStats();
-        
+        this.loadRecentPosts(id);
+        this.loadReportPreview(id);
+
         setTimeout(() => this.updateFixedHeaderHeight(), 100);
       } else {
         const allTodos = getLocalTodos();
@@ -1121,6 +1125,66 @@ Page({
     wx.navigateTo({
       url: `/packageCombo/combo-posts/combo-posts?comboId=${this.data.comboId}`
     });
+  },
+
+  navigateToPostDetail(e) {
+    const postId = e.currentTarget.dataset.id;
+    if (postId) {
+      wx.navigateTo({
+        url: `/packageCommunity/post-detail/post-detail?postId=${postId}`
+      });
+    }
+  },
+
+  async loadReportPreview(comboId) {
+    try {
+      const today = new Date();
+      const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      const { userRole, isShared } = this.data;
+      const app = getApp();
+      let uid = app.globalData.userInfo?.id;
+      if (!uid) { const u = wx.getStorageSync('user'); uid = u?.id; }
+
+      if (!isShared) {
+        const res = await workReportApi.getList({ type: 'daily', period_date: dateStr, combo_id: comboId, page_size: 1 });
+        const list = (res.data && res.data.list) || res.list || [];
+        const mine = list.find(r => String(r.userId || r.user_id) === String(uid));
+        this.setData({ reportPreviewText: mine ? '今日日报·已提交' : '今日日报·未提交' });
+        return;
+      }
+
+      if (userRole === 'owner' || userRole === 'admin') {
+        const res = await workReportApi.getBoard({ combo_id: comboId, type: 'daily', period_date: dateStr });
+        if (res.success) {
+          const count = (res.data?.members || []).filter(m => (m.reports || []).length > 0).length;
+          this.setData({ reportPreviewText: count > 0 ? `今日日报·${count}人提交` : '今日暂无汇报' });
+        }
+      } else {
+        const res = await workReportApi.getList({ type: 'daily', period_date: dateStr, combo_id: comboId, page_size: 1 });
+        const list = (res.data && res.data.list) || res.list || [];
+        const mine = list.find(r => String(r.userId || r.user_id) === String(uid));
+        this.setData({ reportPreviewText: mine ? '今日日报·已提交' : '今日日报·未提交' });
+      }
+    } catch (e) {
+      // 静默
+    }
+  },
+
+  async loadRecentPosts(comboId) {
+    try {
+      const res = await communityApi.getComboPosts(comboId, { limit: 100 });
+      const list = (res.data && res.data.list) || res.list || [];
+      const first = list[0];
+      this.setData({
+        recentPosts: first ? [{
+          id: first.postId || first.id,
+          title: first.title || (first.content ? first.content.substring(0, 30) : '') || '',
+          createdAt: first.createdAt,
+        }] : []
+      });
+    } catch (e) {
+      // 静默
+    }
   },
 
   async loadComboDataForAdmin(id, userId) {
