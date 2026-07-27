@@ -67,6 +67,10 @@
   gap: 20rpx;
 }
 
+.feed-list .post-card {
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
 /* ========== 状态提示 ========== */
 
 .loading-more,

@@ -10,6 +10,10 @@
   padding: 0 20rpx;
 }
 
+.posts-list .post-card {
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
 .post-card-shadow-wrapper {
   border-radius: 32rpx;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);

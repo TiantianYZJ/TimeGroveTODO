@@ -5,9 +5,10 @@
   </view>
 
   <view wx:if="{{comboPosts.length > 0}}" class="posts-list">
-    <block wx:for="{{comboPosts}}" wx:key="postId" wx:for-item="item">
-    <view class="post-card-shadow-wrapper">
     <post-card
+      wx:for="{{comboPosts}}"
+      wx:key="postId"
+      wx:for-item="item"
       post="{{item}}"
       renderMarkdown="{{true}}"
       showStats="{{false}}"
@@ -18,11 +19,10 @@
       bind:tapFileExpand="toggleFileExpand"
       bind:tapFile="openFile"
     ></post-card>
-    </view>
-    </block>
+  </view>
 
   <view wx:if="{{loadingPosts}}" class="loading-posts">
-    <t-loading loading="{{true}}" size="40rpx" />
+    <t-loading loading="{{true}}" size="40rpx"></t-loading>
   </view>
 
   <view wx:if="{{comboPostsHasMore && !loadingPosts}}" class="load-more" bindtap="loadMoreComboPosts">

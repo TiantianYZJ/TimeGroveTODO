@@ -59,7 +59,6 @@
   <view class="posts-section">
     <view class="section-title">帖子（{{user.postCount || 0}}）</view>
     <block wx:for="{{posts}}" wx:key="postId">
-      <view class="post-card-shadow-wrapper">
       <post-card
         post="{{item}}"
         expanded="{{expandedPostId === item.postId}}"
@@ -71,11 +70,10 @@
         bind:tapCombo="handleComboTap"
         bind:tapLocation="openLocation"
         bind:toggleLike="toggleLike"
-      />
-      </view>
+      ></post-card>
     </block>
     <view wx:if="{{loadingMore}}" class="loading-more">
-      <t-loading loading="{{true}}" size="40rpx" />
+      <t-loading loading="{{true}}" size="40rpx"></t-loading>
       <text>加载中...</text>
     </view>
     <view wx:if="{{!hasMore && posts.length > 0}}" class="no-more">

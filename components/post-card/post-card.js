@@ -1,4 +1,5 @@
 Component({
+  options: { addGlobalClass: true },
   properties: {
     post: { type: Object, value: {} },
     showAuthor: { type: Boolean, value: true },

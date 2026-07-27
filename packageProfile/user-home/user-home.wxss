@@ -173,6 +173,10 @@
   gap: 20rpx;
 }
 
+.posts-section .post-card {
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
 .section-title {
   font-size: 38rpx;
   font-weight: 600;
