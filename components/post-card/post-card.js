@@ -10,7 +10,8 @@ Component({
     renderMarkdown: { type: Boolean, value: false }
   },
   data: {
-    displayBody: ''
+    displayBody: '',
+    _fileMeta: []
   },
   observers: {
     'post.body'(body) {
@@ -26,14 +27,20 @@ Component({
     },
     'post'(post) {
       if (post && post.files && post.files.length > 0) {
-        const enriched = post.files.map((f, i) => {
+        const iconMap = {};
+        const meta = [];
+        post.files.forEach((f, i) => {
           const icon = this.getFileIcon(f.mime_type || f.content_type, f.filename);
           const isExpired = this.isFileExpired && this.isFileExpired(f.expires_at);
           const days = this.getFileRemainingDays ? this.getFileRemainingDays(f.expires_at) : '';
           console.log('[post-card] file['+i+']:', f.filename, 'icon:', icon, 'expires_at:', f.expires_at, 'isExpired:', isExpired, 'days:', days);
-          return { ...f, _icon: icon, _remainingDays: String(days), _isExpired: isExpired };
+          iconMap['post.files['+i+']._icon'] = icon;
+          meta.push({ _remainingDays: String(days), _isExpired: isExpired });
         });
-        this.setData({ 'post.files': enriched });
+        this.setData(iconMap);
+        this.setData({ _fileMeta: meta });
+      } else {
+        this.setData({ _fileMeta: [] });
       }
     },
   },
