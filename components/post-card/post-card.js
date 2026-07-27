@@ -29,7 +29,7 @@ Component({
         const iconMap = {};
         post.files.forEach((f, i) => {
           const icon = this.getFileIcon(f.mime_type || f.content_type, f.filename);
-          console.log('[post-card] file['+i+']:', f.filename, 'icon:', icon);
+          console.log('[post-card] file['+i+']:', f.filename, 'icon:', icon, 'expires_at:', f.expires_at, 'isExpired:', this.isFileExpired && this.isFileExpired(f.expires_at), 'remainingDays:', this.getFileRemainingDays ? this.getFileRemainingDays(f.expires_at) : 'no_method');
           iconMap['post.files['+i+']._icon'] = icon;
         });
         this.setData(iconMap);
