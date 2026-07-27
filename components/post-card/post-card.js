@@ -110,9 +110,11 @@ Component({
     getFileRemainingDays(expiresAt) {
       if (!expiresAt) { console.log('[pc] getRemainingDays: no expiresAt'); return ''; }
       const date = new Date(expiresAt.replace(/-/g, '/'));
-      if (!date) return '';
+      console.log('[pc] getRemainingDays input:', expiresAt, 'parsed:', date, 'isNaN:', isNaN(date.getTime()));
+      if (isNaN(date.getTime())) { console.log('[pc] getRemainingDays: invalid date'); return ''; }
       const remaining = (date - new Date()) / (1000 * 60 * 60 * 24);
       const days = Math.ceil(remaining);
+      console.log('[pc] getRemainingDays remaining:', remaining, 'days:', days);
       if (days <= 0) return '';
       return days;
     },

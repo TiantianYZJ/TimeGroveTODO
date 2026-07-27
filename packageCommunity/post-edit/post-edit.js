@@ -882,12 +882,14 @@ Page({
   },
 
   getFileRemainingDays(expiresAt) {
-    if (!expiresAt) return null;
+    if (!expiresAt) { console.log('[pe] getRemainingDays: no expiresAt'); return ''; }
     const date = new Date(expiresAt.replace(/-/g, '/'));
-    if (isNaN(date.getTime())) return null;
+    if (isNaN(date.getTime())) { console.log('[pe] getRemainingDays: invalid date', expiresAt); return ''; }
     const remaining = (date - new Date()) / (1000 * 60 * 60 * 24);
     const days = Math.ceil(remaining);
-    return days > 0 ? days : 0;
+    console.log('[pe] getRemainingDays:', expiresAt, '→', days, 'days');
+    if (days <= 0) return '';
+    return days;
   },
 
   openFile(e) {

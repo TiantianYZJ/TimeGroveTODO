@@ -613,11 +613,13 @@ Page({
   },
 
   getFileRemainingDays(expiresAt) {
-    if (!expiresAt) return null;
+    if (!expiresAt) return '';
     const date = new Date(expiresAt.replace(/-/g, '/'));
-    if (isNaN(date.getTime())) return null;
+    if (isNaN(date.getTime())) return '';
     const remaining = (date - new Date()) / (1000 * 60 * 60 * 24);
-    return Math.ceil(remaining);
+    const days = Math.ceil(remaining);
+    if (days <= 0) return '';
+    return days;
   },
 
   openFile(e) {
