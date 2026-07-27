@@ -90,6 +90,24 @@ async function formatPost(row, userId) {
   const viewerIds = row.viewer_ids ? JSON.parse(row.viewer_ids) : [];
   const files = row.files ? JSON.parse(row.files) : [];
 
+  // 补齐缺失的 expires_at（旧帖子可能没有此字段，从 files 表批量查询）
+  if (files.length > 0) {
+    const fileIds = files.filter(f => f.fileId).map(f => f.fileId);
+    if (fileIds.length > 0) {
+      const fileRows = await query(
+        `SELECT id, expires_at FROM files WHERE id IN (${fileIds.map(() => '?').join(',')})`,
+        fileIds
+      );
+      const expiryMap = {};
+      fileRows.forEach(r => { expiryMap[r.id] = r.expires_at; });
+      files.forEach(f => {
+        if (f.fileId && expiryMap[f.fileId]) {
+          f.expires_at = expiryMap[f.fileId];
+        }
+      });
+    }
+  }
+
   // 若 ip_province 为空但有 ip_address，实时查询补上
   let ipProvince = row.ip_province;
   if (!ipProvince && row.ip_address) {
