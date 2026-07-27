@@ -67,13 +67,13 @@
         <t-icon name="{{fileExpanded ? 'chevron-up' : 'chevron-down'}}" size="28rpx" color="#999" />
       </view>
       <view wx:if="{{fileExpanded}}" class="tag-card-body">
-        <view class="file-mini-item {{isFileExpired(item.expires_at) ? 'expired' : ''}}" wx:for="{{post.files}}" wx:key="*this" data-index="{{index}}" catch:tap="onTapFile">
+        <view class="file-mini-item {{item._isExpired ? 'expired' : ''}}" wx:for="{{post.files}}" wx:key="*this" data-index="{{index}}" catch:tap="onTapFile">
           <t-icon name="{{item._icon}}" size="28rpx" color="#666" />
-          <text class="file-mini-name {{isFileExpired(item.expires_at) ? 'expired' : ''}}">{{item.filename}}</text>
+          <text class="file-mini-name {{item._isExpired ? 'expired' : ''}}">{{item.filename}}</text>
           <text class="file-mini-size">{{item.human_size}}</text>
           <view class="file-mini-expiry">
-            <text wx:if="{{isFileExpired(item.expires_at)}}" class="expiry-badge expired">已过期</text>
-            <text wx:else class="expiry-badge">{{getFileRemainingDays(item.expires_at)}}天后过期</text>
+            <text wx:if="{{item._isExpired}}" class="expiry-badge expired">已过期</text>
+            <text wx:else class="expiry-badge">{{item._remainingDays}}天后过期</text>
           </view>
         </view>
       </view>

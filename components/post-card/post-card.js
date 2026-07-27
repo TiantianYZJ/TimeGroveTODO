@@ -29,8 +29,12 @@ Component({
         const iconMap = {};
         post.files.forEach((f, i) => {
           const icon = this.getFileIcon(f.mime_type || f.content_type, f.filename);
-          console.log('[post-card] file['+i+']:', f.filename, 'icon:', icon, 'expires_at:', f.expires_at, 'isExpired:', this.isFileExpired && this.isFileExpired(f.expires_at), 'remainingDays:', this.getFileRemainingDays ? this.getFileRemainingDays(f.expires_at) : 'no_method');
+          const isExpired = this.isFileExpired && this.isFileExpired(f.expires_at);
+          const days = this.getFileRemainingDays ? this.getFileRemainingDays(f.expires_at) : '';
+          console.log('[post-card] file['+i+']:', f.filename, 'icon:', icon, 'expires_at:', f.expires_at, 'isExpired:', isExpired, 'days:', days);
           iconMap['post.files['+i+']._icon'] = icon;
+          iconMap['post.files['+i+']._remainingDays'] = String(days);
+          iconMap['post.files['+i+']._isExpired'] = isExpired;
         });
         this.setData(iconMap);
       }
@@ -116,7 +120,7 @@ Component({
       const days = Math.ceil(remaining);
       console.log('[pc] getRemainingDays remaining:', remaining, 'days:', days);
       if (days <= 0) return '';
-      return days;
+      return String(days);
     },
     onTapTodo(e) {
       const { todoId, creatorName, creatorAvatar, creatorId, postId } = e.currentTarget.dataset;

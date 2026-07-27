@@ -152,7 +152,7 @@ Page({
               selectedComboCode: draft.selectedComboCode || null,
               selectedComboName: draft.selectedComboName || '',
               location: draft.location || null,
-              attachedFiles: draft.attachedFiles || [],
+              attachedFiles: (draft.attachedFiles || []).map(f => this._enrichFile(f)),
               pollDraft: draft.pollDraft || null,
               showPollEditor: !!draft.pollDraft,
               pollEndTimeStr: draft.pollDraft?.endTime || '',
@@ -221,7 +221,7 @@ Page({
         editMode: true, editPostId: postId,
         title: cached.title || '', body: cached.body || '',
         fileList, imageUrls: cached.images || [],
-        attachedFiles: (cached.files || []).map(f => ({ ...f, _icon: this.getFileIcon(f.content_type, f.filename) })),
+        attachedFiles: (cached.files || []).map(f => this._enrichFile(f)),
         selectedTodoIds: cached.todoIds || [], selectedTodoTexts, selectedTodoPriorities,
         selectedComboCode: cached.shareCode || null,
         selectedComboName: comboName,
@@ -255,7 +255,7 @@ Page({
           editMode: true, editPostId: postId,
           title: post.title || '', body: post.body || '',
           fileList, imageUrls: post.images || [],
-          attachedFiles: (post.files || []).map(f => ({ ...f, _icon: this.getFileIcon(f.content_type, f.filename) })),
+          attachedFiles: (post.files || []).map(f => this._enrichFile(f)),
           selectedTodoIds: post.todoIds || [], selectedTodoTexts, selectedTodoPriorities,
           selectedComboCode: post.shareCode || null,
           selectedComboName: comboName,
@@ -851,15 +851,14 @@ Page({
 
         try {
           const result = await uploadFile(file.path, file.name);
-          const fileInfo = {
+          const fileInfo = this._enrichFile({
             fileId: result.fileId,
             filename: result.filename,
             file_size: result.file_size,
             human_size: result.human_size,
             mime_type: result.mime_type,
-            expires_at: result.expires_at,
-            _icon: this.getFileIcon(result.mime_type, result.filename)
-          };
+            expires_at: result.expires_at
+          });
 
           this.setData({
             attachedFiles: [...this.data.attachedFiles, fileInfo]
@@ -872,6 +871,15 @@ Page({
       // User cancelled
     }
     wx.hideLoading();
+  },
+
+  _enrichFile(f) {
+    return {
+      ...f,
+      _icon: this.getFileIcon(f.mime_type || f.content_type, f.filename),
+      _isExpired: this.isFileExpired(f.expires_at),
+      _remainingDays: this.getFileRemainingDays(f.expires_at)
+    };
   },
 
   isFileExpired(expiresAt) {
