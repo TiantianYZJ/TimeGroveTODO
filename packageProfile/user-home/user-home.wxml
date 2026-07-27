@@ -59,6 +59,7 @@
   <view class="posts-section">
     <view class="section-title">帖子（{{user.postCount || 0}}）</view>
     <block wx:for="{{posts}}" wx:key="postId">
+      <view class="post-card-shadow-wrapper">
       <post-card
         post="{{item}}"
         expanded="{{expandedPostId === item.postId}}"
@@ -71,6 +72,7 @@
         bind:tapLocation="openLocation"
         bind:toggleLike="toggleLike"
       />
+      </view>
     </block>
     <view wx:if="{{loadingMore}}" class="loading-more">
       <t-loading loading="{{true}}" size="40rpx" />

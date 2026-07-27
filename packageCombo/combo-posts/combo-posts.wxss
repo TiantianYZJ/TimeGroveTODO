@@ -10,6 +10,12 @@
   padding: 0 20rpx;
 }
 
+.post-card-shadow-wrapper {
+  border-radius: 32rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;

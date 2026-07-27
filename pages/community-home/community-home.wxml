@@ -70,6 +70,7 @@
 
   <view class="feed-list">
     <block wx:for="{{postList}}" wx:key="postId">
+      <view class="post-card-shadow-wrapper">
       <post-card
         post="{{item}}"
         renderMarkdown="{{true}}"
@@ -88,6 +89,7 @@
         bind:tapLocation="openLocation"
         bind:toggleLike="toggleLike"
       />
+      </view>
     </block>
     <view wx:if="{{loadingMore}}" class="loading-more">
       <t-loading loading="{{true}}" size="40rpx" />
