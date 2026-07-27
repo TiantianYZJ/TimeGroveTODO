@@ -30,7 +30,7 @@ const list = async (req, res) => {
 
   try {
     const rows = await query(
-      'SELECT id, user_id, post_id, todo_id, filename, file_size, mime_type, created_at, expires_at FROM files WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
+      'SELECT id, user_id, post_id, todo_id, filename, file_size, mime_type, DATE_FORMAT(created_at, \'%Y-%m-%d %H:%i:%s\') as created_at, DATE_FORMAT(expires_at, \'%Y-%m-%d %H:%i:%s\') as expires_at FROM files WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
       [userId, pageSize, offset]
     );
     const total = await query('SELECT COUNT(*) as total FROM files WHERE user_id = ?', [userId]);
@@ -121,7 +121,7 @@ const rename = async (req, res) => {
     const cleanName = filename.trim();
     await query('UPDATE files SET filename = ? WHERE id = ?', [cleanName, id]);
 
-    const updated = await query('SELECT * FROM files WHERE id = ?', [id]);
+    const updated = await query('SELECT id, user_id, post_id, todo_id, filename, file_size, mime_type, DATE_FORMAT(created_at, \'%Y-%m-%d %H:%i:%s\') as created_at, DATE_FORMAT(expires_at, \'%Y-%m-%d %H:%i:%s\') as expires_at FROM files WHERE id = ?', [id]);
     const f = updated[0];
     res.json({
       success: true,

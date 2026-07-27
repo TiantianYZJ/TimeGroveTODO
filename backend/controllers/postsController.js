@@ -95,7 +95,7 @@ async function formatPost(row, userId) {
     const fileIds = files.filter(f => f.fileId).map(f => f.fileId);
     if (fileIds.length > 0) {
       const fileRows = await query(
-        `SELECT id, expires_at FROM files WHERE id IN (${fileIds.map(() => '?').join(',')})`,
+        `SELECT id, DATE_FORMAT(expires_at, '%Y-%m-%d %H:%i:%s') as expires_at FROM files WHERE id IN (${fileIds.map(() => '?').join(',')})`,
         fileIds
       );
       const expiryMap = {};
