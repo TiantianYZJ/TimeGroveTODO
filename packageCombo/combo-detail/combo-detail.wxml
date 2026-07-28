@@ -4,12 +4,12 @@ var relativeTime = function(dateStr) {
   var date = getDate(dateStr);
   var now = getDate();
   var diff = Math.floor((now - date) / 1000);
-  if (diff < 60) return ' · 刚刚';
-  if (diff < 3600) return ' · ' + Math.floor(diff / 60) + '分钟前';
-  if (diff < 86400) return ' · ' + Math.floor(diff / 3600) + '小时前';
-  if (diff < 2592000) return ' · ' + Math.floor(diff / 86400) + '天前';
-  if (diff < 31104000) return ' · ' + Math.floor(diff / 2592000) + '个月前';
-  return ' · ' + Math.floor(diff / 31104000) + '年前';
+  if (diff < 60) return '刚刚';
+  if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
+  if (diff < 86400) return Math.floor(diff / 3600) + '小时前';
+  if (diff < 2592000) return Math.floor(diff / 86400) + '天前';
+  if (diff < 31104000) return Math.floor(diff / 2592000) + '个月前';
+  return Math.floor(diff / 31104000) + '年前';
 };
 module.exports = { relativeTime: relativeTime };
 </wxs>
@@ -131,14 +131,26 @@ module.exports = { relativeTime: relativeTime };
     <view wx:if="{{!adminView}}" class="info-row">
       <view class="info-block report-block" bindtap="navigateToReportBoard">
         <view class="section-header">
-          <text class="section-title">汇报 · 日/周报</text>
+          <text class="section-title">汇报 · 日报&周报</text>
           <t-icon name="chevron-right" size="32rpx" color="#999" />
+        </view>
+        <view wx:if="{{reportPreviewText}}" class="report-preview">
+          <text class="report-preview-text">{{reportPreviewText}}</text>
         </view>
       </view>
       <view class="info-block posts-block" bindtap="navigateToComboPosts">
         <view class="section-header">
-          <text class="section-title">动态<text wx:if="{{combo.latestPostAt}}" class="section-sub">{{timeUtil.relativeTime(combo.latestPostAt)}}</text></text>
+          <text class="section-title">动态 · {{recentPostsTotal || recentPosts.length}}条</text>
           <t-icon name="chevron-right" size="32rpx" color="#999" />
+        </view>
+        <view wx:if="{{recentPosts.length > 0}}" class="posts-preview">
+          <view class="post-preview-item" wx:for="{{recentPosts}}" wx:key="id" wx:for-item="post" data-id="{{post.id}}" bindtap="navigateToPostDetail">
+            <text class="post-preview-title">{{post.title}}</text>
+            <text class="post-preview-time">{{timeUtil.relativeTime(post.createdAt)}}</text>
+          </view>
+        </view>
+        <view wx:else class="posts-preview">
+          <text class="post-preview-empty">暂无动态</text>
         </view>
       </view>
     </view>

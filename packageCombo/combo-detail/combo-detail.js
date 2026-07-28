@@ -65,6 +65,7 @@ Page({
     _togglingIds: {},
     fixedHeaderHeight: 0,
     recentPosts: [],
+    recentPostsTotal: 0,
     reportPreviewText: '',
     showBackTop: false,
     recordState: false,
@@ -1172,15 +1173,17 @@ Page({
 
   async loadRecentPosts(comboId) {
     try {
-      const res = await communityApi.getComboPosts(comboId, { limit: 100 });
+      const res = await communityApi.getComboPosts(comboId, { limit: 1 });
       const list = (res.data && res.data.list) || res.list || [];
+      const total = (res.data && res.data.total) || list.length;
       const first = list[0];
       this.setData({
         recentPosts: first ? [{
           id: first.postId || first.id,
           title: first.title || (first.content ? first.content.substring(0, 30) : '') || '',
           createdAt: first.createdAt,
-        }] : []
+        }] : [],
+        recentPostsTotal: total
       });
     } catch (e) {
       // 静默

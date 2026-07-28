@@ -538,11 +538,16 @@ const getComboPosts = async (req, res) => {
 
     const list = await Promise.all(rows.map(row => formatPost(row, userId)));
 
+    const countResult = await query(
+      'SELECT COUNT(*) as total FROM posts WHERE combo_id = ? AND is_deleted = 0',
+      [comboId]
+    );
+
     const nextCursor = hasMore && rows.length > 0
       ? `${rows[rows.length - 1].created_at}_${rows[rows.length - 1].id}`
       : null;
 
-    res.json({ success: true, data: { list, nextCursor, hasMore } });
+    res.json({ success: true, data: { list, nextCursor, hasMore, total: countResult[0].total } });
   } catch (err) {
     logger.error(POST_LOG, '组合帖子列表', '获取组合帖子列表失败', { comboId, userId, error: err.message });
     res.status(500).json({ success: false, message: '获取列表失败' });
