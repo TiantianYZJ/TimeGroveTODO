@@ -3,6 +3,7 @@
 .container {
   padding: 20rpx;
   padding-bottom: 380rpx;
+  overflow-y: visible;
 }
 
 .fixed-header {
@@ -274,10 +275,50 @@
   margin-bottom: 12rpx;
 }
 
+.posts-preview {
+}
+
+.post-preview-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8rpx 0;
+}
+
+.post-preview-title {
+  font-size: 28rpx;
+  color: #333;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  margin-right: 12rpx;
+}
+
+.post-preview-time {
+  font-size: 24rpx;
+  color: #999;
+  flex-shrink: 0;
+}
+
+.post-preview-empty {
+  font-size: 26rpx;
+  color: #ccc;
+}
+
+.report-preview {
+  margin-top: 8rpx;
+}
+
+.report-preview-text {
+  font-size: 26rpx;
+  color: #999;
+}
+
 .stats-preview {
   display: flex;
   justify-content: space-around;
-  margin-top: 14rpx;
 }
 
 .stat-item {

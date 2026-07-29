@@ -31,7 +31,6 @@ Page({
     marks: [],
     calendarView: 'month',
     currentTab: 'daily',
-    activeTabFlag: false,
     selectedDate: '',
     reports: [],
     showFilterPopup: false,
@@ -71,15 +70,12 @@ Page({
     }
   },
 
-  handleLoad(e) {
-    this.calendar = this.selectComponent('#boardCalendar');
-    setTimeout(() => {
-      const today = new Date();
-      const dateStr = this.formatDate(today);
-      this.setData({ selectedDate: dateStr });
-      this.loadReports();
-      this.updateBoardTitle();
-    }, 300);
+  handleLoad() {
+    const today = new Date();
+    const dateStr = this.formatDate(today);
+    this.setData({ selectedDate: dateStr });
+    this.loadReports();
+    this.updateBoardTitle();
   },
 
   formatDate(date) {
@@ -145,24 +141,18 @@ Page({
   },
 
   handleViewChange(e) {
-    if (this.data.activeTabFlag) { this.setData({ activeTabFlag: false }); return; }
     const detail = e.detail;
-    // Month/year navigation: reload marks
     if (detail && typeof detail.year === 'number' && typeof detail.month === 'number') {
       const d = new Date(detail.year, detail.month - 1, 1);
       const firstDay = this.formatDate(d);
       const lastDay = this.formatDate(new Date(detail.year, detail.month, 0));
       this.loadMarksForRange(firstDay, lastDay);
-      return;
     }
-    const view = detail ? (detail.value || detail) : e;
-    if (view === 'month' && this.data.currentTab === 'weekly') this.setData({ currentTab: 'daily' });
-    else if (view === 'week' && this.data.currentTab === 'daily') this.setData({ currentTab: 'weekly' });
   },
 
   onTabChange(e) {
     const tab = e.detail.value;
-    this.setData({ currentTab: tab, activeTabFlag: true });
+    this.setData({ currentTab: tab });
     // 不能额外调用 toggleView — 见 calendar.js onTabChange 注释
     if (tab === 'daily') {
       this.setData({ calendarView: 'month' });
@@ -229,8 +219,8 @@ Page({
         // Deduplicate dates
         const seen = new Set();
         const uniqueMarks = marks.filter(m => {
-          if (seen.has(m.value)) return false;
-          seen.add(m.value);
+          if (seen.has(m.date)) return false;
+          seen.add(m.date);
           return true;
         });
         this.setData({ marks: uniqueMarks });

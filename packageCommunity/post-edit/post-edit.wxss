@@ -163,9 +163,8 @@
 }
 .picker-scroll {
   flex: 1;
+  min-height: 0;
   height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 .picker-footer {
   display: flex;
@@ -573,7 +572,7 @@
   background: #ccebda;
   border-radius: 32rpx;
   gap: 12rpx;
-  padding: 12rpx 24rpx;
+  padding: 24rpx;
 }
 .file-picker-placeholder {
   font-size: 28rpx;

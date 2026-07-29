@@ -460,7 +460,7 @@ const deleteReport = async (req, res) => {
  */
 const getBoard = async (req, res) => {
   const userId = req.user.id;
-  const { combo_id, period_date, date_from, date_to, type } = req.query;
+  const { combo_id, period_date, date_from, date_to, type, user_id } = req.query;
 
   if (!combo_id) {
     return res.status(400).json({
@@ -503,6 +503,9 @@ const getBoard = async (req, res) => {
     if (!canSeeAll) {
       conditions.push('wr.user_id = ?');
       params.push(userId);
+    } else if (user_id) {
+      conditions.push('wr.user_id = ?');
+      params.push(parseInt(user_id, 10));
     }
 
     if (period_date) {
